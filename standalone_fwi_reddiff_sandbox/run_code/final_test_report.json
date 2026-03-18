@@ -1,0 +1,15 @@
+{
+  "load_config": "PASS",
+  "trim_memory": "SKIPPED_NO_DATA",
+  "parse_int_list": "SKIPPED_NO_DATA",
+  "create_logger": "PASS",
+  "weight_init": "PASS",
+  "convert2np": "PASS",
+  "forward_single_shot": "PASS",
+  "forward_multi_shots": "PASS",
+  "gradient_single_shot": "PASS",
+  "gradient_multi_shots": "PASS",
+  "relative_l2": "PASS",
+  "fwi_norm": "PASS",
+  "main": "PASS"
+}

@@ -1,0 +1,16 @@
+Scanning directory: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data
+  Found related file: data_forward_multi_shots.pkl (514734 bytes)
+
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+  Exists: True
+  Size: 514734 bytes
+Inner data files: []
+
+=== Loading outer data ===
+  Standard dill.load failed: Ran out of input
+  File size: 514734 bytes
+  First 30 bytes (hex): 8004955e0b0000000000007d94288c0966756e635f6e616d65948c13666f
+  Last 10 bytes (hex): 803f0000803f0000803f
+  Ends with STOP opcode: False
+  Strategy 2 (append STOP): Success, type=<class 'bytes'>
+FAIL: Expected dict, got <class 'bytes'>

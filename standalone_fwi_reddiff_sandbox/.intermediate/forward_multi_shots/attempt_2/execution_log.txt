@@ -1,0 +1,17 @@
+Scanning directory: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data
+  Found related file: data_forward_multi_shots.pkl (514734 bytes)
+
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+  Exists: True
+  Size: 514734 bytes
+Inner data files: []
+
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+  File size: 514734 bytes
+  First 20 bytes (hex): 8004955e0b0000000000007d94288c0966756e63
+  First 20 bytes (repr): b'\x80\x04\x95^\x0b\x00\x00\x00\x00\x00\x00}\x94(\x8c\tfunc'
+  Found 673 potential pickle STOP opcodes
+  Loaded successfully after appending STOP opcode
+  Outer data loaded successfully.
+FAIL: Unexpected outer data type: <class 'bytes'>
+  Content preview: b'\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00

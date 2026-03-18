@@ -1,0 +1,59 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_main.pkl
+Outer data loaded. func_name: main
+  args count: 0, kwargs keys: []
+Detected Scenario A (Simple function)
+Running main(*args, **kwargs)...
+/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+Operator `initdamp` ran in 0.01 s
+Will record 1001 time steps.
+[[34m2026-03-13 08:21:02[0m] Loaded 1 test samples...
+[[34m2026-03-13 08:21:04[0m] Loaded pre-trained model from /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/weights/fwi-5m.pt...
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.08 s
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.15 s
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.09 s
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.06 s
+Operator `Forward` ran in 0.06 s
+[[34m2026-03-13 08:21:48[0m] Running inference on test sample 1...
+
+  0%|          | 0/10 [00:00<?, ?it/s]
+Iteration 1/10. Data fitting loss: 214.59222412109375:   0%|          | 0/10 [01:23<?, ?it/s]
+Iteration 1/10. Data fitting loss: 214.59222412109375:  10%|█         | 1/10 [01:23<12:29, 83.23s/it]
+Iteration 2/10. Data fitting loss: 214.4560089111328:  10%|█         | 1/10 [02:48<12:29, 83.23s/it] 
+Iteration 2/10. Data fitting loss: 214.4560089111328:  20%|██        | 2/10 [02:48<11:17, 84.70s/it]
+Iteration 3/10. Data fitting loss: 214.12013244628906:  20%|██        | 2/10 [04:15<11:17, 84.70s/it]
+Iteration 3/10. Data fitting loss: 214.12013244628906:  30%|███       | 3/10 [04:15<09:57, 85.33s/it]
+Iteration 4/10. Data fitting loss: 213.60218811035156:  30%|███       | 3/10 [05:40<09:57, 85.33s/it]
+Iteration 4/10. Data fitting loss: 213.60218811035156:  40%|████      | 4/10 [05:40<08:31, 85.23s/it]
+Iteration 5/10. Data fitting loss: 212.90603637695312:  40%|████      | 4/10 [07:05<08:31, 85.23s/it]
+Iteration 5/10. Data fitting loss: 212.90603637695312:  50%|█████     | 5/10 [07:05<07:07, 85.42s/it]
+Iteration 6/10. Data fitting loss: 212.07041931152344:  50%|█████     | 5/10 [08:29<07:07, 85.42s/it]
+Iteration 6/10. Data fitting loss: 212.07041931152344:  60%|██████    | 6/10 [08:29<05:38, 84.73s/it]
+Iteration 7/10. Data fitting loss: 211.1153564453125:  60%|██████    | 6/10 [09:56<05:38, 84.73s/it] 
+Iteration 7/10. Data fitting loss: 211.1153564453125:  70%|███████   | 7/10 [09:56<04:16, 85.51s/it]
+Iteration 8/10. Data fitting loss: 210.06072998046875:  70%|███████   | 7/10 [11:21<04:16, 85.51s/it]
+Iteration 8/10. Data fitting loss: 210.06072998046875:  80%|████████  | 8/10 [11:21<02:50, 85.28s/it]
+Iteration 9/10. Data fitting loss: 208.92120361328125:  80%|████████  | 8/10 [12:45<02:50, 85.28s/it]
+Iteration 9/10. Data fitting loss: 208.92120361328125:  90%|█████████ | 9/10 [12:45<01:25, 85.09s/it]
+Iteration 10/10. Data fitting loss: 207.70872497558594:  90%|█████████ | 9/10 [14:15<01:25, 85.09s/it]
+Iteration 10/10. Data fitting loss: 207.70872497558594: 100%|██████████| 10/10 [14:15<00:00, 86.43s/it]
+Iteration 10/10. Data fitting loss: 207.70872497558594: 100%|██████████| 10/10 [14:15<00:00, 85.53s/it]
+[[34m2026-03-13 08:36:04[0m] Peak GPU memory usage: 0.51 GB
+[[34m2026-03-13 08:36:04[0m] Saved results to /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/exps/inference/fwi-acoustic/REDDiff/default/result_1.pt.
+[[34m2026-03-13 08:36:49[0m] Metric results: {'data misfit': 206.4242706298828, 'relative l2': 0.24497364461421967, 'psnr': 11.473909378051758, 'ssim': 0.535886824131012}...
+[[34m2026-03-13 08:36:49[0m] Evaluation completed...
+[[34m2026-03-13 08:36:49[0m] Final metric results: {'relative l2': np.float64(0.24497364461421967), 'relative l2_std': np.float64(0.0), 'psnr': np.float64(11.473909378051758), 'psnr_std': np.float64(0.0), 'ssim': np.float64(0.535886824131012), 'ssim_std': np.float64(0.0), 'data misfit': np.float64(206.4242706298828), 'data misfit_std': np.float64(0.0)}...
+Comparing results...
+TEST PASSED: 
+2026-03-13 08:36:53,938 - distributed.nanny - WARNING - Worker process still alive after 4.0 seconds, killing

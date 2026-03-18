@@ -1,0 +1,7 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_single_shot.pkl
+[INFO] Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+[INFO] Scenario A detected: Simple function call.
+Operator `Forward` ran in 0.05 s
+[INFO] Function execution succeeded. Result type: PointSource
+FAIL: Verification failed.
+Message: Value mismatch at output: expected rec(time, p_rec), got rec(time, p_rec)

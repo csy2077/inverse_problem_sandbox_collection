@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Creates a logger with specific handlers and formatting based on the process type.",
+    "function_docstring": "```python\n    def create_logger(logging_dir, main_process=True):\n        \"\"\"\n        Creates a logger with specific handlers and formatting based on whether the process is the main process.\n\n        Args:\n            logging_dir (str): The directory path where the log file will be stored.\n            main_process (bool, optional): A flag indicating if the logger is for the main process. Defaults to True.\n                - If True, the logger will have a StreamHandler and a FileHandler with INFO level.\n                - If False, the logger will have a NullHandler.\n\n        Returns:\n            logging.Logger: A configured logger instance.\n        \"\"\"\n```",
+    "usage_example": "```python\n    import os\n    from agent_create_logger import create_logger\n\n    # Example usage\n    logging_dir = os.path.join(os.getcwd(), 'logs')\n    logger = create_logger(logging_dir, main_process=True)\n    logger.info('This is an info message.')\n```"
+}

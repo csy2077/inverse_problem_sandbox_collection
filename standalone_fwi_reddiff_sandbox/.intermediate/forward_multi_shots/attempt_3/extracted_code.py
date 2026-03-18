@@ -1,0 +1,587 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import io
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Pre-import modules that dill may need to reconstruct serialized objects
+try:
+    from devito import Function, TimeFunction, Grid
+except Exception:
+    pass
+
+try:
+    from examples.seismic.acoustic import AcousticWaveSolver
+except Exception:
+    pass
+
+try:
+    from examples.seismic import AcquisitionGeometry, Model, Receiver
+except Exception:
+    pass
+
+from agent_forward_multi_shots import forward_multi_shots
+from verification_utils import recursive_check
+
+
+def load_data(filepath):
+    """Load the pkl data file using dill."""
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found: {filepath}")
+
+    file_size = os.path.getsize(filepath)
+    print(f"  File size: {file_size} bytes")
+
+    if file_size == 0:
+        raise ValueError(f"File is empty: {filepath}")
+
+    with open(filepath, 'rb') as f:
+        data = dill.load(f)
+
+    print(f"  Loaded successfully with dill, type: {type(data)}")
+    return data
+
+
+def try_load_data_robust(filepath):
+    """Try multiple methods to load the data file."""
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found: {filepath}")
+
+    file_size = os.path.getsize(filepath)
+    print(f"  File size: {file_size} bytes")
+
+    if file_size == 0:
+        raise ValueError(f"File is empty: {filepath}")
+
+    with open(filepath, 'rb') as f:
+        raw = f.read()
+
+    print(f"  First 20 bytes (hex): {raw[:20].hex()}")
+
+    # Method 1: Standard dill load
+    try:
+        buf = io.BytesIO(raw)
+        data = dill.load(buf)
+        if isinstance(data, dict) and ('args' in data or 'func_name' in data or 'output' in data):
+            print("  Loaded successfully with dill (standard)")
+            return data
+        # If we got a dict but it's the right type, return it
+        if isinstance(data, dict):
+            print(f"  Loaded dict with keys: {list(data.keys())}")
+            return data
+        # If first load returned something incomplete, try loading ALL objects
+        print(f"  First object type: {type(data)}, attempting to load remaining objects...")
+    except Exception as e:
+        print(f"  Standard dill load failed: {e}")
+
+    # Method 2: Load all sequential objects from the file
+    # The file may contain a dict serialized such that the first object is just the header
+    # and the actual dict payload follows
+    try:
+        buf = io.BytesIO(raw)
+        objects = []
+        while buf.tell() < len(raw):
+            try:
+                obj = dill.load(buf)
+                objects.append(obj)
+            except Exception:
+                break
+        print(f"  Loaded {len(objects)} sequential objects")
+        for i, obj in enumerate(objects):
+            print(f"    Object {i}: type={type(obj)}, ", end="")
+            if isinstance(obj, dict):
+                print(f"keys={list(obj.keys())}")
+                if 'args' in obj or 'func_name' in obj or 'output' in obj:
+                    return obj
+            elif isinstance(obj, bytes):
+                print(f"len={len(obj)}")
+            else:
+                print(f"value={str(obj)[:100]}")
+        # If we have objects but none is a proper dict, see if we can reconstruct
+        if len(objects) == 1 and isinstance(objects[0], dict):
+            return objects[0]
+    except Exception as e:
+        print(f"  Sequential load failed: {e}")
+
+    # Method 3: The file might be a single pickle but the first load returned bytes
+    # because it was truncated. Let's try to find pickle frame boundaries.
+    # The hex shows \x80\x04\x95 which is protocol 4 with FRAME opcode
+    # Protocol 4 uses FRAME (0x95) followed by 8-byte little-endian frame length
+    try:
+        if raw[0:2] == b'\x80\x04' and raw[2:3] == b'\x95':
+            # Protocol 4 with FRAME
+            frame_len = int.from_bytes(raw[3:11], 'little')
+            print(f"  Protocol 4 FRAME detected, frame_length={frame_len}, file_size={len(raw)}")
+
+            if frame_len + 11 < len(raw):
+                # There might be more data after the first frame
+                # The actual dict might span beyond the first frame
+                # Try loading the entire file as one pickle by ignoring frame boundaries
+                pass
+
+            # The issue is likely that dill.load reads the first frame and returns
+            # the first object (a dict header), but the actual large data follows.
+            # Let's check if the file is actually one big pickle that dill can't handle
+            # Try with pickle directly
+            import pickle
+
+            buf = io.BytesIO(raw)
+            data = pickle.load(buf)
+            if isinstance(data, dict):
+                print(f"  Loaded with pickle, keys: {list(data.keys())}")
+                return data
+            print(f"  pickle loaded type: {type(data)}")
+    except Exception as e:
+        print(f"  Protocol 4 frame analysis failed: {e}")
+
+    # Method 4: Maybe the file has multiple frames and we need to read them all
+    # as a single pickle object. The issue might be that the file was written
+    # with a custom pickler that splits across frames differently.
+    try:
+        import pickle
+        import pickletools
+
+        # Try to get the complete pickle by analyzing opcodes
+        buf = io.BytesIO(raw)
+        # Use pickletools to find the structure
+        ops = []
+        try:
+            for opcode, arg, pos in pickletools.genops(buf):
+                ops.append((opcode, arg, pos))
+                if opcode.name == 'STOP':
+                    break
+        except Exception:
+            pass
+
+        if ops:
+            last_op = ops[-1]
+            stop_pos = last_op[2] + 1  # Position after STOP
+            print(f"  Pickle ends at position {stop_pos} (file size {len(raw)})")
+
+            if stop_pos <= len(raw):
+                buf = io.BytesIO(raw[:stop_pos])
+                data = dill.load(buf)
+                if isinstance(data, dict):
+                    print(f"  Loaded truncated file with dill, keys: {list(data.keys())}")
+                    return data
+    except Exception as e:
+        print(f"  Pickletools analysis failed: {e}")
+
+    # Method 5: Check if the raw bytes actually start with a dict that has
+    # the func_name etc. Let's parse the pickle header manually
+    try:
+        # \x80\x04 = PROTO 4
+        # \x95 + 8 bytes = FRAME + length
+        # } = EMPTY_DICT
+        # \x94 = MEMOIZE
+        # Then key-value pairs
+
+        # The first bytes are: \x80\x04\x95\x5e\x0b\x00\x00\x00\x00\x00\x00}\x94(\x8c\tfunc
+        # This is: PROTO 4, FRAME (length=0x0b5e=2910), EMPTY_DICT, MEMOIZE, MARK, SHORT_BINUNICODE "func"
+        # So the first frame is only 2910 bytes but the file is 514734 bytes!
+        # This means there's likely a nested structure where the dict has values
+        # that reference data in subsequent frames
+
+        # The real issue: dill.load only reads the first pickle stream.
+        # But the file might contain one pickle stream that uses multiple frames.
+        # Protocol 4 can have multiple FRAME opcodes in a single pickle stream.
+
+        # Let's try: read the entire file, find the STOP opcode for the outermost object
+        import struct
+
+        # Scan for the last STOP opcode (0x2e = '.')
+        # Actually in protocol 4, STOP is at the very end
+        if raw[-1:] == b'.':
+            print("  File ends with STOP opcode - should be a complete pickle")
+            buf = io.BytesIO(raw)
+            # Force dill to read the entire stream
+            data = dill.loads(raw)
+            if isinstance(data, dict):
+                print(f"  dill.loads succeeded, keys: {list(data.keys())}")
+                return data
+            print(f"  dill.loads returned: {type(data)}")
+        else:
+            print(f"  File does NOT end with STOP opcode. Last byte: {raw[-1]:02x}")
+            # File is truncated! The pickle is incomplete.
+            # We need to find where the dict keys/values are and reconstruct what we can
+
+            # Actually let's check: maybe the file ends properly but with trailing data
+            # Find the last STOP opcode
+            last_stop = raw.rfind(b'.')
+            if last_stop > 0:
+                print(f"  Last STOP opcode at position {last_stop}")
+                candidate = raw[:last_stop + 1]
+                buf = io.BytesIO(candidate)
+                try:
+                    data = dill.load(buf)
+                    if isinstance(data, dict):
+                        print(f"  Loaded up to last STOP, keys: {list(data.keys())}")
+                        return data
+                except Exception as ee:
+                    print(f"  Failed to load up to last STOP: {ee}")
+    except Exception as e:
+        print(f"  Manual parse failed: {e}")
+
+    # Method 6: If nothing works, the file might genuinely be a bytes object
+    # that represents serialized data in some other format
+    try:
+        buf = io.BytesIO(raw)
+        first_obj = dill.load(buf)
+        if isinstance(first_obj, dict):
+            # Check if 'output' or 'args' values are placeholder references
+            # that need the remaining bytes
+            return first_obj
+        elif isinstance(first_obj, bytes):
+            # The first object is bytes - maybe it's the value part of a larger structure
+            # Try to load more
+            remaining = raw[buf.tell():]
+            if remaining:
+                buf2 = io.BytesIO(remaining)
+                try:
+                    second_obj = dill.load(buf2)
+                    print(f"  Second object: type={type(second_obj)}")
+                    if isinstance(second_obj, dict):
+                        return second_obj
+                except Exception:
+                    pass
+    except Exception as e:
+        print(f"  Multi-object analysis failed: {e}")
+
+    raise RuntimeError(f"All loading methods failed for {filepath}")
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl'
+    ]
+
+    # Scan the directory for any related files
+    std_data_dir = os.path.dirname(data_paths[0])
+    all_related_files = []
+    if os.path.isdir(std_data_dir):
+        print(f"Scanning directory: {std_data_dir}")
+        for fname in sorted(os.listdir(std_data_dir)):
+            if 'forward_multi_shots' in fname and fname.endswith('.pkl'):
+                full_path = os.path.join(std_data_dir, fname)
+                print(f"  Found related file: {fname} ({os.path.getsize(full_path)} bytes)")
+                if full_path not in data_paths:
+                    all_related_files.append(full_path)
+        data_paths.extend(all_related_files)
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        elif 'forward_multi_shots' in basename and ('parent' not in basename):
+            if outer_path is None:
+                outer_path = p
+
+    if outer_path is None:
+        print("FAIL: Could not find outer data file")
+        sys.exit(1)
+
+    print(f"\nOuter data file: {outer_path}")
+    print(f"  Exists: {os.path.exists(outer_path)}")
+    if os.path.exists(outer_path):
+        print(f"  Size: {os.path.getsize(outer_path)} bytes")
+    print(f"Inner data files: {inner_paths}")
+
+    # Phase 1: Load outer data
+    print(f"\nLoading outer data from: {outer_path}")
+    outer_data = None
+
+    try:
+        outer_data = load_data(outer_path)
+    except Exception as e:
+        print(f"  Standard load failed: {e}")
+        traceback.print_exc()
+
+    # If standard load didn't return a dict, try robust loading
+    if outer_data is not None and not isinstance(outer_data, dict):
+        print(f"  Standard load returned {type(outer_data)}, not dict. Trying robust load...")
+        # The issue from the error log: dill.load returns the first object which is bytes
+        # when the pickle was appended with STOP opcode incorrectly.
+        # Let's try dill.loads on the raw bytes directly (without appending STOP)
+        try:
+            with open(outer_path, 'rb') as f:
+                raw = f.read()
+
+            # The file starts with \x80\x04\x95 (proto 4, FRAME)
+            # First frame length from bytes 3-10
+            if len(raw) > 11 and raw[0:3] == b'\x80\x04\x95':
+                import struct
+                frame_len = struct.unpack('<Q', raw[3:11])[0]
+                print(f"  First frame length: {frame_len}")
+                print(f"  Total file size: {len(raw)}")
+
+                # If the first frame is small but the file is large,
+                # the pickle stream has multiple frames.
+                # dill.load should handle this - let's debug further
+
+                # Check if file ends with STOP opcode
+                if raw[-1:] == b'.':
+                    print("  File ends with STOP opcode - complete pickle")
+                    # Try dill.loads
+                    outer_data = dill.loads(raw)
+                    print(f"  dill.loads returned: {type(outer_data)}")
+                else:
+                    print(f"  File does not end with STOP. Last bytes: {raw[-5:].hex()}")
+                    # The file might be truncated. Let's find the STOP opcode.
+                    # In the original error, "appending STOP opcode" returned bytes.
+                    # That means without the STOP, dill.load fails; with STOP, it returns
+                    # the first frame's content as bytes.
+                    # This suggests the file IS truncated/corrupted.
+
+                    # Let's try to find valid STOP opcodes and load up to each one
+                    # But be smarter: only consider STOP opcodes that could be the end
+                    # of the top-level dict pickle
+
+                    # Actually, let's look at the structure more carefully:
+                    # The pickle starts as a dict with func_name, args, kwargs, output.
+                    # The args and output likely contain large numpy arrays or devito objects.
+                    # If the file is truncated, we might be able to extract partial data.
+
+                    # For now, let's try loading with error recovery
+                    pass
+        except Exception as e2:
+            print(f"  Robust recovery failed: {e2}")
+            traceback.print_exc()
+
+    # If we still don't have a proper dict, try yet another approach
+    if outer_data is not None and not isinstance(outer_data, dict):
+        print(f"\n  Attempting manual pickle reconstruction...")
+        try:
+            with open(outer_path, 'rb') as f:
+                raw = f.read()
+
+            # Parse the pickle manually to extract the dict structure
+            # Protocol 4: \x80\x04
+            # FRAME: \x95 + 8-byte length
+            # EMPTY_DICT: }
+            # MEMOIZE: \x94
+            # MARK: (
+            # Then alternating key-value pairs ending with SETITEMS: u
+
+            # Let's use a custom unpickler that handles truncation
+            import pickle
+            import _pickle
+
+            class TolerantUnpickler(pickle.Unpickler):
+                def find_class(self, module, name):
+                    try:
+                        return super().find_class(module, name)
+                    except Exception:
+                        # Return a placeholder
+                        return type(name, (), {'__reduce__': lambda self: (type(self), ())})
+
+            buf = io.BytesIO(raw)
+            try:
+                data = TolerantUnpickler(buf).load()
+                if isinstance(data, dict):
+                    outer_data = data
+                    print(f"  TolerantUnpickler succeeded, keys: {list(data.keys())}")
+            except Exception as e3:
+                print(f"  TolerantUnpickler failed: {e3}")
+        except Exception as e:
+            print(f"  Manual reconstruction failed: {e}")
+
+    if outer_data is None:
+        print("\nFAIL: Could not load outer data file")
+        sys.exit(1)
+
+    if not isinstance(outer_data, dict):
+        # Last resort: try the robust loader
+        try:
+            outer_data = try_load_data_robust(outer_path)
+        except Exception as e:
+            print(f"FAIL: Robust load also failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+    if not isinstance(outer_data, dict):
+        print(f"FAIL: Could not load data as dict. Got {type(outer_data)}")
+        sys.exit(1)
+
+    # Parse outer data
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+    print(f"\nOuter data parsed. func_name={outer_data.get('func_name', 'N/A')}")
+    print(f"  args count: {len(outer_args)}")
+    print(f"  kwargs keys: {list(outer_kwargs.keys()) if isinstance(outer_kwargs, dict) else 'N/A'}")
+    if outer_output is not None:
+        print(f"  output type: {type(outer_output)}")
+        if isinstance(outer_output, list):
+            print(f"  output list length: {len(outer_output)}")
+
+    # Determine scenario
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("\nDetected Scenario B: Factory/Closure pattern")
+
+        print("Phase 1: Reconstructing operator via forward_multi_shots(...)...")
+        try:
+            agent_operator = forward_multi_shots(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: forward_multi_shots raised an exception during operator creation: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable operator, got {type(agent_operator)}")
+            sys.exit(1)
+
+        print(f"Operator created successfully: {type(agent_operator)}")
+
+        all_passed = True
+        for inner_path in inner_paths:
+            print(f"\nLoading inner data from: {inner_path}")
+            try:
+                inner_data = load_data(inner_path)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data file: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            print(f"Inner data loaded. func_name={inner_data.get('func_name', 'N/A')}")
+
+            print("Executing operator with inner args...")
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Operator execution raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            print("Comparing results...")
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Result mismatch for {os.path.basename(inner_path)}: {msg}")
+                all_passed = False
+            else:
+                print(f"PASS: {os.path.basename(inner_path)} verified successfully.")
+
+        if not all_passed:
+            sys.exit(1)
+
+    else:
+        # Scenario A: Simple function call
+        print("\nDetected Scenario A: Simple function call")
+
+        print("Executing forward_multi_shots(...)...")
+        try:
+            result = forward_multi_shots(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: forward_multi_shots raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        print("Comparing results...")
+        print(f"  Expected type: {type(expected)}")
+        print(f"  Result type: {type(result)}")
+
+        if isinstance(expected, list):
+            print(f"  Expected list length: {len(expected)}")
+            for i, item in enumerate(expected[:3]):
+                print(f"  Expected[{i}] type: {type(item)}")
+                if hasattr(item, 'data'):
+                    print(f"    .data type: {type(item.data)}, shape: {np.array(item.data).shape}")
+        if isinstance(result, list):
+            print(f"  Result list length: {len(result)}")
+            for i, item in enumerate(result[:3]):
+                print(f"  Result[{i}] type: {type(item)}")
+                if hasattr(item, 'data'):
+                    print(f"    .data type: {type(item.data)}, shape: {np.array(item.data).shape}")
+
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"  recursive_check failed: {e}")
+            traceback.print_exc()
+
+            # Fallback: try comparing numpy data manually
+            print("\n  Attempting manual comparison...")
+            try:
+                if isinstance(expected, list) and isinstance(result, list):
+                    if len(expected) != len(result):
+                        print(f"FAIL: List length mismatch: expected {len(expected)}, got {len(result)}")
+                        sys.exit(1)
+
+                    all_close = True
+                    for i in range(len(expected)):
+                        exp_item = expected[i]
+                        res_item = result[i]
+
+                        # Try to extract numpy data
+                        exp_data = None
+                        res_data = None
+
+                        if hasattr(exp_item, 'data'):
+                            exp_data = np.array(exp_item.data)
+                        elif isinstance(exp_item, np.ndarray):
+                            exp_data = exp_item
+
+                        if hasattr(res_item, 'data'):
+                            res_data = np.array(res_item.data)
+                        elif isinstance(res_item, np.ndarray):
+                            res_data = res_item
+
+                        if exp_data is not None and res_data is not None:
+                            if exp_data.shape != res_data.shape:
+                                print(f"  Item {i}: shape mismatch {exp_data.shape} vs {res_data.shape}")
+                                all_close = False
+                            elif not np.allclose(exp_data, res_data, rtol=1e-5, atol=1e-5):
+                                max_diff = np.max(np.abs(exp_data - res_data))
+                                print(f"  Item {i}: values differ, max diff = {max_diff}")
+                                all_close = False
+                            else:
+                                print(f"  Item {i}: MATCH")
+                        else:
+                            print(f"  Item {i}: Could not extract comparable data")
+                            all_close = False
+
+                    if all_close:
+                        passed = True
+                        msg = "Manual comparison passed"
+                    else:
+                        passed = False
+                        msg = "Manual comparison found differences"
+                else:
+                    print(f"FAIL: Cannot manually compare types {type(expected)} and {type(result)}")
+                    sys.exit(1)
+            except Exception as e2:
+                print(f"FAIL: Manual comparison also failed: {e2}")
+                traceback.print_exc()
+                sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: Result mismatch: {msg}")
+            sys.exit(1)
+        else:
+            print("PASS: Output verified successfully.")
+
+    print("\nTEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

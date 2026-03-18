@@ -1,0 +1,37 @@
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+Inner data files: []
+Attempting to load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl (514734 bytes)
+  dill.load failed: EOFError: Ran out of input
+  pickle.load failed: EOFError: Ran out of input
+  Fixed frame dill.loads failed: EOFError: Ran out of input
+  After patching, dill.load failed: EOFError: Ran out of input
+  All loading strategies failed
+
+=== Pickle load failed. Reconstructing test inputs from scratch. ===
+Operator `initdamp` ran in 0.01 s
+Created test inputs: model shape=(101, 101), nshots=2, nreceivers=51
+
+--- Test 1: forward_multi_shots with return_rec=True ---
+Re-initializing damp profile from mask to damp
+Model has to be created with `bcs="damp"`for this WaveSolver
+Operator `initdamp` ran in 0.01 s
+Operator `Forward` ran in 0.01 s
+Operator `Forward` ran in 0.01 s
+  Got 2 shots (return_rec=True)
+  Shot 0: shape=(56, 51), range=[-22.8659, 43.9565]
+  Shot 1: shape=(56, 51), range=[-22.8659, 43.9565]
+
+--- Test 2: forward_multi_shots with return_rec=False ---
+Operator `Forward` ran in 0.01 s
+Operator `Forward` ran in 0.01 s
+FAIL: forward_multi_shots (return_rec=False) raised: 'MockFuture' object has no attribute 'data'
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 402, in main
+    result_np = forward_multi_shots(model, geometry_list, client, save=False, dt=model.critical_dt, return_rec=False)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/agent_forward_multi_shots.py", line 23, in forward_multi_shots
+    shots_tmp = client.map(convert2np, futures)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 146, in map
+    result = func(item)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/agent_forward_multi_shots.py", line 9, in convert2np
+    return np.array(rec.data)
+AttributeError: 'MockFuture' object has no attribute 'data'

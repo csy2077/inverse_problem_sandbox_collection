@@ -1,0 +1,5 @@
+{
+    "function_explanation": "The function 'fwi_norm' normalizes a given input by subtracting 1.5 and dividing by 3.0.",
+    "function_docstring": "def fwi_norm(x):\n    \"\"\"\n    Normalizes the input value by subtracting 1.5 and dividing by 3.0.\n\n    Args:\n        x: A numeric value or tensor that represents the input to be normalized.\n\n    Returns:\n        The normalized value, calculated as (x - 1.5) / 3.0.\n    \"\"\"",
+    "usage_example": "import torch\n\n# Example usage of fwi_norm\nx = torch.tensor(4.5)\nnormalized_x = fwi_norm(x)\nprint(normalized_x)  # Output: tensor(1.0)"
+}

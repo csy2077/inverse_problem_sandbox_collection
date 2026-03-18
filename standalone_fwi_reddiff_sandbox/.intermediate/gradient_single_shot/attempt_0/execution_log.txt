@@ -1,0 +1,10 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_single_shot.pkl
+Outer data loaded successfully.
+Outer args count: 2
+Outer kwargs keys: ['model', 'fs']
+Scenario A detected: Simple function call.
+Running gradient_single_shot...
+Operator `Forward` ran in 0.06 s
+Operator `Gradient` ran in 0.10 s
+Result type: <class 'agent_gradient_single_shot.fg_pair'>
+FAIL: Verification failed: Type mismatch at output: expected <class '__main__.fg_pair'>, got <class 'agent_gradient_single_shot.fg_pair'>

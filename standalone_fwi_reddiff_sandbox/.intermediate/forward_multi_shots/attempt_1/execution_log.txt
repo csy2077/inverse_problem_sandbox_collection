@@ -1,0 +1,22 @@
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+  Exists: True
+  Size: 514734 bytes
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+  File size: 514734 bytes
+FAIL: Could not load outer data file: All loading methods failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl:
+dill(rb): Ran out of input
+pickle(rb): Ran out of input
+dill.loads: Ran out of input
+dill.Unpickler: Ran out of input
+numpy: Failed to interpret file '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl' as a pickle
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 139, in main
+    outer_data = try_load_data(outer_path)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 95, in try_load_data
+    raise RuntimeError(f"All loading methods failed for {filepath}:\n" + "\n".join(errors))
+RuntimeError: All loading methods failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl:
+dill(rb): Ran out of input
+pickle(rb): Ran out of input
+dill.loads: Ran out of input
+dill.Unpickler: Ran out of input
+numpy: Failed to interpret file '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl' as a pickle

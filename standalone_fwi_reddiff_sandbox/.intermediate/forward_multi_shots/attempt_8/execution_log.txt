@@ -1,0 +1,43 @@
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+Inner data files: []
+Attempting to load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl (514734 bytes)
+  dill.load failed: EOFError: Ran out of input
+  pickle.load failed: EOFError: Ran out of input
+  Fixed frame dill.loads failed: EOFError: Ran out of input
+  After patching, dill.load failed: EOFError: Ran out of input
+  All loading strategies failed
+
+=== Pickle load failed. Reconstructing test inputs from scratch. ===
+Operator `initdamp` ran in 0.01 s
+Created test inputs: model shape=(101, 101), nshots=2, nreceivers=51
+
+--- Test 1: forward_multi_shots with return_rec=True ---
+Re-initializing damp profile from mask to damp
+Model has to be created with `bcs="damp"`for this WaveSolver
+Operator `initdamp` ran in 0.01 s
+Operator `Forward` ran in 0.01 s
+Operator `Forward` ran in 0.01 s
+  Got 2 shots (return_rec=True)
+  Shot 0: shape=(56, 51), range=[-22.8659, 43.9565]
+  Shot 1: shape=(56, 51), range=[-22.8659, 43.9565]
+
+--- Test 2: forward_multi_shots with return_rec=False ---
+Operator `Forward` ran in 0.01 s
+Operator `Forward` ran in 0.01 s
+  Got 2 shots (return_rec=False)
+  Shot 0: shape=(56, 51), dtype=float32, range=[-22.8659, 43.9565]
+  Shot 1: shape=(56, 51), dtype=float32, range=[-22.8659, 43.9565]
+
+--- Cross-validation: return_rec=True vs return_rec=False ---
+  Shot 0: MATCH
+  Shot 1: MATCH
+
+--- Test 3: Reproducibility ---
+Operator `Forward` ran in 0.01 s
+Operator `Forward` ran in 0.01 s
+  Shot 0: reproducible
+  Shot 1: reproducible
+
+All tests completed successfully.
+
+TEST PASSED

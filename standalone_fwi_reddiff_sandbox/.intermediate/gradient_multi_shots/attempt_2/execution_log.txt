@@ -1,0 +1,14 @@
+Outer path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl
+Inner paths: []
+  Loading: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl (8994557 bytes)
+  dill.load failed: Ran out of input
+  dill.load(recurse) failed: Ran out of input
+  pickle.load failed: Ran out of input
+  dill.load with __main__ injection failed: Ran out of input
+FAIL: Could not load outer data: All load methods failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl: dill.load: Ran out of input; dill.load(recurse): Ran out of input; pickle.load: Ran out of input; dill.load(__main__ injection): Ran out of input
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_gradient_multi_shots.py", line 124, in main
+    outer_data = load_data(outer_path)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_gradient_multi_shots.py", line 98, in load_data
+    raise RuntimeError(f"All load methods failed for {filepath}: {'; '.join(errors)}")
+RuntimeError: All load methods failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl: dill.load: Ran out of input; dill.load(recurse): Ran out of input; pickle.load: Ran out of input; dill.load(__main__ injection): Ran out of input

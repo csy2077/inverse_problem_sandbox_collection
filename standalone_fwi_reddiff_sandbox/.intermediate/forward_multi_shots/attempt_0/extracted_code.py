@@ -1,0 +1,152 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+
+# Add the current directory to path if needed
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from agent_forward_multi_shots import forward_multi_shots
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl'
+    ]
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: Could not find outer data file (data_forward_multi_shots.pkl)")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+    except Exception as e:
+        print(f"FAIL: Could not load outer data file: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    print(f"Outer data loaded. func_name={outer_data.get('func_name', 'N/A')}")
+    print(f"  args count: {len(outer_args)}")
+    print(f"  kwargs keys: {list(outer_kwargs.keys())}")
+
+    # Determine scenario
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("Detected Scenario B: Factory/Closure pattern")
+
+        # Phase 1: Reconstruct operator
+        print("Phase 1: Reconstructing operator via forward_multi_shots(...)...")
+        try:
+            agent_operator = forward_multi_shots(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: forward_multi_shots raised an exception during operator creation: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable operator, got {type(agent_operator)}")
+            sys.exit(1)
+
+        print(f"Operator created successfully: {type(agent_operator)}")
+
+        # Phase 2: Execute with inner data
+        for inner_path in inner_paths:
+            print(f"\nLoading inner data from: {inner_path}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data file: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            print(f"Inner data loaded. func_name={inner_data.get('func_name', 'N/A')}")
+            print(f"  inner args count: {len(inner_args)}")
+            print(f"  inner kwargs keys: {list(inner_kwargs.keys())}")
+
+            print("Executing operator with inner args...")
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Operator execution raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # Compare
+            print("Comparing results...")
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Result mismatch for inner data {os.path.basename(inner_path)}")
+                print(f"  Message: {msg}")
+                sys.exit(1)
+            else:
+                print(f"PASS: Inner data {os.path.basename(inner_path)} verified successfully.")
+
+    else:
+        # Scenario A: Simple function call
+        print("Detected Scenario A: Simple function call")
+
+        print("Executing forward_multi_shots(...)...")
+        try:
+            result = forward_multi_shots(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: forward_multi_shots raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        print("Comparing results...")
+        print(f"  Expected type: {type(expected)}")
+        print(f"  Result type: {type(result)}")
+
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: Result mismatch")
+            print(f"  Message: {msg}")
+            sys.exit(1)
+        else:
+            print("PASS: Output verified successfully.")
+
+    print("\nTEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

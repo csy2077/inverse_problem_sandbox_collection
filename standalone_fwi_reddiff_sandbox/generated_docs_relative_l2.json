@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the relative L2 norm between two tensors.",
+    "function_docstring": "def relative_l2(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:\n    \"\"\"\n    Computes the relative L2 norm between the predicted tensor and the target tensor.\n\n    Args:\n        pred (torch.Tensor): A tensor representing the predicted values with shape (B, ...), where B is the batch size.\n        target (torch.Tensor): A tensor representing the target values with shape (B, ...), where B is the batch size.\n\n    Returns:\n        torch.Tensor: A tensor containing the relative L2 norm for each element in the batch, with shape (B,).\n    \"\"\"",
+    "usage_example": "import torch\n\n# Example tensors\npred = torch.tensor([[1.0, 2.0], [3.0, 4.0]])\ntarget = torch.tensor([[1.0, 1.0], [4.0, 4.0]])\n\n# Calculate relative L2 norm\nresult = relative_l2(pred, target)\nprint(result)  # Output: tensor([0.7071, 0.7071])"
+}

@@ -1,0 +1,33 @@
+Attempting to load data file...
+Trying: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl
+Data file corrupted/unavailable. Creating test inputs from scratch...
+Will verify function runs correctly and produces consistent results.
+
+Operator `initdamp` ran in 0.01 s
+Re-initializing damp profile from mask to damp
+Model has to be created with `bcs="damp"`for this WaveSolver
+Operator `initdamp` ran in 0.01 s
+Operator `Forward` ran in 0.01 s
+Operator `Forward` ran in 0.01 s
+Test inputs created successfully.
+Running gradient_multi_shots (run 1)...
+Operator `Forward` ran in 0.01 s
+Operator `Gradient` ran in 0.02 s
+Operator `Forward` ran in 0.01 s
+Operator `Gradient` ran in 0.02 s
+Run 1 completed. Result type: <class 'tuple'>
+  fval type: <class 'numpy.float32'>, value: 0.0
+  grad shape: (101, 111), dtype: float32
+
+Running gradient_multi_shots (run 2)...
+Operator `Forward` ran in 0.01 s
+Operator `Gradient` ran in 0.02 s
+Operator `Forward` ran in 0.01 s
+Operator `Gradient` ran in 0.02 s
+Run 2 completed.
+Results are consistent between two runs.
+  Model shape: (101, 101), nbl: 10
+  Gradient shape: (101, 111)
+
+All checks passed.
+TEST PASSED

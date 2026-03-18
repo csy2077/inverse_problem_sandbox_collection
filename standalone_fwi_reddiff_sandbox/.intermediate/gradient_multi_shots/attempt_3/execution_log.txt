@@ -1,0 +1,34 @@
+Scanning data directory for relevant files...
+  Found: data_gradient_multi_shots.pkl (8994557 bytes)
+
+Outer path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl
+Standard path exists: False
+Inner paths: []
+  Loading: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl (8994557 bytes)
+  Raw data length: 8994557 bytes
+  First 20 bytes hex: 800495600b0000000000007d94288c0966756e63
+  dill.load failed: Ran out of input
+  dill.load(recurse) failed: Ran out of input
+  pickle.load failed: Ran out of input
+SystemError: deallocated bytearray object has exported buffers
+Failed to load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl: All load methods failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl: dill.load: Ran out of input; dill.load(recurse): Ran out of input; pickle.load: Ran out of input; gzip+dill: Not a gzipped file (b'\x80\x04'); zlib+dill: Error -3 while decompressing data: incorrect header check; np.load: Failed to interpret file <_io.BytesIO object at 0x7f1457bfffb0> as a pickle
+
+Trying all candidates in directory...
+  Found candidate: data_gradient_multi_shots.pkl (8994557 bytes)
+  Loading: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl (8994557 bytes)
+  Raw data length: 8994557 bytes
+  First 20 bytes hex: 800495600b0000000000007d94288c0966756e63
+  dill.load failed: Ran out of input
+  dill.load(recurse) failed: Ran out of input
+  pickle.load failed: Ran out of input
+SystemError: deallocated bytearray object has exported buffers
+  Failed to load data_gradient_multi_shots.pkl: All load methods failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl: dill.load: Ran out of input; dill.load(recurse): Ran out of input; pickle.load: Ran out of input; gzip+dill: Not a gzipped file (b'\x80\x04'); zlib+dill: Error -3 while decompressing data: incorrect header check; np.load: Failed to interpret file <_io.BytesIO object at 0x7f1457e68cc0> as a pickle
+
+FAIL: Could not load any data file. Checking file integrity...
+  File header (hex): 800495600b0000000000007d94288c0966756e635f6e616d65948c146772616469656e745f6d756c74695f73686f7473948c
+  File header (repr): b'\x80\x04\x95`\x0b\x00\x00\x00\x00\x00\x00}\x94(\x8c\tfunc_name\x94\x8c\x14gradient_multi_shots\x94\x8c'
+  File tail (hex): 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  Last STOP opcode at position 8993405 of 8994557
+  File has 1151 bytes after last STOP
+  Truncated load failed: pickle data was truncated
+FAIL: Could not load outer data from any source

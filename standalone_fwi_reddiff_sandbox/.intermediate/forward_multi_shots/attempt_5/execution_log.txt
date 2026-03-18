@@ -1,0 +1,74 @@
+Scanning directory: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data
+  Found related file: data_forward_multi_shots.pkl (514734 bytes)
+
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+  Exists: True
+  Size: 514734 bytes
+Inner data files: []
+
+=== Loading outer data ===
+  Standard dill.load failed: Ran out of input
+  File size: 514734 bytes
+  First 30 bytes (hex): 8004955e0b0000000000007d94288c0966756e635f6e616d65948c13666f
+  Last 10 bytes (hex): 803f0000803f0000803f
+  Ends with STOP opcode: False
+  Protocol 4 detected. Declared frame length: 2910
+  Actual data after frame header: 514723
+  Missing bytes: -511812
+  Found dict key positions: [(14, 'func_name'), (48, 'args')]
+  Found FRAME opcodes at: [(2, 2910), (1336, 7532718326994593928), (1435, 7532718326994593928), (1513, 7532718326994593928), (1676, 7532718326994593928), (1754, 7532718326994593928), (1904, 7532718326994593928), (1981, 7532718326994593928), (6955, 7022866512050994143), (7144, 10949951898853730620)]
+  Strategy 4: Brute force trim from end...
+    ... tried trim up to 500
+    ... tried trim up to 1000
+    ... tried trim up to 1500
+    ... tried trim up to 2000
+    ... tried trim up to 2500
+    ... tried trim up to 3000
+    ... tried trim up to 3500
+    ... tried trim up to 4000
+    ... tried trim up to 4500
+  Strategy 5: Attempting pickletools analysis...
+  Parsed 1351 opcodes
+    pos=0: PROTO 4
+    pos=2: FRAME 2910
+    pos=11: EMPTY_DICT 
+    pos=12: MEMOIZE 
+    pos=13: MARK 
+    pos=14: SHORT_BINUNICODE 'func_name'
+    pos=25: MEMOIZE 
+    pos=26: SHORT_BINUNICODE 'forward_multi_shots'
+    pos=47: MEMOIZE 
+    pos=48: SHORT_BINUNICODE 'args'
+    pos=54: MEMOIZE 
+    pos=55: SHORT_BINUNICODE 'examples.seismic.model'
+    pos=79: MEMOIZE 
+    pos=80: SHORT_BINUNICODE 'SeismicModel'
+    pos=94: MEMOIZE 
+    ... (1321 more) ...
+    pos=258963: TUPLE1 
+    pos=258964: MEMOIZE 
+    pos=258965: LONG_BINGET 305
+    pos=258970: TUPLE3 
+    pos=258971: MEMOIZE 
+    pos=258972: MARK 
+    pos=258973: BININT1 1
+    pos=258975: BININT2 296
+    pos=258978: BININT1 216
+    pos=258980: TUPLE2 
+    pos=258981: MEMOIZE 
+    pos=258982: BINGET 22
+    pos=258984: NEWFALSE 
+    pos=258985: BINBYTES b'\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?\x00\x0
+    pos=514734: STOP 
+  Strategy 6: Searching for complete sub-pickles...
+  Strategy 7: Trying to load just the args/kwargs portion...
+  Key positions: func_name=14, args=48, kwargs=-1, output=-1
+FAIL: Could not load outer data file: All loading strategies failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 369, in main
+    outer_data = load_data_standard(outer_path)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 323, in load_data_standard
+    return repair_and_load(filepath)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 303, in repair_and_load
+    raise RuntimeError(f"All loading strategies failed for {filepath}")
+RuntimeError: All loading strategies failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl

@@ -1,0 +1,130 @@
+Scanning directory: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data
+  Found related file: data_forward_multi_shots.pkl (514734 bytes)
+
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+  Exists: True
+  Size: 514734 bytes
+Inner data files: []
+
+=== Loading outer data ===
+Loading: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+  Size: 514734 bytes
+  dill.load failed: EOFError: Ran out of input
+  pickle.load failed: EOFError: Ran out of input
+  File size: 514734 bytes
+  Ends with STOP opcode: False
+  Strategy 1 failed: Ran out of input
+  Strategy 2 failed: Ran out of input
+  Protocol 4. Declared frame: 2910, actual content: 514723
+  Strategy 3 failed: Ran out of input
+  STOP opcode candidates near end: []
+  Strategy 5: Analyzing pickle structure...
+  Relevant strings found: [(14, 'func_name'), (26, 'forward_multi_shots'), (48, 'args')]
+  Strategy 6: Trying with additional import context...
+  Strategy 6 failed: Ran out of input
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 216, in try_load_with_unpickler
+    data = dill.load(f)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 297, in load
+    return Unpickler(file, ignore=ignore, **kwds).load()
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 452, in load
+    obj = StockUnpickler.load(self)
+EOFError: Ran out of input
+  Strategy 7: Custom Unpickler approach...
+  Strategy 7 failed: Ran out of input
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 251, in try_load_with_unpickler
+    data = unpickler.load()
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 452, in load
+    obj = StockUnpickler.load(self)
+EOFError: Ran out of input
+  Strategy 8: Checking BINBYTES payload...
+  BINBYTES at 590: declared len=1753760616, available=514139, TRUNCATED!
+  BINBYTES at 615: declared len=1952385420, available=514114, TRUNCATED!
+  BINBYTES at 766: declared len=577266293, available=513963, TRUNCATED!
+  BINBYTES at 1544: declared len=73949813, available=513185, TRUNCATED!
+  BINBYTES at 1785: declared len=1869808268, available=512944, TRUNCATED!
+  BINBYTES at 2012: declared len=1769145484, available=512717, TRUNCATED!
+  BINBYTES at 2120: declared len=1753760616, available=512609, TRUNCATED!
+  BINBYTES at 2147: declared len=1753760616, available=512582, TRUNCATED!
+  BINBYTES at 2220: declared len=1753760616, available=512509, TRUNCATED!
+  BINBYTES at 2455: declared len=627581288, available=512274, TRUNCATED!
+  BINBYTES at 258714: declared len=627581288, available=256015, TRUNCATED!
+  BINBYTES at 258854: declared len=1929379841, available=255875, TRUNCATED!
+  Found 14 BINBYTES opcodes
+    Position 258714: payload length 627581288
+    Position 258854: payload length 1929379841
+    Position 258985: payload length 255744
+  Strategy 9: Full pickletools parse to check completeness...
+  Strategy 9 failed: pickle exhausted before seeing STOP
+  Strategy 10: Extracting args manually from pickle stream...
+  Strategy 10 failed: pickle exhausted before seeing STOP
+WARNING: Could not load outer data file: All loading strategies failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 472, in main
+    outer_data = load_data(outer_path)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 393, in load_data
+    return try_load_with_unpickler(filepath)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 362, in try_load_with_unpickler
+    raise RuntimeError(f"All loading strategies failed for {filepath}")
+RuntimeError: All loading strategies failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl
+
+=== Investigating pickle load failure ===
+Detailed error analysis:
+  Error type: EOFError
+  Error message: Ran out of input
+
+  Trying custom FindClass unpickler...
+  FlexibleUnpickler failed: Ran out of input
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 489, in main
+    data = dill.loads(raw)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 311, in loads
+    return load(file, ignore, **kwds)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 297, in load
+    return Unpickler(file, ignore=ignore, **kwds).load()
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 452, in load
+    obj = StockUnpickler.load(self)
+EOFError: Ran out of input
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 552, in main
+    outer_data = unpickler.load()
+EOFError: Ran out of input
+  dill.Unpickler with fixed frame failed: Ran out of input
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 489, in main
+    data = dill.loads(raw)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 311, in loads
+    return load(file, ignore, **kwds)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 297, in load
+    return Unpickler(file, ignore=ignore, **kwds).load()
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 452, in load
+    obj = StockUnpickler.load(self)
+EOFError: Ran out of input
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 565, in main
+    outer_data = unpickler.load()
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 452, in load
+    obj = StockUnpickler.load(self)
+EOFError: Ran out of input
+
+=== Last resort: Partial extraction ===
+  Trying environment modifications...
+  SeismicModel importable: <class 'examples.seismic.model.SeismicModel'>
+  Still failed after monkey-patching: Ran out of input
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/test_forward_multi_shots.py", line 608, in main
+    outer_data = dill.load(f)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 297, in load
+    return Unpickler(file, ignore=ignore, **kwds).load()
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/dill/_dill.py", line 452, in load
+    obj = StockUnpickler.load(self)
+EOFError: Ran out of input
+  Fixed frame + monkey-patch failed: Ran out of input
+FAIL: Could not load outer data file after all strategies

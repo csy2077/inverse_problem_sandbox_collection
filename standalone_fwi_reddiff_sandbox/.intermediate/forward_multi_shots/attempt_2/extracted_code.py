@@ -1,0 +1,479 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import pickle
+import io
+import struct
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from agent_forward_multi_shots import forward_multi_shots
+from verification_utils import recursive_check
+
+
+def try_load_data(filepath):
+    """Try multiple methods to load the data file, including handling truncated/corrupted files."""
+    errors = []
+
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found: {filepath}")
+
+    file_size = os.path.getsize(filepath)
+    print(f"  File size: {file_size} bytes")
+
+    if file_size == 0:
+        raise ValueError(f"File is empty: {filepath}")
+
+    # Read raw bytes for inspection
+    with open(filepath, 'rb') as f:
+        raw = f.read()
+
+    print(f"  First 20 bytes (hex): {raw[:20].hex()}")
+    print(f"  First 20 bytes (repr): {repr(raw[:20])}")
+
+    # Method 1: dill with 'rb'
+    try:
+        buf = io.BytesIO(raw)
+        data = dill.load(buf)
+        print("  Loaded successfully with dill (BytesIO)")
+        return data
+    except Exception as e:
+        errors.append(f"dill(BytesIO): {e}")
+
+    # Method 2: pickle with 'rb'
+    try:
+        buf = io.BytesIO(raw)
+        data = pickle.load(buf)
+        print("  Loaded successfully with pickle (BytesIO)")
+        return data
+    except Exception as e:
+        errors.append(f"pickle(BytesIO): {e}")
+
+    # Method 3: Try loading multiple sequential objects and return the last complete one
+    try:
+        results = []
+        buf = io.BytesIO(raw)
+        while buf.tell() < len(raw):
+            try:
+                obj = dill.load(buf)
+                results.append(obj)
+            except Exception:
+                break
+        if results:
+            print(f"  Loaded {len(results)} object(s) via sequential dill.load")
+            return results[-1]
+    except Exception as e:
+        errors.append(f"sequential dill: {e}")
+
+    # Method 4: The file might be truncated. Try to find and load partial pickle data.
+    # Look for pickle protocol header and STOP opcode
+    try:
+        stop_opcode = b'.'
+        # Find all STOP opcodes
+        positions = []
+        pos = 0
+        while True:
+            idx = raw.find(stop_opcode, pos)
+            if idx == -1:
+                break
+            positions.append(idx)
+            pos = idx + 1
+
+        print(f"  Found {len(positions)} potential pickle STOP opcodes")
+
+        # Try loading from the beginning up to each STOP opcode (from last to first)
+        for stop_pos in reversed(positions):
+            try:
+                candidate = raw[:stop_pos + 1]
+                buf = io.BytesIO(candidate)
+                data = dill.load(buf)
+                print(f"  Loaded successfully by truncating at position {stop_pos + 1}")
+                return data
+            except Exception:
+                continue
+    except Exception as e:
+        errors.append(f"stop-opcode search: {e}")
+
+    # Method 5: Try appending a STOP opcode in case it's missing
+    try:
+        patched = raw + b'.'
+        buf = io.BytesIO(patched)
+        data = dill.load(buf)
+        print("  Loaded successfully after appending STOP opcode")
+        return data
+    except Exception as e:
+        errors.append(f"append STOP: {e}")
+
+    # Method 6: Try with different protocol assumptions
+    # Sometimes files are written with protocol 2 header but incomplete
+    for proto in [2, 3, 4, 5]:
+        try:
+            # Replace protocol header
+            if raw[0:2] == b'\x80' + bytes([raw[1]]):
+                patched = b'\x80' + bytes([proto]) + raw[2:]
+                buf = io.BytesIO(patched)
+                data = dill.load(buf)
+                print(f"  Loaded successfully with protocol {proto} header replacement")
+                return data
+        except Exception as e:
+            errors.append(f"protocol {proto} replacement: {e}")
+
+    # Method 7: numpy load
+    try:
+        data = np.load(filepath, allow_pickle=True)
+        print("  Loaded successfully with numpy")
+        return data.item() if data.ndim == 0 else data
+    except Exception as e:
+        errors.append(f"numpy: {e}")
+
+    # Method 8: Try shelve or other approaches
+    try:
+        import shelve
+        # Won't work for .pkl but try anyway
+    except:
+        pass
+
+    # Method 9: Try to manually reconstruct - the file may have been written
+    # with dill.dump but the process was killed before flush completed.
+    # Try loading with a more lenient unpickler
+    try:
+        class LenientUnpickler(dill.Unpickler):
+            def find_class(self, module, name):
+                try:
+                    return super().find_class(module, name)
+                except Exception:
+                    return type(name, (), {})
+
+        buf = io.BytesIO(raw)
+        data = LenientUnpickler(buf).load()
+        print("  Loaded successfully with LenientUnpickler")
+        return data
+    except Exception as e:
+        errors.append(f"LenientUnpickler: {e}")
+
+    raise RuntimeError(f"All loading methods failed for {filepath}:\n" + "\n".join(errors))
+
+
+def regenerate_test_data(outer_path):
+    """
+    If the pkl file is corrupted, try to regenerate test data by running the function
+    with reasonable default parameters and comparing against itself.
+    """
+    print("Attempting to regenerate test scenario from source code analysis...")
+    return None
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_forward_multi_shots.pkl'
+    ]
+
+    # Scan the directory for any related files
+    std_data_dir = os.path.dirname(data_paths[0])
+    all_related_files = []
+    if os.path.isdir(std_data_dir):
+        print(f"Scanning directory: {std_data_dir}")
+        for fname in sorted(os.listdir(std_data_dir)):
+            if 'forward_multi_shots' in fname and fname.endswith('.pkl'):
+                full_path = os.path.join(std_data_dir, fname)
+                print(f"  Found related file: {fname} ({os.path.getsize(full_path)} bytes)")
+                if full_path not in data_paths:
+                    all_related_files.append(full_path)
+        data_paths.extend(all_related_files)
+
+    # Also check for alternative data file locations
+    alt_dirs = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'std_data'),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'run_code', 'std_data'),
+    ]
+    for alt_dir in alt_dirs:
+        if os.path.isdir(alt_dir) and alt_dir != std_data_dir:
+            print(f"Scanning alternative directory: {alt_dir}")
+            for fname in sorted(os.listdir(alt_dir)):
+                if 'forward_multi_shots' in fname and fname.endswith('.pkl'):
+                    full_path = os.path.join(alt_dir, fname)
+                    if full_path not in data_paths:
+                        print(f"  Found alternative file: {fname} ({os.path.getsize(full_path)} bytes)")
+                        data_paths.append(full_path)
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        elif 'forward_multi_shots' in basename and ('parent' not in basename):
+            if outer_path is None:
+                outer_path = p
+
+    if outer_path is None:
+        print("FAIL: Could not find outer data file")
+        sys.exit(1)
+
+    print(f"\nOuter data file: {outer_path}")
+    print(f"  Exists: {os.path.exists(outer_path)}")
+    if os.path.exists(outer_path):
+        print(f"  Size: {os.path.getsize(outer_path)} bytes")
+    print(f"Inner data files: {inner_paths}")
+
+    # Phase 1: Load outer data - try multiple approaches for corrupted files
+    print(f"\nLoading outer data from: {outer_path}")
+    outer_data = None
+
+    # First, try direct load
+    try:
+        outer_data = try_load_data(outer_path)
+        print("  Outer data loaded successfully.")
+    except Exception as e:
+        print(f"  Warning: Standard load failed: {e}")
+        traceback.print_exc()
+
+    # If standard load failed, try reading with different buffer sizes
+    # (file might have been written in chunks and the OS reported wrong size)
+    if outer_data is None:
+        print("\n  Trying chunk-based loading approaches...")
+        try:
+            with open(outer_path, 'rb') as f:
+                raw = f.read()
+
+            # Try to find a valid pickle within the raw data
+            # Pickle protocol 2+ starts with \x80\x0N
+            for start_offset in range(0, min(100, len(raw))):
+                if raw[start_offset:start_offset+1] == b'\x80':
+                    for end_offset in range(len(raw), max(0, len(raw) - 1000), -1):
+                        try:
+                            candidate = raw[start_offset:end_offset]
+                            buf = io.BytesIO(candidate)
+                            outer_data = dill.load(buf)
+                            print(f"  Loaded successfully with offset [{start_offset}:{end_offset}]")
+                            break
+                        except Exception:
+                            continue
+                    if outer_data is not None:
+                        break
+        except Exception as e:
+            print(f"  Chunk-based loading also failed: {e}")
+
+    # If still failed, try to re-run the gen_data code to regenerate
+    if outer_data is None:
+        print("\n  Attempting to load by importing necessary modules first...")
+        try:
+            # The file might need certain modules to be importable for dill
+            # Try importing the modules that might be needed
+            try:
+                from examples.seismic.acoustic import AcousticWaveSolver
+                print("  AcousticWaveSolver imported successfully")
+            except Exception as ie:
+                print(f"  Warning: Could not import AcousticWaveSolver: {ie}")
+
+            try:
+                from devito import Function, TimeFunction, Grid
+                print("  Devito core imports successful")
+            except Exception as ie:
+                print(f"  Warning: Could not import devito: {ie}")
+
+            try:
+                from examples.seismic import AcquisitionGeometry, Model, Receiver
+                print("  Seismic imports successful")
+            except Exception as ie:
+                print(f"  Warning: Could not import seismic modules: {ie}")
+
+            # Try loading again after imports
+            with open(outer_path, 'rb') as f:
+                raw = f.read()
+            buf = io.BytesIO(raw)
+            outer_data = dill.load(buf)
+            print("  Loaded successfully after module pre-imports")
+        except Exception as e:
+            print(f"  Still failed after pre-imports: {e}")
+
+    # Last resort: try to find if there's a backup or alternative format
+    if outer_data is None:
+        # Check if perhaps the data was saved incrementally (multiple dumps to same file)
+        print("\n  Trying incremental load (multiple pickled objects in file)...")
+        try:
+            with open(outer_path, 'rb') as f:
+                raw = f.read()
+
+            # Find all pickle start markers
+            starts = []
+            for i in range(len(raw) - 1):
+                if raw[i] == 0x80 and raw[i+1] in range(6):  # Protocol 0-5
+                    starts.append(i)
+
+            print(f"  Found {len(starts)} potential pickle start markers: {starts[:10]}")
+
+            for i, start in enumerate(starts):
+                # Try loading from each start position
+                try:
+                    buf = io.BytesIO(raw[start:])
+                    obj = dill.load(buf)
+                    end_pos = start + buf.tell()
+                    print(f"  Successfully loaded object from position {start} to {end_pos}")
+                    print(f"  Object type: {type(obj)}")
+                    if isinstance(obj, dict) and ('args' in obj or 'output' in obj):
+                        outer_data = obj
+                        print(f"  Found valid data dict with keys: {list(obj.keys())}")
+                        break
+                    elif outer_data is None:
+                        outer_data = obj  # Keep as fallback
+                except Exception:
+                    continue
+        except Exception as e:
+            print(f"  Incremental load failed: {e}")
+
+    if outer_data is None:
+        print("\nFAIL: Could not load outer data file with any method")
+        sys.exit(1)
+
+    # Parse outer data
+    if isinstance(outer_data, dict):
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output', None)
+        print(f"\nOuter data parsed. func_name={outer_data.get('func_name', 'N/A')}")
+    elif isinstance(outer_data, (list, tuple)):
+        if len(outer_data) >= 3:
+            outer_args = outer_data[0] if isinstance(outer_data[0], (list, tuple)) else (outer_data[0],)
+            outer_kwargs = outer_data[1] if isinstance(outer_data[1], dict) else {}
+            outer_output = outer_data[2]
+        elif len(outer_data) == 1 and isinstance(outer_data[0], dict):
+            outer_args = outer_data[0].get('args', ())
+            outer_kwargs = outer_data[0].get('kwargs', {})
+            outer_output = outer_data[0].get('output', None)
+        else:
+            print(f"FAIL: Unexpected outer data format: {type(outer_data)}, length: {len(outer_data)}")
+            sys.exit(1)
+        print(f"\nOuter data parsed from {type(outer_data).__name__}")
+    else:
+        print(f"FAIL: Unexpected outer data type: {type(outer_data)}")
+        print(f"  Content preview: {str(outer_data)[:500]}")
+        sys.exit(1)
+
+    print(f"  args count: {len(outer_args)}")
+    print(f"  kwargs keys: {list(outer_kwargs.keys()) if isinstance(outer_kwargs, dict) else 'N/A'}")
+    if outer_output is not None:
+        print(f"  output type: {type(outer_output)}")
+
+    # Determine scenario
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("\nDetected Scenario B: Factory/Closure pattern")
+
+        print("Phase 1: Reconstructing operator via forward_multi_shots(...)...")
+        try:
+            agent_operator = forward_multi_shots(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: forward_multi_shots raised an exception during operator creation: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable operator, got {type(agent_operator)}")
+            sys.exit(1)
+
+        print(f"Operator created successfully: {type(agent_operator)}")
+
+        all_passed = True
+        for inner_path in inner_paths:
+            print(f"\nLoading inner data from: {inner_path}")
+            try:
+                inner_data = try_load_data(inner_path)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data file: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            print(f"Inner data loaded. func_name={inner_data.get('func_name', 'N/A')}")
+            print(f"  inner args count: {len(inner_args)}")
+            print(f"  inner kwargs keys: {list(inner_kwargs.keys())}")
+
+            print("Executing operator with inner args...")
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Operator execution raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            print("Comparing results...")
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Result mismatch for inner data {os.path.basename(inner_path)}")
+                print(f"  Message: {msg}")
+                all_passed = False
+            else:
+                print(f"PASS: Inner data {os.path.basename(inner_path)} verified successfully.")
+
+        if not all_passed:
+            sys.exit(1)
+
+    else:
+        # Scenario A: Simple function call
+        print("\nDetected Scenario A: Simple function call")
+
+        print("Executing forward_multi_shots(...)...")
+        try:
+            result = forward_multi_shots(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: forward_multi_shots raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        print("Comparing results...")
+        print(f"  Expected type: {type(expected)}")
+        print(f"  Result type: {type(result)}")
+
+        if isinstance(expected, list):
+            print(f"  Expected list length: {len(expected)}")
+            if len(expected) > 0:
+                print(f"  Expected[0] type: {type(expected[0])}")
+                if hasattr(expected[0], 'shape'):
+                    print(f"  Expected[0] shape: {expected[0].shape}")
+                if hasattr(expected[0], 'data'):
+                    print(f"  Expected[0].data type: {type(expected[0].data)}")
+        if isinstance(result, list):
+            print(f"  Result list length: {len(result)}")
+            if len(result) > 0:
+                print(f"  Result[0] type: {type(result[0])}")
+                if hasattr(result[0], 'shape'):
+                    print(f"  Result[0] shape: {result[0].shape}")
+                if hasattr(result[0], 'data'):
+                    print(f"  Result[0].data type: {type(result[0].data)}")
+
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: Result mismatch")
+            print(f"  Message: {msg}")
+            sys.exit(1)
+        else:
+            print("PASS: Output verified successfully.")
+
+    print("\nTEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

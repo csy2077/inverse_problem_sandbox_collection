@@ -1,0 +1,22 @@
+Found outer candidates: ['data_gradient_multi_shots.pkl']
+Found inner paths: []
+  File size: 8994557 bytes
+
+Attempting to load original path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/data_gradient_multi_shots.pkl
+  File size: 8994557 bytes
+Attempting standard_ prefix: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/standard_data_gradient_multi_shots.pkl
+FAIL: Could not load any data file.
+Last error: File does not exist: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data/standard_data_gradient_multi_shots.pkl
+
+All .pkl files in /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_fwi_reddiff_sandbox/run_code/std_data:
+  data_convert2np.pkl (1045602 bytes)
+  data_create_logger.pkl (239 bytes)
+  data_forward_multi_shots.pkl (514734 bytes)
+  data_forward_single_shot.pkl (1035929 bytes)
+  data_fwi_norm.pkl (131863 bytes)
+  data_gradient_multi_shots.pkl (8994557 bytes)
+  data_gradient_single_shot.pkl (1112031 bytes)
+  data_load_config.pkl (867 bytes)
+  data_main.pkl (64 bytes)
+  data_relative_l2.pkl (132153 bytes)
+  data_weight_init.pkl (513 bytes)
