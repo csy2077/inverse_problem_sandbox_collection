@@ -1,0 +1,4 @@
+Successfully loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_daps_sandbox/run_code/std_data/data_full_propagate_to_sensor.pkl
+Detected Scenario A: Simple function call.
+Successfully executed full_propagate_to_sensor with outer args.
+TEST PASSED

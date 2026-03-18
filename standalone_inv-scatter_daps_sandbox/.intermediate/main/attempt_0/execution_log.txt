@@ -1,0 +1,7 @@
+FAIL: Could not import main from agent_main: name 'DhariwalUNet' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_daps_sandbox/test_main.py", line 23, in test_main
+    from agent_main import main
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_daps_sandbox/agent_main.py", line 175, in <module>
+    'DhariwalUNet': DhariwalUNet,
+NameError: name 'DhariwalUNet' is not defined

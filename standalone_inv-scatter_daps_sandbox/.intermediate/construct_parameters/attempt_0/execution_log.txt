@@ -1,0 +1,6 @@
+Successfully loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_daps_sandbox/run_code/std_data/data_construct_parameters.pkl
+Outer args count: 9
+Outer kwargs keys: []
+Successfully executed construct_parameters.
+TEST PASSED
+TEST PASSED

@@ -1,0 +1,24 @@
+Successfully imported main from agent_main
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_daps_sandbox/run_code/std_data/data_main.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Detected Scenario A: Simple function call
+Using device: cuda
+/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+[[34m2026-03-13 07:05:34[0m] Instantiating InverseScatter problem model...
+Loading SVD from cache.
+[[34m2026-03-13 07:05:41[0m] Instantiating Dataset...
+[[34m2026-03-13 07:05:41[0m] Loaded 1 test samples...
+[[34m2026-03-13 07:05:41[0m] Loading pre-trained model...
+[[34m2026-03-13 07:05:43[0m] Loaded pre-trained model from weights/inv-scatter-5m.pt...
+[[34m2026-03-13 07:05:43[0m] Instantiating DAPS algorithm...
+[[34m2026-03-13 07:05:43[0m] Instantiating Evaluator...
+FAIL: main(*args, **kwargs) raised an exception: name 'PIQ_AVAILABLE' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_daps_sandbox/test_main.py", line 202, in test_main
+    actual_result = main(*outer_args, **outer_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_daps_sandbox/agent_main.py", line 776, in main
+    evaluator = InverseScatterEvaluator(forward_op=forward_op)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_daps_sandbox/agent_main.py", line 609, in __init__
+    if PIQ_AVAILABLE:
+NameError: name 'PIQ_AVAILABLE' is not defined
