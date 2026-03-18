@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Converts a string representation of integers and ranges into a list of integers.",
+    "function_docstring": "def parse_int_list(s):\n    \"\"\"\n    Converts a string representation of integers and ranges into a list of integers.\n\n    Args:\n        s (Union[str, int, list, None]): A string containing comma-separated integers and ranges (e.g., '1,2,5-7'),\n            a single integer, a list of integers, or None.\n\n    Returns:\n        list: A list of integers parsed from the input string or directly returned if the input is already a list.\n            If the input is None, returns None.\n    \"\"\"",
+    "usage_example": "example_input = '1,2,5-7'\nresult = parse_int_list(example_input)\nprint(result)  # Output: [1, 2, 5, 6, 7]"
+}

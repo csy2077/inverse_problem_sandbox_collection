@@ -1,0 +1,20 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_blackhole_daps_sandbox/run_code/std_data/data_create_logger.pkl
+Outer args: ('exps/inference/blackhole/DAPS/default',)
+Outer kwargs: {}
+
+=== Phase 1: Creating Logger ===
+
+=== Scenario A: Simple Function ===
+
+=== Verification ===
+Expected logger name: __main__
+Result logger name: agent_create_logger
+Expected logger level: 0
+Result logger level: 20
+Expected handlers count: 0
+Result handlers count: 2
+TEST PASSED: Logger created with correct handler types
+
+==================================================
+ALL TESTS PASSED
+==================================================

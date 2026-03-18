@@ -1,0 +1,7 @@
+[Phase 1] Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_blackhole_daps_sandbox/run_code/std_data/data_weight_init.pkl
+[Phase 1] Outer args: 1 items
+[Phase 1] Outer kwargs: ['mode', 'fan_in', 'fan_out']
+[Phase 1] Result type: <class 'torch.Tensor'>
+[Phase 1] Expected type: <class 'torch.Tensor'>
+TEST FAILED
+Verification message: Value mismatch at output: max difference 0.1201239600777626 > tol

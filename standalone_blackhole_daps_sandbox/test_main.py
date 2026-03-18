@@ -1,0 +1,136 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+from agent_main import main
+from verification_utils import recursive_check
+
+def main_test():
+    """
+    Robust Unit Test for main() function.
+    Handles both Scenario A (simple function) and Scenario B (factory/closure pattern).
+    """
+    
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_blackhole_daps_sandbox/run_code/std_data/data_main.pkl']
+    
+    print("=" * 80)
+    print("UNIT TEST: test_main.py")
+    print("=" * 80)
+    
+    # Step 1: Analyze data paths to determine test strategy
+    outer_path = None
+    inner_path = None
+    
+    for path in data_paths:
+        basename = os.path.basename(path)
+        if basename == 'data_main.pkl' or basename.endswith('standard_data_main.pkl'):
+            outer_path = path
+        elif 'parent_function' in basename and 'main' in basename:
+            inner_path = path
+    
+    if not outer_path:
+        print("ERROR: No outer data file found (expected data_main.pkl or standard_data_main.pkl)")
+        sys.exit(1)
+    
+    print(f"Outer data path: {outer_path}")
+    if inner_path:
+        print(f"Inner data path: {inner_path}")
+        print("Detected: Scenario B (Factory/Closure Pattern)")
+    else:
+        print("Detected: Scenario A (Simple Function)")
+    print("-" * 80)
+    
+    try:
+        # Step 2: Load outer data
+        print("Loading outer data...")
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output')
+        
+        print(f"Outer args type: {type(outer_args)}")
+        print(f"Outer kwargs keys: {list(outer_kwargs.keys()) if isinstance(outer_kwargs, dict) else 'N/A'}")
+        print(f"Outer output type: {type(outer_output)}")
+        print("-" * 80)
+        
+        # Step 3: Phase 1 - Reconstruct operator/agent
+        print("Phase 1: Running main() to create operator/agent...")
+        agent_operator = main(*outer_args, **outer_kwargs)
+        print(f"Agent operator type: {type(agent_operator)}")
+        print(f"Agent operator callable: {callable(agent_operator)}")
+        print("-" * 80)
+        
+        # Step 4: Phase 2 - Execution & Verification
+        if inner_path:
+            # Scenario B: Factory/Closure Pattern
+            print("Phase 2: Loading inner data and executing operator...")
+            
+            with open(inner_path, 'rb') as f:
+                inner_data = dill.load(f)
+            
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_output = inner_data.get('output')
+            
+            print(f"Inner args type: {type(inner_args)}")
+            print(f"Inner kwargs keys: {list(inner_kwargs.keys()) if isinstance(inner_kwargs, dict) else 'N/A'}")
+            print(f"Inner output type: {type(inner_output)}")
+            
+            if not callable(agent_operator):
+                print("ERROR: Agent operator is not callable in Scenario B")
+                sys.exit(1)
+            
+            print("Executing agent_operator(*inner_args, **inner_kwargs)...")
+            result = agent_operator(*inner_args, **inner_kwargs)
+            expected = inner_output
+            
+        else:
+            # Scenario A: Simple Function
+            print("Phase 2: Using outer output as expected result...")
+            result = agent_operator
+            expected = outer_output
+        
+        print(f"Result type: {type(result)}")
+        print(f"Expected type: {type(expected)}")
+        print("-" * 80)
+        
+        # Step 5: Verification
+        print("Verification: Comparing result with expected output...")
+        passed, msg = recursive_check(expected, result)
+        
+        if not passed:
+            print("=" * 80)
+            print("TEST FAILED")
+            print("=" * 80)
+            print(f"Verification message:\n{msg}")
+            sys.exit(1)
+        else:
+            print("=" * 80)
+            print("TEST PASSED")
+            print("=" * 80)
+            print(f"Verification message:\n{msg}")
+            sys.exit(0)
+            
+    except FileNotFoundError as e:
+        print("=" * 80)
+        print("TEST FAILED - File Not Found")
+        print("=" * 80)
+        print(f"Error: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+        
+    except Exception as e:
+        print("=" * 80)
+        print("TEST FAILED - Exception Occurred")
+        print("=" * 80)
+        print(f"Error: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main_test()
