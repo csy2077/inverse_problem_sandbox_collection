@@ -1,0 +1,19 @@
+================================================================================
+UNIT TEST: full_propagate_to_sensor
+================================================================================
+DETECTED: Simple Function (Scenario A)
+  - Data file: data_full_propagate_to_sensor.pkl
+--------------------------------------------------------------------------------
+Loading outer data...
+  - Args count: 5
+  - Kwargs keys: []
+
+Phase 1: Executing full_propagate_to_sensor with outer data...
+  - Result type: <class 'torch.Tensor'>
+
+Phase 2: Verifying result against outer data output...
+
+PASSED
+================================================================================
+TEST PASSED
+================================================================================

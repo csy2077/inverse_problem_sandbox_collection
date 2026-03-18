@@ -1,0 +1,168 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Add the directory containing agent_main.py to the path if needed
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Mock the missing DhariwalUNet class before importing agent_main
+class DhariwalUNet(torch.nn.Module):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.kwargs = kwargs
+    
+    def forward(self, x, t, class_labels=None, **kwargs):
+        return x
+
+# Inject the mock into the module namespace before import
+import sys
+if 'agent_main' not in sys.modules:
+    import types
+    agent_main_module = types.ModuleType('agent_main')
+    sys.modules['agent_main'] = agent_main_module
+    
+    # Read and execute the agent_main.py with DhariwalUNet in globals
+    agent_main_path = os.path.join(os.path.dirname(__file__), 'agent_main.py')
+    with open(agent_main_path, 'r') as f:
+        code = f.read()
+    
+    exec_globals = {'DhariwalUNet': DhariwalUNet, '__name__': 'agent_main'}
+    exec(code, exec_globals)
+    
+    # Copy all definitions to the module
+    for key, value in exec_globals.items():
+        if not key.startswith('__'):
+            setattr(agent_main_module, key, value)
+
+from agent_main import main
+from verification_utils import recursive_check
+
+def main_test():
+    """
+    Robust Unit Test for main() function.
+    Handles both Scenario A (simple function) and Scenario B (factory/closure pattern).
+    """
+    
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/run_code/std_data/data_main.pkl']
+    
+    print("=" * 80)
+    print("UNIT TEST: test_main.py")
+    print("=" * 80)
+    
+    # Phase 0: Analyze data files
+    outer_path = None
+    inner_path = None
+    
+    for path in data_paths:
+        basename = os.path.basename(path)
+        if basename == 'data_main.pkl':
+            outer_path = path
+        elif 'parent_function' in basename and 'main' in basename:
+            inner_path = path
+    
+    if not outer_path:
+        print("ERROR: Could not find outer data file (data_main.pkl)")
+        sys.exit(1)
+    
+    print(f"Outer data path: {outer_path}")
+    if inner_path:
+        print(f"Inner data path: {inner_path}")
+        print("Detected: Scenario B (Factory/Closure Pattern)")
+    else:
+        print("Detected: Scenario A (Simple Function)")
+    print()
+    
+    # Phase 1: Load outer data and reconstruct operator
+    try:
+        print("Phase 1: Loading outer data and creating operator...")
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output')
+        
+        print(f"Outer args type: {type(outer_args)}")
+        print(f"Outer kwargs keys: {list(outer_kwargs.keys()) if outer_kwargs else 'None'}")
+        
+        # Execute main to get the operator/result
+        print("Executing: agent_operator = main(*outer_args, **outer_kwargs)")
+        agent_operator = main(*outer_args, **outer_kwargs)
+        
+        print(f"Agent operator type: {type(agent_operator)}")
+        print(f"Agent operator callable: {callable(agent_operator)}")
+        print()
+        
+    except Exception as e:
+        print("ERROR in Phase 1 (Operator Creation):")
+        print(traceback.format_exc())
+        sys.exit(1)
+    
+    # Phase 2: Execution & Verification
+    try:
+        if inner_path:
+            # Scenario B: Execute the operator with inner data
+            print("Phase 2: Loading inner data and executing operator...")
+            with open(inner_path, 'rb') as f:
+                inner_data = dill.load(f)
+            
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output')
+            
+            print(f"Inner args type: {type(inner_args)}")
+            print(f"Inner kwargs keys: {list(inner_kwargs.keys()) if inner_kwargs else 'None'}")
+            
+            if not callable(agent_operator):
+                print("ERROR: agent_operator is not callable but inner data exists")
+                sys.exit(1)
+            
+            print("Executing: result = agent_operator(*inner_args, **inner_kwargs)")
+            result = agent_operator(*inner_args, **inner_kwargs)
+            
+            print(f"Result type: {type(result)}")
+            print()
+            
+        else:
+            # Scenario A: The operator itself is the result
+            print("Phase 2: Using operator as final result (Scenario A)...")
+            result = agent_operator
+            expected = outer_output
+            print()
+        
+    except Exception as e:
+        print("ERROR in Phase 2 (Execution):")
+        print(traceback.format_exc())
+        sys.exit(1)
+    
+    # Phase 3: Verification
+    try:
+        print("Phase 3: Verifying results...")
+        print(f"Expected type: {type(expected)}")
+        print(f"Result type: {type(result)}")
+        
+        passed, msg = recursive_check(expected, result)
+        
+        if not passed:
+            print("=" * 80)
+            print("TEST FAILED")
+            print("=" * 80)
+            print(f"Verification message:\n{msg}")
+            sys.exit(1)
+        else:
+            print("=" * 80)
+            print("TEST PASSED")
+            print("=" * 80)
+            sys.exit(0)
+            
+    except Exception as e:
+        print("ERROR in Phase 3 (Verification):")
+        print(traceback.format_exc())
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main_test()

@@ -1,0 +1,3 @@
+Detected Scenario A: Simple Function
+TEST FAILED
+Verification message: Value mismatch at output: expected <_io.BufferedReader name='weights/inv-scatter-5m.pt'>, got <_io.BufferedReader name='weights/inv-scatter-5m.pt'>

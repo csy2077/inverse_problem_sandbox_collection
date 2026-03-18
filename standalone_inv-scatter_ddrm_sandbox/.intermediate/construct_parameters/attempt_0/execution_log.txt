@@ -1,0 +1,20 @@
+================================================================================
+UNIT TEST: construct_parameters
+================================================================================
+Outer data path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/run_code/std_data/data_construct_parameters.pkl
+Detected: Simple Function (Scenario A)
+--------------------------------------------------------------------------------
+Phase 1: Loading outer data and reconstructing operator...
+Outer args: 9 positional arguments
+Outer kwargs: []
+Executing construct_parameters...
+Result type: <class 'tuple'>
+--------------------------------------------------------------------------------
+Phase 2: Using outer data output for verification...
+Actual result type: <class 'tuple'>
+Expected result type: <class 'tuple'>
+--------------------------------------------------------------------------------
+Phase 3: Verifying results...
+================================================================================
+TEST PASSED
+================================================================================

@@ -1,0 +1,15 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/run_code/std_data/data_weight_init.pkl
+Outer args: 1 positional arguments
+Outer kwargs: ['mode', 'fan_in', 'fan_out']
+
+=== Scenario A: Simple Function ===
+Executing weight_init directly...
+
+=== Verification ===
+Result type: <class 'torch.Tensor'>
+Expected type: <class 'torch.Tensor'>
+Result shape: torch.Size([1]), dtype: torch.float32
+Expected shape: torch.Size([1]), dtype: torch.float32
+
+TEST FAILED
+Reason: Value mismatch at output: max difference 0.07033197581768036 > tol

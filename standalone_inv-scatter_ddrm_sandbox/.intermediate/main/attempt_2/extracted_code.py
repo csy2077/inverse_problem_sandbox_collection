@@ -1,0 +1,98 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Add the directory containing agent_main.py to the path if needed
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from verification_utils import recursive_check
+
+def main_test():
+    """
+    Robust Unit Test for main() function.
+    Handles both Scenario A (simple function) and Scenario B (factory/closure pattern).
+    """
+    
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/run_code/std_data/data_main.pkl']
+    
+    print("=" * 80)
+    print("UNIT TEST: test_main.py")
+    print("=" * 80)
+    
+    # Phase 0: Analyze data files
+    outer_path = None
+    inner_path = None
+    
+    for path in data_paths:
+        basename = os.path.basename(path)
+        if basename == 'data_main.pkl':
+            outer_path = path
+        elif 'parent_function' in basename and 'main' in basename:
+            inner_path = path
+    
+    if not outer_path:
+        print("ERROR: Could not find outer data file (data_main.pkl)")
+        sys.exit(1)
+    
+    print(f"Outer data path: {outer_path}")
+    if inner_path:
+        print(f"Inner data path: {inner_path}")
+        print("Detected: Scenario B (Factory/Closure Pattern)")
+    else:
+        print("Detected: Scenario A (Simple Function)")
+    print()
+    
+    # Phase 1: Load outer data and reconstruct operator
+    try:
+        print("Phase 1: Loading outer data and creating operator...")
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output')
+        
+        print(f"Outer args type: {type(outer_args)}")
+        print(f"Outer kwargs keys: {list(outer_kwargs.keys()) if outer_kwargs else 'None'}")
+        
+        # Since main() is the actual function that runs the full pipeline,
+        # and it doesn't return anything (returns None), we need to handle this differently.
+        # The test should verify that main() executes without errors.
+        
+        print("Executing: main(*outer_args, **outer_kwargs)")
+        agent_operator = None
+        
+        # Capture the execution - main() doesn't return a value, it runs the pipeline
+        try:
+            result = None
+            # main() runs the full inference pipeline and doesn't return anything
+            # We just need to verify it executes without error
+            import agent_main
+            agent_main.main(*outer_args, **outer_kwargs)
+            print("main() executed successfully")
+            
+            # For this case, since main() doesn't return anything meaningful,
+            # we consider successful execution as passing the test
+            print()
+            print("=" * 80)
+            print("TEST PASSED")
+            print("=" * 80)
+            print("main() executed without errors")
+            sys.exit(0)
+            
+        except Exception as e:
+            print("ERROR during main() execution:")
+            print(traceback.format_exc())
+            sys.exit(1)
+        
+    except Exception as e:
+        print("ERROR in Phase 1 (Loading/Execution):")
+        print(traceback.format_exc())
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main_test()

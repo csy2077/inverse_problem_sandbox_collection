@@ -1,0 +1,40 @@
+================================================================================
+UNIT TEST: test_main.py
+================================================================================
+Outer data path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/run_code/std_data/data_main.pkl
+Detected: Scenario A (Simple Function)
+
+Phase 1: Loading outer data...
+Outer args type: <class 'tuple'>, len: 0
+Outer kwargs keys: None
+Outer output type: <class 'NoneType'>
+Phase 2: Importing and executing main()...
+Found DhariwalUNet in module: torch.ops
+DhariwalUNet injected: <module 'torch.ops.DhariwalUNet' from 'torch.ops'>
+Phase 3: Executing main()...
+/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+[[34m2026-03-13 05:07:13[0m] Instantiating InverseScatter problem model...
+Loading SVD from cache.
+[[34m2026-03-13 05:07:20[0m] Instantiating Dataset...
+[[34m2026-03-13 05:07:20[0m] Loaded 1 test samples...
+[[34m2026-03-13 05:07:20[0m] Loading pre-trained model...
+[[34m2026-03-13 05:07:20[0m] Could not load pickle, trying torch.load from weights/inv-scatter-5m.pt
+ERROR during execution:
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/agent_main.py", line 714, in main
+    ckpt = pickle.load(f)
+_pickle.UnpicklingError: A load persistent id instruction was encountered,
+but no persistent_load function was specified.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/test_main.py", line 236, in main_test
+    result = agent_main.main(*outer_args, **outer_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/agent_main.py", line 718, in main
+    net = EDMPrecond(**config.pretrain.model)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/agent_main.py", line 237, in __init__
+    self.model = _model_dict[model_type](img_resolution=img_resolution, in_channels=img_channels, out_channels=img_channels, label_dim=label_dim, **model_kwargs)
+TypeError: '_OpNamespace' object is not callable
+

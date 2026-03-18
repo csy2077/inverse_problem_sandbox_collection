@@ -1,0 +1,4 @@
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/test_open_url.py", line 34
+    if 'USER
+       ^
+SyntaxError: unterminated string literal (detected at line 34)

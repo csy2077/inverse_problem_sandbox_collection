@@ -1,0 +1,18 @@
+================================================================================
+UNIT TEST: test_main.py
+================================================================================
+Outer data path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/run_code/std_data/data_main.pkl
+Detected: Scenario A (Simple Function)
+
+Phase 1: Loading outer data and creating operator...
+Outer args type: <class 'tuple'>
+Outer kwargs keys: None
+Executing: main(*outer_args, **outer_kwargs)
+ERROR during main() execution:
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/test_main.py", line 74, in main_test
+    import agent_main
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/agent_main.py", line 214, in <module>
+    'DhariwalUNet': DhariwalUNet,
+NameError: name 'DhariwalUNet' is not defined
+

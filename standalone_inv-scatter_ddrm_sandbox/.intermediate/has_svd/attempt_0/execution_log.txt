@@ -1,0 +1,26 @@
+================================================================================
+UNIT TEST: has_svd
+================================================================================
+Outer data path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/run_code/std_data/data_has_svd.pkl
+Detected: Simple Function (Scenario A)
+
+--------------------------------------------------------------------------------
+PHASE 1: Loading Outer Data and Creating Operator
+--------------------------------------------------------------------------------
+Outer args type: <class 'tuple'>
+Outer kwargs type: <class 'dict'>
+Number of outer args: 1
+
+Executing: has_svd(*outer_args, **outer_kwargs)
+Result type: <class 'bool'>
+Result value: True
+
+--------------------------------------------------------------------------------
+VERIFICATION (Simple Function)
+--------------------------------------------------------------------------------
+Result type: <class 'bool'>
+Expected type: <class 'bool'>
+
+================================================================================
+TEST PASSED
+================================================================================

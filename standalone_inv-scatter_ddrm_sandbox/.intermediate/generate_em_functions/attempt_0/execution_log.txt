@@ -1,0 +1,17 @@
+================================================================================
+UNIT TEST: generate_em_functions
+================================================================================
+
+[Phase 1] Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddrm_sandbox/run_code/std_data/data_generate_em_functions.pkl
+  Outer args type: <class 'tuple'>
+  Outer kwargs keys: None
+
+[Phase 2] Executing generate_em_functions with outer data...
+  Result type: <class 'dict'>
+
+[Scenario A] Simple function test
+  Comparing direct output...
+
+================================================================================
+TEST PASSED
+================================================================================
