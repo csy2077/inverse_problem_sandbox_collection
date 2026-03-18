@@ -1,0 +1,5 @@
+{
+    "function_explanation": "The function 'parse_int_list' converts a string or integer representation of a list or range of numbers into a Python list of integers.",
+    "function_docstring": "Converts various representations of numbers into a list of integers.\n\nArgs:\n    s (Union[str, int, List[int], None]): Input that specifies numbers. It can be a string representing comma-separated numbers and/or ranges (e.g., '1,2,5-7'), a single integer, a list of integers, or None.\n\nReturns:\n    List[int] or None: A list of integers specified by 's'. If 's' is None, returns None.",
+    "usage_example": "from agent_parse_int_list import parse_int_list\n\n# Example usage:\nprint(parse_int_list('1,2,5-7'))  # Output: [1, 2, 5, 6, 7]\nprint(parse_int_list(3))         # Output: [3]\nprint(parse_int_list([2, 4, 6])) # Output: [2, 4, 6]\nprint(parse_int_list(None))      # Output: None"
+}

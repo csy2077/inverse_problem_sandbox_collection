@@ -1,0 +1,4 @@
+Outer function: create_logger
+Outer args count: 1, kwargs keys: []
+Agent operator created: <class 'logging.Logger'>
+TEST PASSED

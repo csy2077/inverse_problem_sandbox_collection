@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Creates and configures a logging.Logger object based on whether it's the main process.",
+    "function_docstring": "Creates a logger with specific handlers based on process type.\n\nArgs:\n    logging_dir (str): The directory path where log files will be stored. If it's not provided, logging to a file is skipped.\n    main_process (bool, optional): A flag indicating if the current process is the main process. Defaults to True. If set to False, a NullHandler is used, otherwise a StreamHandler and a FileHandler are added.\n\nReturns:\n    logging.Logger: A configured logger instance with handlers based on the process type. If main_process is False, it returns a logger with a NullHandler, otherwise with a StreamHandler and a FileHandler configured to write logs to the given directory.",
+    "usage_example": "import os\nfrom my_module import create_logger\n\n# Example usage\nlogging_dir = '/path/to/logs'\nlogger = create_logger(logging_dir, main_process=True)\n\nlogger.info('This is an informational message')"
+}

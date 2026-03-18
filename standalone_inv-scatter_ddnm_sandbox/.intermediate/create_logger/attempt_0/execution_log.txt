@@ -1,0 +1,4 @@
+Outer function: create_logger
+Outer args count: 1, kwargs keys: []
+Agent operator created: <class 'logging.Logger'>
+TEST FAILED: Value mismatch at output: expected <Logger __main__ (WARNING)>, got <Logger agent_create_logger (INFO)>

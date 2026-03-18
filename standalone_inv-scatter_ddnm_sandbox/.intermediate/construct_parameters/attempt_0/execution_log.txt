@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_ddnm_sandbox/run_code/std_data/data_construct_parameters.pkl
+  func_name: construct_parameters
+Scenario A: Simple function call (no inner/closure data)
+  Function executed successfully.
+TEST PASSED
