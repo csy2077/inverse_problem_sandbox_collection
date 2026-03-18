@@ -1,0 +1,13 @@
+Outer data path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_blackhole_lgd_sandbox/run_code/std_data/data_open_url.pkl
+Inner data paths: []
+
+Phase 1: Reconstructing operator with outer data
+Outer args: ('weights/blackhole-50k.pt', 'rb')
+Outer kwargs: {}
+Agent operator created: <class '_io.BufferedReader'>
+
+Scenario A: Simple Function detected
+Result type: <class '_io.BufferedReader'>
+Expected type: <class '_io.BufferedReader'>
+
+TEST PASSED (file objects match by name)

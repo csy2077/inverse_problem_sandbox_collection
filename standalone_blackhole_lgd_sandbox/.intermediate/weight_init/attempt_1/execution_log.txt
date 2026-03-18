@@ -1,0 +1,11 @@
+[Phase 1] Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_blackhole_lgd_sandbox/run_code/std_data/data_weight_init.pkl
+[Phase 1] Outer args: 1 items
+[Phase 1] Outer kwargs: ['mode', 'fan_in', 'fan_out']
+[Phase 1] Result created: <class 'torch.Tensor'>
+[Phase 2] Scenario A detected: Simple function (no inner data)
+TEST FAILED
+Verification message: Value mismatch at output: max difference 0.06462420523166656 > tol
+Expected type: <class 'torch.Tensor'>
+Result type: <class 'torch.Tensor'>
+Expected shape: torch.Size([1])
+Result shape: torch.Size([1])

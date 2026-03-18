@@ -1,0 +1,10 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_blackhole_lgd_sandbox/run_code/std_data/data_create_logger.pkl
+Creating operator with args=('exps/inference/blackhole/LGD/standalone_lgd',), kwargs={}
+Scenario A detected: Simple function test
+TEST FAILED
+Verification message: Handler count mismatch: expected 0, got 2
+Expected type: <class 'logging.Logger'>, Actual type: <class 'logging.Logger'>
+Expected level: 0, Actual level: 20
+Expected effective level: 30, Actual effective level: 20
+Expected handlers: []
+Actual handlers: [<StreamHandler <stderr> (NOTSET)>, <FileHandler /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_blackhole_lgd_sandbox/exps/inference/blackhole/LGD/standalone_lgd/log.txt (NOTSET)>]

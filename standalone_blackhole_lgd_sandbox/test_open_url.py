@@ -1,0 +1,166 @@
+import sys
+import os
+import dill
+import traceback
+import numpy as np
+
+# Import the target function
+from agent_open_url import open_url
+
+# Import verification utility
+from verification_utils import recursive_check
+
+# Helper function to inject dependencies if needed
+def inject_dependencies():
+    """Inject any global dependencies required by dill.load"""
+    pass
+
+def compare_file_objects(expected, result):
+    """Compare file objects by their name attribute"""
+    if hasattr(expected, 'name') and hasattr(result, 'name'):
+        return expected.name == result.name
+    return False
+
+def main():
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_blackhole_lgd_sandbox/run_code/std_data/data_open_url.pkl']
+    
+    # Inject dependencies
+    inject_dependencies()
+    
+    # Determine test scenario
+    outer_path = None
+    inner_paths = []
+    
+    for path in data_paths:
+        if not os.path.exists(path):
+            print(f"ERROR: Data file not found: {path}")
+            sys.exit(1)
+        
+        # Check if this is outer data (exact match for function name)
+        if path.endswith('data_open_url.pkl'):
+            outer_path = path
+        # Check if this is inner data (contains parent_function pattern)
+        elif 'parent_function' in path or 'parent_' in path:
+            inner_paths.append(path)
+    
+    if outer_path is None:
+        print("ERROR: No outer data file found (data_open_url.pkl)")
+        sys.exit(1)
+    
+    print(f"Outer data path: {outer_path}")
+    print(f"Inner data paths: {inner_paths}")
+    
+    # Phase 1: Load outer data and reconstruct operator
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output')
+        
+        print(f"\nPhase 1: Reconstructing operator with outer data")
+        print(f"Outer args: {outer_args}")
+        print(f"Outer kwargs: {outer_kwargs}")
+        
+        # Execute the function
+        agent_operator = open_url(*outer_args, **outer_kwargs)
+        
+        print(f"Agent operator created: {type(agent_operator)}")
+        
+    except Exception as e:
+        print(f"ERROR in Phase 1: Failed to load outer data or create operator")
+        print(f"Exception: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    # Phase 2: Determine scenario and execute
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure Pattern
+        print(f"\nScenario B: Factory/Closure Pattern detected")
+        
+        # Verify agent_operator is callable
+        if not callable(agent_operator):
+            print(f"ERROR: Agent operator is not callable. Type: {type(agent_operator)}")
+            sys.exit(1)
+        
+        # Process each inner path
+        for inner_path in inner_paths:
+            try:
+                print(f"\nProcessing inner data: {inner_path}")
+                
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                
+                inner_args = inner_data.get('args', ())
+                inner_kwargs = inner_data.get('kwargs', {})
+                expected = inner_data.get('output')
+                
+                print(f"Inner args: {inner_args}")
+                print(f"Inner kwargs: {inner_kwargs}")
+                
+                # Execute the operator with inner data
+                result = agent_operator(*inner_args, **inner_kwargs)
+                
+                print(f"Result type: {type(result)}")
+                
+                # Verify result
+                passed, msg = recursive_check(expected, result)
+                
+                if not passed:
+                    print(f"\nTEST FAILED for {inner_path}")
+                    print(f"Verification message: {msg}")
+                    sys.exit(1)
+                else:
+                    print(f"TEST PASSED for {inner_path}")
+                    
+            except Exception as e:
+                print(f"ERROR processing inner data {inner_path}")
+                print(f"Exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+        
+        print("\nAll tests PASSED")
+        sys.exit(0)
+        
+    else:
+        # Scenario A: Simple Function
+        print(f"\nScenario A: Simple Function detected")
+        
+        result = agent_operator
+        expected = outer_output
+        
+        print(f"Result type: {type(result)}")
+        print(f"Expected type: {type(expected)}")
+        
+        # Special handling for file objects
+        if hasattr(expected, 'name') and hasattr(result, 'name'):
+            if compare_file_objects(expected, result):
+                print("\nTEST PASSED (file objects match by name)")
+                sys.exit(0)
+            else:
+                print(f"\nTEST FAILED")
+                print(f"Expected file: {expected.name}, Got file: {result.name}")
+                sys.exit(1)
+        
+        # Verify result
+        try:
+            passed, msg = recursive_check(expected, result)
+            
+            if not passed:
+                print(f"\nTEST FAILED")
+                print(f"Verification message: {msg}")
+                sys.exit(1)
+            else:
+                print("\nTEST PASSED")
+                sys.exit(0)
+                
+        except Exception as e:
+            print(f"ERROR during verification")
+            print(f"Exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+if __name__ == "__main__":
+    main()

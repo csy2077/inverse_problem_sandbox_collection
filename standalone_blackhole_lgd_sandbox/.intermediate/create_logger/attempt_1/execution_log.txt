@@ -1,0 +1,5 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_blackhole_lgd_sandbox/run_code/std_data/data_create_logger.pkl
+Creating operator with args=('exps/inference/blackhole/LGD/standalone_lgd',), kwargs={}
+Scenario A detected: Simple function test
+TEST FAILED
+Verification message: Logger level mismatch: expected 30, got 20

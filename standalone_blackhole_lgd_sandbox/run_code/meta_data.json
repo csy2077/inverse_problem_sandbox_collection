@@ -1,0 +1,178 @@
+[
+    {
+        "function_name": "create_logger",
+        "inputs": {
+            "logging_dir": {
+                "type": "str",
+                "value_sample": "exps/inference/blackhole/LGD/standalone_lgd"
+            },
+            "main_process": {
+                "type": "bool",
+                "value_sample": "True"
+            }
+        },
+        "output": {
+            "type": "CustomObject",
+            "class_name": "Logger",
+            "public_methods": [
+                "addFilter",
+                "addHandler",
+                "callHandlers",
+                "critical",
+                "debug",
+                "error",
+                "exception",
+                "fatal",
+                "filter",
+                "findCaller",
+                "getChild",
+                "getEffectiveLevel",
+                "handle",
+                "hasHandlers",
+                "info",
+                "isEnabledFor",
+                "log",
+                "makeRecord",
+                "removeFilter",
+                "removeHandler",
+                "setLevel",
+                "warn",
+                "warning"
+            ],
+            "attributes": [
+                "filters",
+                "name",
+                "level",
+                "parent",
+                "propagate",
+                "handlers",
+                "disabled",
+                "_cache",
+                "manager"
+            ]
+        }
+    },
+    {
+        "function_name": "parse_int_list",
+        "inputs": {
+            "s": {
+                "type": "str",
+                "value_sample": "0"
+            }
+        },
+        "output": {
+            "type": "list",
+            "length": 1,
+            "elements": [
+                {
+                    "type": "int",
+                    "value_sample": "0"
+                }
+            ]
+        }
+    },
+    {
+        "function_name": "open_url",
+        "inputs": {
+            "url": {
+                "type": "str",
+                "value_sample": "weights/blackhole-50k.pt"
+            },
+            "cache_dir": {
+                "type": "str",
+                "value_sample": "rb"
+            },
+            "num_attempts": {
+                "type": "int",
+                "value_sample": "10"
+            },
+            "verbose": {
+                "type": "bool",
+                "value_sample": "True"
+            },
+            "return_filename": {
+                "type": "bool",
+                "value_sample": "False"
+            },
+            "cache": {
+                "type": "bool",
+                "value_sample": "True"
+            }
+        },
+        "output": {
+            "type": "CustomObject",
+            "class_name": "BufferedReader",
+            "public_methods": [
+                "close",
+                "detach",
+                "fileno",
+                "flush",
+                "isatty",
+                "peek",
+                "read",
+                "read1",
+                "readable",
+                "readinto",
+                "readinto1",
+                "readline",
+                "readlines",
+                "seek",
+                "seekable",
+                "tell",
+                "truncate",
+                "writable",
+                "write",
+                "writelines"
+            ],
+            "attributes": []
+        }
+    },
+    {
+        "function_name": "weight_init",
+        "inputs": {
+            "shape": {
+                "type": "list",
+                "length": 2,
+                "elements": [
+                    {
+                        "type": "int",
+                        "value_sample": "512"
+                    },
+                    {
+                        "type": "int",
+                        "value_sample": "128"
+                    }
+                ]
+            },
+            "mode": {
+                "type": "str",
+                "value_sample": "xavier_uniform"
+            },
+            "fan_in": {
+                "type": "int",
+                "value_sample": "128"
+            },
+            "fan_out": {
+                "type": "int",
+                "value_sample": "512"
+            }
+        },
+        "output": {
+            "type": "torch.Tensor",
+            "shape": [
+                512,
+                128
+            ],
+            "dtype": "torch.float32",
+            "device": "cpu"
+        }
+    },
+    {
+        "function_name": "main",
+        "inputs": {},
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    }
+]

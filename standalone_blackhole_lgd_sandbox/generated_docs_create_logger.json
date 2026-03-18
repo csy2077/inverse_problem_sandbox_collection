@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Creates and configures a logging.Logger object which logs to both the console and a file, depending on a process flag.",
+    "function_docstring": "\"\"\"\nCreates a logger configured to log both to the console and to a specified directory.\n\nArgs:\n    logging_dir (str): Path to the directory where the log file will be saved.\n    main_process (bool, optional): If True, sets up logging to both console and file; if False, uses a NullHandler. Defaults to True.\n\nReturns:\n    logging.Logger: Configured logger instance with appropriate handlers for console and file output, or a NullHandler if not the main process.\n\"\"\"",
+    "usage_example": "import logging\n\n# Create a logger that logs to both console and a file named 'log.txt' in specified directory\nlogger = create_logger('/path/to/logging_directory', main_process=True)\n\n# Log an info message\nlogger.info('This is an info message.')\n\n# When not the main process, use a NullHandler\ndummy_logger = create_logger('/path/to/logging_directory', main_process=False)"
+}
