@@ -1,0 +1,10 @@
+Outer data path: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_parse_int_list.pkl
+Inner data paths: []
+Outer args: ('0',)
+Outer kwargs: {}
+Agent result type: <class 'list'>
+Detected Scenario A: Simple function
+Expected output: [0]
+Actual result: [0]
+
+TEST PASSED

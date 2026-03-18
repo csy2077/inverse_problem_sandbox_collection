@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/agent_load_and_preprocess_data.py", line 382, in load_and_preprocess_data
+    ckpt = pickle.load(f)
+_pickle.UnpicklingError: A load persistent id instruction was encountered,
+but no persistent_load function was specified.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/test_load_and_preprocess_data.py", line 271, in main
+    result = load_and_preprocess_data(config, device)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/agent_load_and_preprocess_data.py", line 395, in load_and_preprocess_data
+    net.load_state_dict(ckpt['net'])
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 2629, in load_state_dict
+    raise RuntimeError(
+RuntimeError: Error(s) in loading state_dict for EDMPrecond:
+	Missing key(s) in state_dict: "model.net.weight", "model.net.bias". 
+	Unexpected key(s) in state_dict: "net.weight", "net.bias". 
+Analyzing 1 data file(s)...
+Outer data path: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_load_and_preprocess_data.pkl
+Inner data path: None
+Outer data file size: 2 bytes
+WARNING: Data file is corrupted or too small. Running with default test configuration...
+
+=== Executing load_and_preprocess_data with default config ===
+ERROR executing load_and_preprocess_data: Error(s) in loading state_dict for EDMPrecond:
+	Missing key(s) in state_dict: "model.net.weight", "model.net.bias". 
+	Unexpected key(s) in state_dict: "net.weight", "net.bias". 

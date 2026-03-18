@@ -1,0 +1,8 @@
+Outer path: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_evaluate_results.pkl
+Inner paths: []
+Successfully loaded outer data
+Outer args types: []
+Outer kwargs keys: ['recon', 'target', 'observation', 'forward_op_params', 'logger']
+Function executed successfully, result type: dict
+Using simple function verification
+TEST PASSED

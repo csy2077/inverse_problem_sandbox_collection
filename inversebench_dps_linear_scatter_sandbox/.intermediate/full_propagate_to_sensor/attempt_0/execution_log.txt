@@ -1,0 +1,5 @@
+Scenario A: Simple function test
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_full_propagate_to_sensor.pkl
+Args count: 5
+Kwargs keys: []
+TEST PASSED

@@ -1,0 +1,6 @@
+Loaded data from: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_weight_init.pkl
+Args: ([1],)
+Kwargs: {'mode': 'kaiming_uniform', 'fan_in': 1152, 'fan_out': 9}
+Function executed successfully
+Result type: <class 'torch.Tensor'>
+TEST FAILED: Value mismatch at output: max difference 0.015962688252329826 > tol

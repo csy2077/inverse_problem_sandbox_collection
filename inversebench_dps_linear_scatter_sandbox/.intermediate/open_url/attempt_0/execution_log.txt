@@ -1,0 +1,4 @@
+Loaded outer data: args=('weights/inv-scatter-5m.pt', 'rb'), kwargs keys=[]
+Detected simple function pattern (no inner data)
+TEST FAILED
+Failure message: Value mismatch at output: expected <_io.BufferedReader name='weights/inv-scatter-5m.pt'>, got <_io.BufferedReader name='weights/inv-scatter-5m.pt'>

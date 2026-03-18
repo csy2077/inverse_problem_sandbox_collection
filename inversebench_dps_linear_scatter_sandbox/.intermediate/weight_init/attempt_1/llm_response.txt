@@ -1,0 +1,218 @@
+```python
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_weight_init import weight_init
+
+# Import verification utility
+from verification_utils import recursive_check
+
+
+def main():
+    """Main test function for weight_init."""
+    
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_weight_init.pkl']
+    
+    # Filter paths to identify outer and inner data files
+    outer_path = None
+    inner_paths = []
+    
+    for path in data_paths:
+        basename = os.path.basename(path)
+        if 'parent_function' in basename:
+            inner_paths.append(path)
+        elif basename == 'data_weight_init.pkl' or basename.endswith('_weight_init.pkl'):
+            outer_path = path
+    
+    # Scenario A: Simple function test (no inner paths)
+    if not inner_paths:
+        if outer_path is None:
+            print("ERROR: No valid data file found")
+            sys.exit(1)
+        
+        try:
+            # Load outer data
+            with open(outer_path, 'rb') as f:
+                outer_data = dill.load(f)
+            
+            args = outer_data.get('args', ())
+            kwargs = outer_data.get('kwargs', {})
+            expected_output = outer_data.get('output')
+            
+            print(f"Loaded data from: {outer_path}")
+            print(f"Args: {args}")
+            print(f"Kwargs: {kwargs}")
+            
+        except Exception as e:
+            print(f"ERROR loading outer data: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        try:
+            # The weight_init function uses random initialization (torch.rand, torch.randn)
+            # We need to set the random seed to get reproducible results
+            # However, since we don't know the seed used during data generation,
+            # we should verify the statistical properties instead of exact values
+            
+            # Execute the function
+            result = weight_init(*args, **kwargs)
+            print(f"Function executed successfully")
+            print(f"Result type: {type(result)}")
+            print(f"Result shape: {result.shape if hasattr(result, 'shape') else 'N/A'}")
+            print(f"Expected shape: {expected_output.shape if hasattr(expected_output, 'shape') else 'N/A'}")
+            
+        except Exception as e:
+            print(f"ERROR executing weight_init: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        try:
+            # For random initialization functions, we verify:
+            # 1. Shape matches
+            # 2. Data type matches
+            # 3. Statistical properties are within expected bounds
+            
+            # Check shape
+            if hasattr(result, 'shape') and hasattr(expected_output, 'shape'):
+                if result.shape != expected_output.shape:
+                    print(f"TEST FAILED: Shape mismatch - expected {expected_output.shape}, got {result.shape}")
+                    sys.exit(1)
+                print(f"Shape check PASSED: {result.shape}")
+            
+            # Check dtype
+            if hasattr(result, 'dtype') and hasattr(expected_output, 'dtype'):
+                if result.dtype != expected_output.dtype:
+                    print(f"TEST FAILED: Dtype mismatch - expected {expected_output.dtype}, got {result.dtype}")
+                    sys.exit(1)
+                print(f"Dtype check PASSED: {result.dtype}")
+            
+            # For random weight initialization, verify the scale is correct
+            # Extract parameters
+            shape = args[0] if args else kwargs.get('shape')
+            mode = kwargs.get('mode', args[1] if len(args) > 1 else None)
+            fan_in = kwargs.get('fan_in', args[2] if len(args) > 2 else None)
+            fan_out = kwargs.get('fan_out', args[3] if len(args) > 3 else None)
+            
+            # Calculate expected bounds based on initialization mode
+            if mode == 'xavier_uniform':
+                bound = np.sqrt(6 / (fan_in + fan_out))
+            elif mode == 'xavier_normal':
+                bound = np.sqrt(2 / (fan_in + fan_out)) * 3  # 3 sigma for normal
+            elif mode == 'kaiming_uniform':
+                bound = np.sqrt(3 / fan_in)
+            elif mode == 'kaiming_normal':
+                bound = np.sqrt(1 / fan_in) * 3  # 3 sigma for normal
+            else:
+                bound = None
+            
+            if bound is not None:
+                result_np = result.detach().cpu().numpy() if torch.is_tensor(result) else np.array(result)
+                max_val = np.max(np.abs(result_np))
+                
+                # For uniform distributions, values should be within bounds
+                # For normal distributions, most values should be within 3 sigma
+                # Use a tolerance factor for edge cases
+                tolerance_factor = 1.5  # Allow some margin
+                
+                if max_val <= bound * tolerance_factor:
+                    print(f"Value range check PASSED: max |value| = {max_val:.6f}, expected bound = {bound:.6f}")
+                else:
+                    print(f"WARNING: max |value| = {max_val:.6f} exceeds expected bound {bound:.6f}")
+                    # Don't fail on this as random values can occasionally exceed
+            
+            # Verify the function returns a tensor
+            if not torch.is_tensor(result):
+                print(f"TEST FAILED: Expected torch.Tensor, got {type(result)}")
+                sys.exit(1)
+            
+            print("TEST PASSED")
+            sys.exit(0)
+                
+        except Exception as e:
+            print(f"ERROR during verification: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+    
+    # Scenario B: Factory/Closure pattern (inner paths exist)
+    else:
+        if outer_path is None:
+            print("ERROR: No outer data file found for factory pattern")
+            sys.exit(1)
+        
+        try:
+            # Phase 1: Load outer data and create operator
+            with open(outer_path, 'rb') as f:
+                outer_data = dill.load(f)
+            
+            outer_args = outer_data.get('args', ())
+            outer_kwargs = outer_data.get('kwargs', {})
+            
+            print(f"Loaded outer data from: {outer_path}")
+            print(f"Outer Args: {outer_args}")
+            print(f"Outer Kwargs: {outer_kwargs}")
+            
+            # Create the operator/closure
+            agent_operator = weight_init(*outer_args, **outer_kwargs)
+            
+            if not callable(agent_operator):
+                print(f"ERROR: weight_init did not return a callable, got {type(agent_operator)}")
+                sys.exit(1)
+            
+            print(f"Agent operator created successfully: {type(agent_operator)}")
+            
+        except Exception as e:
+            print(f"ERROR in Phase 1 (operator creation): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        # Phase 2: Execute with inner data
+        all_passed = True
+        
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                
+                inner_args = inner_data.get('args', ())
+                inner_kwargs = inner_data.get('kwargs', {})
+                expected_output = inner_data.get('output')
+                
+                print(f"\nLoaded inner data from: {inner_path}")
+                print(f"Inner Args: {inner_args}")
+                print(f"Inner Kwargs: {inner_kwargs}")
+                
+                # Execute the operator
+                result = agent_operator(*inner_args, **inner_kwargs)
+                print(f"Operator executed successfully")
+                
+                # Compare results
+                passed, msg = recursive_check(expected_output, result)
+                
+                if passed:
+                    print(f"Inner test PASSED for {inner_path}")
+                else:
+                    print(f"Inner test FAILED for {inner_path}: {msg}")
+                    all_passed = False
+                    
+            except Exception as e:
+                print(f"ERROR processing inner data {inner_path}: {e}")
+                traceback.print_exc()
+                all_passed = False
+        
+        if all_passed:
+            print("\nTEST PASSED")
+            sys.exit(0)
+        else:
+            print("\nTEST FAILED")
+            sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
+```

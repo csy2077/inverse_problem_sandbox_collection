@@ -1,0 +1,244 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import logging
+import torch
+import torch.nn.functional as F
+
+# Import target function
+from agent_run_inversion import run_inversion
+
+
+# --- Inject Referee (Evaluation Logic) ---
+def evaluate_results(recon: torch.Tensor, 
+                     target: torch.Tensor, 
+                     observation: torch.Tensor,
+                     forward_op_params: dict,
+                     logger: logging.Logger) -> dict:
+    """
+    Evaluates reconstruction quality using PSNR and SSIM metrics.
+    """
+    from piq import psnr, ssim
+    
+    unnorm_shift = forward_op_params['unnorm_shift']
+    unnorm_scale = forward_op_params['unnorm_scale']
+    
+    # Unnormalize for evaluation
+    recon_unnorm = (recon + unnorm_shift) * unnorm_scale
+    target_unnorm = (target + unnorm_shift) * unnorm_scale
+    
+    # Clip to [0, 1] for metric computation
+    recon_clipped = recon_unnorm.clip(0, 1)
+    target_clipped = target_unnorm.clip(0, 1)
+    
+    # Ensure same shape for metrics
+    if recon_clipped.shape != target_clipped.shape:
+        target_clipped = target_clipped.repeat(recon_clipped.shape[0], 1, 1, 1)
+    
+    # Compute metrics
+    psnr_val = psnr(recon_clipped, target_clipped, data_range=1.0, reduction='none').mean().item()
+    ssim_val = ssim(recon_clipped, target_clipped, data_range=1.0, reduction='none').mean().item()
+    
+    metric_dict = {
+        'psnr': psnr_val,
+        'ssim': ssim_val
+    }
+    
+    logger.info(f"Metric results: {metric_dict}")
+    
+    return metric_dict
+
+
+def setup_logger():
+    """Setup a simple logger for evaluation."""
+    logger = logging.getLogger('test_run_inversion')
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    if not logger.handlers:
+        logger.addHandler(handler)
+    return logger
+
+
+def patch_model_forward():
+    """
+    Patch any model classes that might be missing the F import in their forward methods.
+    This is done by injecting F into the gen_std_data module if it exists.
+    """
+    try:
+        import gen_std_data
+        if not hasattr(gen_std_data, 'F'):
+            gen_std_data.F = F
+    except ImportError:
+        pass
+
+
+def main():
+    logger = setup_logger()
+    
+    # Patch any missing imports in loaded modules
+    patch_model_forward()
+    
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_run_inversion.pkl']
+    
+    # Analyze data files
+    outer_data_path = None
+    inner_data_paths = []
+    
+    for path in data_paths:
+        filename = os.path.basename(path)
+        if 'parent_function' in filename:
+            inner_data_paths.append(path)
+        else:
+            outer_data_path = path
+    
+    if outer_data_path is None:
+        print("ERROR: Could not find primary data file.")
+        sys.exit(1)
+    
+    try:
+        # Inject F into gen_std_data before loading pickle
+        import gen_std_data
+        gen_std_data.F = F
+        
+        # Load outer/primary data
+        print(f"Loading primary data from: {outer_data_path}")
+        with open(outer_data_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        # Re-inject F after loading in case new classes were loaded
+        import gen_std_data
+        gen_std_data.F = F
+        
+        # Extract inputs and expected output
+        args = outer_data.get('args', ())
+        kwargs = outer_data.get('kwargs', {})
+        std_output = outer_data.get('output', None)
+        
+        # Additional data that might be needed for evaluation
+        target = outer_data.get('target', None)
+        observation = outer_data.get('observation', None)
+        forward_op_params = outer_data.get('forward_op_params', None)
+        
+        # If forward_op_params not in outer_data, check kwargs
+        if forward_op_params is None:
+            forward_op_params = kwargs.get('forward_op_params', None)
+        
+        # If observation not in outer_data, check args/kwargs
+        if observation is None:
+            if len(args) > 0:
+                observation = args[0]
+            else:
+                observation = kwargs.get('observation', None)
+        
+        print(f"Args count: {len(args)}")
+        print(f"Kwargs keys: {list(kwargs.keys())}")
+        
+        # Check if this is chained execution
+        if len(inner_data_paths) > 0:
+            print("Detected chained execution pattern (Closure/Factory).")
+            
+            # Run outer function to get operator
+            print("Running run_inversion to get operator...")
+            operator = run_inversion(*args, **kwargs)
+            
+            # Load inner data and execute
+            for inner_path in inner_data_paths:
+                print(f"Loading inner data from: {inner_path}")
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                
+                inner_args = inner_data.get('args', ())
+                inner_kwargs = inner_data.get('kwargs', {})
+                std_result = inner_data.get('output', None)
+                
+                # Update evaluation params from inner data if available
+                if inner_data.get('target') is not None:
+                    target = inner_data['target']
+                if inner_data.get('forward_op_params') is not None:
+                    forward_op_params = inner_data['forward_op_params']
+                if inner_data.get('observation') is not None:
+                    observation = inner_data['observation']
+                
+                print("Running operator with inner data...")
+                agent_result = operator(*inner_args, **inner_kwargs)
+        else:
+            print("Detected direct execution pattern.")
+            
+            # Run the function directly
+            print("Running run_inversion...")
+            agent_result = run_inversion(*args, **kwargs)
+            std_result = std_output
+        
+        print(f"Agent result shape: {agent_result.shape if hasattr(agent_result, 'shape') else type(agent_result)}")
+        print(f"Standard result shape: {std_result.shape if hasattr(std_result, 'shape') else type(std_result)}")
+        
+        # Ensure tensors are on the same device
+        if torch.is_tensor(agent_result) and torch.is_tensor(std_result):
+            device = agent_result.device
+            std_result = std_result.to(device)
+            if target is not None and torch.is_tensor(target):
+                target = target.to(device)
+            if observation is not None and torch.is_tensor(observation):
+                observation = observation.to(device)
+            
+            # Move forward_op_params tensors to device
+            if forward_op_params is not None:
+                for key, val in forward_op_params.items():
+                    if torch.is_tensor(val):
+                        forward_op_params[key] = val.to(device)
+        
+        # If target is not available, use std_result as target for comparison
+        if target is None:
+            print("Warning: No target found, using standard result as target for evaluation.")
+            target = std_result
+        
+        # Evaluate both results
+        print("\nEvaluating agent result...")
+        score_agent = evaluate_results(agent_result, target, observation, forward_op_params, logger)
+        
+        print("\nEvaluating standard result...")
+        score_std = evaluate_results(std_result, target, observation, forward_op_params, logger)
+        
+        # Extract primary metrics
+        agent_psnr = score_agent['psnr']
+        agent_ssim = score_agent['ssim']
+        std_psnr = score_std['psnr']
+        std_ssim = score_std['ssim']
+        
+        print(f"\n{'='*60}")
+        print(f"Scores -> Agent: PSNR={agent_psnr:.4f}, SSIM={agent_ssim:.4f}")
+        print(f"Scores -> Standard: PSNR={std_psnr:.4f}, SSIM={std_ssim:.4f}")
+        print(f"{'='*60}")
+        
+        # Verification: Higher PSNR and SSIM are better
+        # Allow 10% margin of error
+        margin = 0.90
+        
+        psnr_pass = agent_psnr >= std_psnr * margin
+        ssim_pass = agent_ssim >= std_ssim * margin
+        
+        print(f"\nPSNR Check: {'PASS' if psnr_pass else 'FAIL'} (Agent: {agent_psnr:.4f} vs Threshold: {std_psnr * margin:.4f})")
+        print(f"SSIM Check: {'PASS' if ssim_pass else 'FAIL'} (Agent: {agent_ssim:.4f} vs Threshold: {std_ssim * margin:.4f})")
+        
+        if psnr_pass and ssim_pass:
+            print("\n✓ Performance verification PASSED!")
+            sys.exit(0)
+        else:
+            print("\n✗ Performance verification FAILED!")
+            print("Agent performance degraded significantly compared to standard.")
+            sys.exit(1)
+            
+    except Exception as e:
+        print(f"\nERROR during test execution:")
+        print(traceback.format_exc())
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/test_load_and_preprocess_data.py", line 11, in <module>
+    from agent_load_and_preprocess_data import load_and_preprocess_data
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/agent_load_and_preprocess_data.py", line 145, in <module>
+    'DhariwalUNet': DhariwalUNet,
+NameError: name 'DhariwalUNet' is not defined

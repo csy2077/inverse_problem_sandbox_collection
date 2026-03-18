@@ -1,0 +1,11 @@
+Outer path: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_is_url.pkl
+Inner path: None
+Successfully loaded outer data
+Outer args: ('weights/inv-scatter-5m.pt',)
+Outer kwargs: {}
+Function result type: <class 'bool'>
+Expected type: <class 'bool'>
+Result type: <class 'bool'>
+Expected value: False
+Result value: False
+TEST PASSED

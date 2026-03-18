@@ -1,0 +1,124 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_construct_parameters import construct_parameters
+from verification_utils import recursive_check
+
+
+def main():
+    """Main test function for construct_parameters."""
+    
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_construct_parameters.pkl']
+    
+    # Separate outer and inner data paths
+    outer_path = None
+    inner_paths = []
+    
+    for path in data_paths:
+        basename = os.path.basename(path)
+        if 'parent_function' in basename:
+            inner_paths.append(path)
+        elif basename == 'data_construct_parameters.pkl' or basename.endswith('_construct_parameters.pkl'):
+            outer_path = path
+    
+    if outer_path is None:
+        print("ERROR: Could not find outer data file (data_construct_parameters.pkl)")
+        sys.exit(1)
+    
+    # Phase 1: Load outer data and execute construct_parameters
+    try:
+        print(f"Loading outer data from: {outer_path}")
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        expected_output = outer_data.get('output', None)
+        
+        print(f"Outer args: {outer_args}")
+        print(f"Outer kwargs: {outer_kwargs}")
+        
+    except Exception as e:
+        print(f"ERROR: Failed to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    # Execute construct_parameters
+    try:
+        print("Executing construct_parameters...")
+        result = construct_parameters(*outer_args, **outer_kwargs)
+        print(f"construct_parameters returned type: {type(result)}")
+        
+    except Exception as e:
+        print(f"ERROR: Failed to execute construct_parameters: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    # Determine if this is Scenario A or B
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print(f"Detected Scenario B: Found {len(inner_paths)} inner data file(s)")
+        
+        # Check if result is callable (operator)
+        if callable(result):
+            agent_operator = result
+            
+            for inner_path in inner_paths:
+                try:
+                    print(f"Loading inner data from: {inner_path}")
+                    with open(inner_path, 'rb') as f:
+                        inner_data = dill.load(f)
+                    
+                    inner_args = inner_data.get('args', ())
+                    inner_kwargs = inner_data.get('kwargs', {})
+                    inner_expected = inner_data.get('output', None)
+                    
+                    print(f"Executing agent_operator with inner args...")
+                    inner_result = agent_operator(*inner_args, **inner_kwargs)
+                    
+                    print("Comparing inner results...")
+                    passed, msg = recursive_check(inner_expected, inner_result)
+                    
+                    if not passed:
+                        print(f"TEST FAILED (inner execution): {msg}")
+                        sys.exit(1)
+                    else:
+                        print(f"Inner test passed for: {inner_path}")
+                        
+                except Exception as e:
+                    print(f"ERROR: Failed during inner execution: {e}")
+                    traceback.print_exc()
+                    sys.exit(1)
+            
+            print("TEST PASSED")
+            sys.exit(0)
+        else:
+            # Result is not callable, treat as Scenario A despite inner files
+            print("Result is not callable, falling back to Scenario A comparison")
+    
+    # Scenario A: Simple function - compare result directly
+    print("Scenario A: Comparing result directly with expected output")
+    
+    try:
+        passed, msg = recursive_check(expected_output, result)
+        
+        if not passed:
+            print(f"TEST FAILED: {msg}")
+            sys.exit(1)
+        else:
+            print("TEST PASSED")
+            sys.exit(0)
+            
+    except Exception as e:
+        print(f"ERROR: Failed during comparison: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

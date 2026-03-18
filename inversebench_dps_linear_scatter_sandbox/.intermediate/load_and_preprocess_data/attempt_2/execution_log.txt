@@ -1,0 +1,24 @@
+/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/_weights_only_unpickler.py:552: UserWarning: Detected pickle protocol 4 in the checkpoint, which was not the default pickle protocol used by `torch.load` (2). The weights_only Unpickler might not support all instructions implemented by this protocol, please file an issue for adding support if you encounter this.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/test_load_and_preprocess_data.py", line 247, in main
+    outer_data = load_data_file(outer_path)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/test_load_and_preprocess_data.py", line 164, in load_data_file
+    raise RuntimeError(f"Failed to load data file with all methods:\n" + "\n".join(errors))
+RuntimeError: Failed to load data file with all methods:
+dill.load failed: Ran out of input
+pickle.load failed: Ran out of input
+torch.load failed: 
+np.load failed: Failed to interpret file '/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_load_and_preprocess_data.pkl' as a pickle
+Analyzing 1 data file(s)...
+Outer data path: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_load_and_preprocess_data.pkl
+Inner data path: None
+Outer data file size: 2 bytes
+
+=== Phase 1: Loading outer data ===
+File size: 2 bytes
+ERROR loading outer data: Failed to load data file with all methods:
+dill.load failed: Ran out of input
+pickle.load failed: Ran out of input
+torch.load failed: 
+np.load failed: Failed to interpret file '/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_load_and_preprocess_data.pkl' as a pickle

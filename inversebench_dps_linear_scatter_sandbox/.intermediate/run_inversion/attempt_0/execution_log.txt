@@ -1,0 +1,29 @@
+Loading primary data from: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_run_inversion.pkl
+Args count: 0
+Kwargs keys: ['observation', 'net', 'forward_op_params', 'scheduler_config', 'guidance_scale', 'sde', 'num_samples', 'device']
+Detected direct execution pattern.
+Running run_inversion...
+
+  0%|          | 0/1000 [00:00<?, ?it/s]
+  0%|          | 0/1000 [00:00<?, ?it/s]
+
+ERROR during test execution:
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/test_run_inversion.py", line 149, in main
+    agent_result = run_inversion(*args, **kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/agent_run_inversion.py", line 157, in run_inversion
+    denoised = net(x_cur / scheduler.scaling_steps[i], torch.as_tensor(sigma).to(x_cur.device))
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/gen_std_data.py", line 654, in forward
+    F_x = self.model((c_in * x).to(dtype), c_noise.flatten(), class_labels=class_labels, **model_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/gen_std_data.py", line 612, in forward
+    emb = F.silu(self.map_layer0(emb))
+NameError: name 'F' is not defined
+

@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/test_create_logger.py", line 173, in <module>
+    main()
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/test_create_logger.py", line 80, in main
+    logger_name = logging.getLogger().__name__
+AttributeError: 'RootLogger' object has no attribute '__name__'. Did you mean: '__ne__'?

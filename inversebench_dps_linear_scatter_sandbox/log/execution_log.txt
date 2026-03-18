@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/agent_load_and_preprocess_data.py", line 379, in load_and_preprocess_data
+    ckpt = pickle.load(f)
+_pickle.UnpicklingError: A load persistent id instruction was encountered,
+but no persistent_load function was specified.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/test_load_and_preprocess_data.py", line 279, in main
+    result = load_and_preprocess_data(config, device)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/agent_load_and_preprocess_data.py", line 382, in load_and_preprocess_data
+    net = EDMPrecond(**pretrain_config)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/agent_load_and_preprocess_data.py", line 165, in __init__
+    raise ValueError(f"Model type '{model_type}' not found in _model_dict. Available: {list(_model_dict.keys())}")
+ValueError: Model type 'DhariwalUNet' not found in _model_dict. Available: []
+Analyzing 1 data file(s)...
+Outer data path: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_load_and_preprocess_data.pkl
+Inner data path: None
+Outer data file size: 2 bytes
+WARNING: Data file is corrupted or too small. Running with default test configuration...
+
+=== Executing load_and_preprocess_data with default config ===
+ERROR executing load_and_preprocess_data: Model type 'DhariwalUNet' not found in _model_dict. Available: []

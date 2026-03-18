@@ -1,0 +1,3 @@
+Loaded outer data: args=('weights/inv-scatter-5m.pt', 'rb'), kwargs keys=[]
+Detected simple function pattern (no inner data)
+TEST PASSED

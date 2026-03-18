@@ -1,0 +1,442 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import logging
+import torch
+import torch.nn.functional as F
+
+# Pre-inject necessary names into gen_std_data module before any imports
+# This needs to happen before the pickle load
+def setup_gen_std_data():
+    """Setup gen_std_data module with all necessary dependencies."""
+    try:
+        # First, try to import the module
+        import gen_std_data
+        
+        # Inject F
+        gen_std_data.F = F
+        
+        # Try to find and inject UNetBlock
+        # It's likely defined in the same module, so we need to find it
+        if hasattr(gen_std_data, 'UNetBlock'):
+            # Already available at module level
+            pass
+        else:
+            # Search for UNetBlock in the module's classes
+            for name in dir(gen_std_data):
+                obj = getattr(gen_std_data, name)
+                if isinstance(obj, type) and 'UNetBlock' in name:
+                    gen_std_data.UNetBlock = obj
+                    break
+            
+            # If still not found, create a dummy or look in globals after load
+            if not hasattr(gen_std_data, 'UNetBlock'):
+                # We'll need to patch this after loading the pickle
+                pass
+                
+    except ImportError:
+        pass
+
+# Call setup before anything else
+setup_gen_std_data()
+
+# Import target function
+from agent_run_inversion import run_inversion
+
+
+# --- Inject Referee (Evaluation Logic) ---
+def evaluate_results(recon: torch.Tensor, 
+                     target: torch.Tensor, 
+                     observation: torch.Tensor,
+                     forward_op_params: dict,
+                     logger: logging.Logger) -> dict:
+    """
+    Evaluates reconstruction quality using PSNR and SSIM metrics.
+    """
+    from piq import psnr, ssim
+    
+    unnorm_shift = forward_op_params['unnorm_shift']
+    unnorm_scale = forward_op_params['unnorm_scale']
+    
+    # Unnormalize for evaluation
+    recon_unnorm = (recon + unnorm_shift) * unnorm_scale
+    target_unnorm = (target + unnorm_shift) * unnorm_scale
+    
+    # Clip to [0, 1] for metric computation
+    recon_clipped = recon_unnorm.clip(0, 1)
+    target_clipped = target_unnorm.clip(0, 1)
+    
+    # Ensure same shape for metrics
+    if recon_clipped.shape != target_clipped.shape:
+        target_clipped = target_clipped.repeat(recon_clipped.shape[0], 1, 1, 1)
+    
+    # Compute metrics
+    psnr_val = psnr(recon_clipped, target_clipped, data_range=1.0, reduction='none').mean().item()
+    ssim_val = ssim(recon_clipped, target_clipped, data_range=1.0, reduction='none').mean().item()
+    
+    metric_dict = {
+        'psnr': psnr_val,
+        'ssim': ssim_val
+    }
+    
+    logger.info(f"Metric results: {metric_dict}")
+    
+    return metric_dict
+
+
+def setup_logger():
+    """Setup a simple logger for evaluation."""
+    logger = logging.getLogger('test_run_inversion')
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    if not logger.handlers:
+        logger.addHandler(handler)
+    return logger
+
+
+def patch_gen_std_data_complete():
+    """
+    Comprehensively patch the gen_std_data module with all necessary dependencies.
+    """
+    try:
+        import gen_std_data
+        
+        # Inject F
+        gen_std_data.F = F
+        
+        # Find UNetBlock - it should be defined in the module
+        # Look through all defined classes
+        unet_block_class = None
+        for name in dir(gen_std_data):
+            if 'UNetBlock' in name:
+                obj = getattr(gen_std_data, name)
+                if isinstance(obj, type):
+                    unet_block_class = obj
+                    break
+        
+        if unet_block_class is not None:
+            gen_std_data.UNetBlock = unet_block_class
+        else:
+            # Create a simple UNetBlock class if not found
+            # This is a fallback - the actual class should be in the module
+            class UNetBlock(torch.nn.Module):
+                pass
+            gen_std_data.UNetBlock = UNetBlock
+            
+    except ImportError:
+        pass
+
+
+def inject_into_loaded_objects(data):
+    """
+    Recursively inject necessary globals into loaded objects' modules.
+    """
+    import gen_std_data
+    
+    # Inject F
+    gen_std_data.F = F
+    
+    # Find UNetBlock from loaded objects
+    def find_unetblock(obj, visited=None):
+        if visited is None:
+            visited = set()
+        
+        obj_id = id(obj)
+        if obj_id in visited:
+            return None
+        visited.add(obj_id)
+        
+        if isinstance(obj, type) and 'UNetBlock' in obj.__name__:
+            return obj
+        
+        if hasattr(obj, '__dict__'):
+            for attr_name in dir(obj):
+                try:
+                    attr = getattr(obj, attr_name)
+                    if isinstance(attr, type) and 'UNetBlock' in attr.__name__:
+                        return attr
+                except:
+                    pass
+        
+        return None
+    
+    # Look for UNetBlock in the data
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if hasattr(value, '__class__'):
+                cls = value.__class__
+                module = cls.__module__
+                if module == 'gen_std_data':
+                    # Try to get UNetBlock from the class's globals
+                    if hasattr(cls, '__globals__'):
+                        if 'UNetBlock' in cls.__globals__:
+                            gen_std_data.UNetBlock = cls.__globals__['UNetBlock']
+                            return
+
+
+def patch_model_methods(model):
+    """
+    Patch a model's forward method to have access to UNetBlock.
+    """
+    import gen_std_data
+    
+    if not hasattr(model, 'forward'):
+        return
+    
+    # Get the forward method's globals
+    forward_method = model.forward
+    if hasattr(forward_method, '__func__'):
+        forward_func = forward_method.__func__
+    else:
+        forward_func = forward_method
+    
+    if hasattr(forward_func, '__globals__'):
+        # Inject UNetBlock into the forward method's globals
+        if 'UNetBlock' not in forward_func.__globals__:
+            # Find UNetBlock from gen_std_data
+            if hasattr(gen_std_data, 'UNetBlock'):
+                forward_func.__globals__['UNetBlock'] = gen_std_data.UNetBlock
+        
+        # Also inject F
+        if 'F' not in forward_func.__globals__:
+            forward_func.__globals__['F'] = F
+
+
+def deep_patch_model(model, visited=None):
+    """
+    Recursively patch all submodules of a model.
+    """
+    if visited is None:
+        visited = set()
+    
+    model_id = id(model)
+    if model_id in visited:
+        return
+    visited.add(model_id)
+    
+    patch_model_methods(model)
+    
+    # Recursively patch submodules
+    if hasattr(model, 'modules'):
+        for submodule in model.modules():
+            if submodule is not model:
+                patch_model_methods(submodule)
+    
+    # Also check named children
+    if hasattr(model, 'named_children'):
+        for name, child in model.named_children():
+            deep_patch_model(child, visited)
+    
+    # Check for model attribute
+    if hasattr(model, 'model'):
+        deep_patch_model(model.model, visited)
+
+
+def main():
+    logger = setup_logger()
+    
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_run_inversion.pkl']
+    
+    # Analyze data files
+    outer_data_path = None
+    inner_data_paths = []
+    
+    for path in data_paths:
+        filename = os.path.basename(path)
+        if 'parent_function' in filename:
+            inner_data_paths.append(path)
+        else:
+            outer_data_path = path
+    
+    if outer_data_path is None:
+        print("ERROR: Could not find primary data file.")
+        sys.exit(1)
+    
+    try:
+        # Pre-patch gen_std_data
+        patch_gen_std_data_complete()
+        
+        # Load outer/primary data
+        print(f"Loading primary data from: {outer_data_path}")
+        with open(outer_data_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        # After loading, find and inject UNetBlock
+        import gen_std_data
+        
+        # Look for UNetBlock in loaded classes
+        for key, value in outer_data.items():
+            if hasattr(value, '__class__'):
+                cls = value.__class__
+                if hasattr(cls, '__module__') and cls.__module__ == 'gen_std_data':
+                    # Try to extract UNetBlock from the class
+                    if hasattr(cls, '__globals__') and 'UNetBlock' in cls.__globals__:
+                        gen_std_data.UNetBlock = cls.__globals__['UNetBlock']
+                        # Also inject F into those globals
+                        cls.__globals__['F'] = F
+                        break
+        
+        # If we still don't have UNetBlock, search more thoroughly
+        if not hasattr(gen_std_data, 'UNetBlock') or gen_std_data.UNetBlock is None:
+            # Search in the model's nested structure
+            net = outer_data.get('kwargs', {}).get('net', None)
+            if net is not None:
+                for module in net.modules():
+                    cls = module.__class__
+                    if hasattr(cls, '__globals__') and 'UNetBlock' in cls.__globals__:
+                        gen_std_data.UNetBlock = cls.__globals__['UNetBlock']
+                        cls.__globals__['F'] = F
+                        break
+        
+        # Now patch all methods to have access to UNetBlock
+        net = outer_data.get('kwargs', {}).get('net', None)
+        if net is not None:
+            # Inject into all module forward methods
+            for module in net.modules():
+                cls = module.__class__
+                if hasattr(cls, '__module__') and cls.__module__ == 'gen_std_data':
+                    # Get forward method and inject globals
+                    if hasattr(module, 'forward'):
+                        forward = module.forward
+                        if hasattr(forward, '__func__'):
+                            func = forward.__func__
+                        else:
+                            func = forward
+                        if hasattr(func, '__globals__'):
+                            func.__globals__['F'] = F
+                            if hasattr(gen_std_data, 'UNetBlock'):
+                                func.__globals__['UNetBlock'] = gen_std_data.UNetBlock
+        
+        # Extract inputs and expected output
+        args = outer_data.get('args', ())
+        kwargs = outer_data.get('kwargs', {})
+        std_output = outer_data.get('output', None)
+        
+        # Additional data that might be needed for evaluation
+        target = outer_data.get('target', None)
+        observation = outer_data.get('observation', None)
+        forward_op_params = outer_data.get('forward_op_params', None)
+        
+        # If forward_op_params not in outer_data, check kwargs
+        if forward_op_params is None:
+            forward_op_params = kwargs.get('forward_op_params', None)
+        
+        # If observation not in outer_data, check args/kwargs
+        if observation is None:
+            if len(args) > 0:
+                observation = args[0]
+            else:
+                observation = kwargs.get('observation', None)
+        
+        print(f"Args count: {len(args)}")
+        print(f"Kwargs keys: {list(kwargs.keys())}")
+        
+        # Check if this is chained execution
+        if len(inner_data_paths) > 0:
+            print("Detected chained execution pattern (Closure/Factory).")
+            
+            # Run outer function to get operator
+            print("Running run_inversion to get operator...")
+            operator = run_inversion(*args, **kwargs)
+            
+            # Load inner data and execute
+            for inner_path in inner_data_paths:
+                print(f"Loading inner data from: {inner_path}")
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                
+                inner_args = inner_data.get('args', ())
+                inner_kwargs = inner_data.get('kwargs', {})
+                std_result = inner_data.get('output', None)
+                
+                # Update evaluation params from inner data if available
+                if inner_data.get('target') is not None:
+                    target = inner_data['target']
+                if inner_data.get('forward_op_params') is not None:
+                    forward_op_params = inner_data['forward_op_params']
+                if inner_data.get('observation') is not None:
+                    observation = inner_data['observation']
+                
+                print("Running operator with inner data...")
+                agent_result = operator(*inner_args, **inner_kwargs)
+        else:
+            print("Detected direct execution pattern.")
+            
+            # Run the function directly
+            print("Running run_inversion...")
+            agent_result = run_inversion(*args, **kwargs)
+            std_result = std_output
+        
+        print(f"Agent result shape: {agent_result.shape if hasattr(agent_result, 'shape') else type(agent_result)}")
+        print(f"Standard result shape: {std_result.shape if hasattr(std_result, 'shape') else type(std_result)}")
+        
+        # Ensure tensors are on the same device
+        if torch.is_tensor(agent_result) and torch.is_tensor(std_result):
+            device = agent_result.device
+            std_result = std_result.to(device)
+            if target is not None and torch.is_tensor(target):
+                target = target.to(device)
+            if observation is not None and torch.is_tensor(observation):
+                observation = observation.to(device)
+            
+            # Move forward_op_params tensors to device
+            if forward_op_params is not None:
+                for key, val in forward_op_params.items():
+                    if torch.is_tensor(val):
+                        forward_op_params[key] = val.to(device)
+        
+        # If target is not available, use std_result as target for comparison
+        if target is None:
+            print("Warning: No target found, using standard result as target for evaluation.")
+            target = std_result
+        
+        # Evaluate both results
+        print("\nEvaluating agent result...")
+        score_agent = evaluate_results(agent_result, target, observation, forward_op_params, logger)
+        
+        print("\nEvaluating standard result...")
+        score_std = evaluate_results(std_result, target, observation, forward_op_params, logger)
+        
+        # Extract primary metrics
+        agent_psnr = score_agent['psnr']
+        agent_ssim = score_agent['ssim']
+        std_psnr = score_std['psnr']
+        std_ssim = score_std['ssim']
+        
+        print(f"\n{'='*60}")
+        print(f"Scores -> Agent: PSNR={agent_psnr:.4f}, SSIM={agent_ssim:.4f}")
+        print(f"Scores -> Standard: PSNR={std_psnr:.4f}, SSIM={std_ssim:.4f}")
+        print(f"{'='*60}")
+        
+        # Verification: Higher PSNR and SSIM are better
+        # Allow 10% margin of error
+        margin = 0.90
+        
+        psnr_pass = agent_psnr >= std_psnr * margin
+        ssim_pass = agent_ssim >= std_ssim * margin
+        
+        print(f"\nPSNR Check: {'PASS' if psnr_pass else 'FAIL'} (Agent: {agent_psnr:.4f} vs Threshold: {std_psnr * margin:.4f})")
+        print(f"SSIM Check: {'PASS' if ssim_pass else 'FAIL'} (Agent: {agent_ssim:.4f} vs Threshold: {std_ssim * margin:.4f})")
+        
+        if psnr_pass and ssim_pass:
+            print("\n✓ Performance verification PASSED!")
+            sys.exit(0)
+        else:
+            print("\n✗ Performance verification FAILED!")
+            print("Agent performance degraded significantly compared to standard.")
+            sys.exit(1)
+            
+    except Exception as e:
+        print(f"\nERROR during test execution:")
+        print(traceback.format_exc())
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

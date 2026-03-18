@@ -1,0 +1,125 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Add the current directory to path if needed
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from agent_evaluate_results import evaluate_results
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_evaluate_results.pkl']
+    
+    # Filter paths to identify outer and inner data files
+    outer_path = None
+    inner_paths = []
+    
+    for path in data_paths:
+        basename = os.path.basename(path)
+        if 'parent_function' in basename:
+            inner_paths.append(path)
+        elif basename == 'data_evaluate_results.pkl' or basename.endswith('_evaluate_results.pkl'):
+            outer_path = path
+    
+    # If no clear outer path found, use the first available
+    if outer_path is None and len(data_paths) > 0:
+        # Use the path that doesn't contain 'parent_function'
+        for path in data_paths:
+            if 'parent_function' not in os.path.basename(path):
+                outer_path = path
+                break
+        if outer_path is None:
+            outer_path = data_paths[0]
+    
+    print(f"Outer path: {outer_path}")
+    print(f"Inner paths: {inner_paths}")
+    
+    # Phase 1: Load outer data and execute function
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print("Successfully loaded outer data")
+    except Exception as e:
+        print(f"FAILED to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output')
+    
+    print(f"Outer args types: {[type(a).__name__ for a in outer_args]}")
+    print(f"Outer kwargs keys: {list(outer_kwargs.keys())}")
+    
+    # Execute the function
+    try:
+        result = evaluate_results(*outer_args, **outer_kwargs)
+        print(f"Function executed successfully, result type: {type(result).__name__}")
+    except Exception as e:
+        print(f"FAILED to execute evaluate_results: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    # Check if this is a factory pattern (result is callable) and we have inner data
+    if len(inner_paths) > 0 and callable(result):
+        # Scenario B: Factory/Closure pattern
+        print("Detected factory pattern with inner data")
+        agent_operator = result
+        
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Successfully loaded inner data from {inner_path}")
+            except Exception as e:
+                print(f"FAILED to load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output')
+            
+            try:
+                inner_result = agent_operator(*inner_args, **inner_kwargs)
+                print(f"Inner execution successful, result type: {type(inner_result).__name__}")
+            except Exception as e:
+                print(f"FAILED to execute inner operation: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            # Verify inner result
+            try:
+                passed, msg = recursive_check(inner_expected, inner_result)
+                if not passed:
+                    print(f"VERIFICATION FAILED for inner data: {msg}")
+                    sys.exit(1)
+                print(f"Inner verification passed for {inner_path}")
+            except Exception as e:
+                print(f"FAILED during inner verification: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+    else:
+        # Scenario A: Simple function - verify directly
+        print("Using simple function verification")
+        try:
+            passed, msg = recursive_check(expected_output, result)
+            if not passed:
+                print(f"VERIFICATION FAILED: {msg}")
+                sys.exit(1)
+        except Exception as e:
+            print(f"FAILED during verification: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+    
+    print("TEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,11 @@
+Loaded data from: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_weight_init.pkl
+Args: ([1],)
+Kwargs: {'mode': 'kaiming_uniform', 'fan_in': 1152, 'fan_out': 9}
+Function executed successfully
+Result type: <class 'torch.Tensor'>
+Result shape: torch.Size([1])
+Expected shape: torch.Size([1])
+Shape check PASSED: torch.Size([1])
+Dtype check PASSED: torch.float32
+Value range check PASSED: max |value| = 0.008623, expected bound = 0.051031
+TEST PASSED

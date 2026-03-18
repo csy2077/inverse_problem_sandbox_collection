@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Determines if a given string is a valid URL, optionally allowing file URLs.",
+    "function_docstring": "def is_url(obj: Any, allow_file_urls: bool = False) -> bool:\n    \"\"\"\n    Checks if the provided object is a valid URL.\n\n    Args:\n        obj (Any): The object to be checked, expected to be a string representing a URL.\n        allow_file_urls (bool, optional): A flag indicating whether file URLs should be considered valid. Defaults to False.\n\n    Returns:\n        bool: True if the object is a valid URL, False otherwise.\n    \"\"\"",
+    "usage_example": "from agent_is_url import is_url\n\n# Example usage\nurl = \"https://www.example.com\"\nprint(is_url(url))  # Output: True\n\nfile_url = \"file:///path/to/file\"\nprint(is_url(file_url, allow_file_urls=True))  # Output: True\n\ninvalid_url = \"not_a_url\"\nprint(is_url(invalid_url))  # Output: False"
+}

@@ -1,0 +1,168 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_full_propagate_to_sensor import full_propagate_to_sensor
+
+# Import verification utility
+from verification_utils import recursive_check
+
+
+def main():
+    """Main test function for full_propagate_to_sensor."""
+    
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_full_propagate_to_sensor.pkl']
+    
+    # Filter paths to identify outer and inner data files
+    outer_path = None
+    inner_paths = []
+    
+    for path in data_paths:
+        if not os.path.exists(path):
+            print(f"ERROR: Data file not found: {path}")
+            sys.exit(1)
+        
+        basename = os.path.basename(path)
+        
+        # Check if this is an inner data file (contains 'parent_function')
+        if 'parent_function' in basename:
+            inner_paths.append(path)
+        # Check if this is the outer data file (exact pattern match)
+        elif 'data_full_propagate_to_sensor.pkl' in basename:
+            outer_path = path
+    
+    # Scenario A: Simple function test (no inner paths)
+    if outer_path and not inner_paths:
+        print(f"Scenario A: Simple function test")
+        print(f"Loading outer data from: {outer_path}")
+        
+        try:
+            with open(outer_path, 'rb') as f:
+                outer_data = dill.load(f)
+        except Exception as e:
+            print(f"ERROR: Failed to load outer data: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        # Extract args and kwargs
+        args = outer_data.get('args', ())
+        kwargs = outer_data.get('kwargs', {})
+        expected_output = outer_data.get('output')
+        
+        print(f"Args count: {len(args)}")
+        print(f"Kwargs keys: {list(kwargs.keys())}")
+        
+        # Execute the function
+        try:
+            result = full_propagate_to_sensor(*args, **kwargs)
+        except Exception as e:
+            print(f"ERROR: Function execution failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        # Compare results
+        try:
+            passed, msg = recursive_check(expected_output, result)
+        except Exception as e:
+            print(f"ERROR: Verification failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        if not passed:
+            print(f"TEST FAILED: {msg}")
+            sys.exit(1)
+        else:
+            print("TEST PASSED")
+            sys.exit(0)
+    
+    # Scenario B: Factory/Closure pattern
+    elif outer_path and inner_paths:
+        print(f"Scenario B: Factory/Closure pattern test")
+        print(f"Loading outer data from: {outer_path}")
+        
+        try:
+            with open(outer_path, 'rb') as f:
+                outer_data = dill.load(f)
+        except Exception as e:
+            print(f"ERROR: Failed to load outer data: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        # Extract outer args and kwargs
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        
+        print(f"Outer args count: {len(outer_args)}")
+        print(f"Outer kwargs keys: {list(outer_kwargs.keys())}")
+        
+        # Phase 1: Reconstruct the operator/closure
+        try:
+            agent_operator = full_propagate_to_sensor(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"ERROR: Failed to create operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        # Verify the operator is callable
+        if not callable(agent_operator):
+            print(f"ERROR: Returned operator is not callable, got type: {type(agent_operator)}")
+            sys.exit(1)
+        
+        print("Operator created successfully")
+        
+        # Phase 2: Execute with inner data
+        for inner_path in inner_paths:
+            print(f"Loading inner data from: {inner_path}")
+            
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"ERROR: Failed to load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected_output = inner_data.get('output')
+            
+            print(f"Inner args count: {len(inner_args)}")
+            print(f"Inner kwargs keys: {list(inner_kwargs.keys())}")
+            
+            # Execute the operator with inner data
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"ERROR: Operator execution failed: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            # Compare results
+            try:
+                passed, msg = recursive_check(expected_output, result)
+            except Exception as e:
+                print(f"ERROR: Verification failed: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            if not passed:
+                print(f"TEST FAILED: {msg}")
+                sys.exit(1)
+        
+        print("TEST PASSED")
+        sys.exit(0)
+    
+    else:
+        print("ERROR: Could not determine test scenario from provided data paths")
+        print(f"Outer path: {outer_path}")
+        print(f"Inner paths: {inner_paths}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

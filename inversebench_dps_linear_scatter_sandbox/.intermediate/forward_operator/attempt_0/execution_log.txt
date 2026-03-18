@@ -1,0 +1,21 @@
+Outer data path: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_forward_operator.pkl
+Inner data paths: []
+
+--- Phase 1: Loading outer data ---
+Outer args count: 2
+Outer kwargs keys: ['unnormalize']
+
+--- Phase 1: Executing forward_operator ---
+forward_operator executed successfully
+Result type: <class 'torch.Tensor'>
+Result shape: torch.Size([1, 20, 360])
+
+--- Scenario A: Simple Function ---
+
+--- Phase 2: Verification ---
+Expected type: <class 'torch.Tensor'>
+Actual type: <class 'torch.Tensor'>
+Expected shape: torch.Size([1, 20, 360])
+Actual shape: torch.Size([1, 20, 360])
+
+TEST PASSED

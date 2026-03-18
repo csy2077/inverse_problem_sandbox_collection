@@ -1,0 +1,7 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/inversebench_dps_linear_scatter_sandbox/run_code/std_data/data_construct_parameters.pkl
+Outer args: (0.18, 0.18, 128, 128, 6, 360, 20, 1.6, device(type='cuda'))
+Outer kwargs: {}
+Executing construct_parameters...
+construct_parameters returned type: <class 'tuple'>
+Scenario A: Comparing result directly with expected output
+TEST PASSED
