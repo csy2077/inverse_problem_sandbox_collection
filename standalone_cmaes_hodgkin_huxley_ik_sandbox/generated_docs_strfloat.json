@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Converts a float to a string with maximum precision using a specific format.",
+    "function_docstring": "Converts a float to a string, with maximum precision.\n\nArgs:\n    x (float): A floating-point number to be converted to a string.\n\nReturns:\n    str: A string representation of the float with maximum precision.",
+    "usage_example": "from agent_strfloat import strfloat\n\n# Example usage\nfloat_number = 3.141592653589793\nstring_representation = strfloat(float_number)\nprint(string_representation)  # Output: ' 3.1415926535897931'"
+}

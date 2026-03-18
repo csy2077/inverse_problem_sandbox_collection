@@ -1,0 +1,17 @@
+================================================================================
+UNIT TEST: load_data
+================================================================================
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_cmaes_hodgkin_huxley_ik_sandbox/run_code/std_data/data_load_data.pkl
+Detected: Simple Function (Scenario A)
+--------------------------------------------------------------------------------
+Phase 1: Loading outer data and creating operator...
+  Outer args: ('/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_cmaes_hodgkin_huxley_ik_sandbox/data/standalone_cmaes_hodgkin_huxley_ik.json',)
+  Outer kwargs: {}
+  Operator created: <class 'dict'>
+--------------------------------------------------------------------------------
+Phase 2: Verifying simple function result...
+PASSED
+
+================================================================================
+TEST PASSED
+================================================================================

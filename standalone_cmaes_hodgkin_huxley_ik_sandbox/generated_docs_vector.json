@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Converts input into a 1-dimensional read-only NumPy array of floats.",
+    "function_docstring": "def vector(x):\n    \"\"\"\n    Converts the input into a 1-dimensional read-only NumPy array of floats.\n\n    Args:\n        x: A scalar or array-like object. If x is a scalar, it is converted into a 1-element array.\n           If x is array-like, it is copied and converted into a 1-dimensional array of floats.\n\n    Returns:\n        np.ndarray: A 1-dimensional read-only NumPy array of floats.\n        If the input is not 1-dimensional, it is reshaped to a 1-dimensional array.\n        Raises a ValueError if the input cannot be converted to a 1-dimensional array.\n    \"\"\"",
+    "usage_example": "import numpy as np\n\n# Example usage of vector function\nscalar_input = 5\narray_input = [1, 2, 3]\n\n# Convert scalar to 1D array\nscalar_vector = vector(scalar_input)\nprint(scalar_vector)  # Output: array([5.], dtype=float32)\n\n# Convert array-like input to 1D array\narray_vector = vector(array_input)\nprint(array_vector)  # Output: array([1., 2., 3.], dtype=float32)"
+}

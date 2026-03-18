@@ -1,0 +1,67 @@
+======================================================================
+Hodgkin-Huxley IK Model Parameter Optimization using CMA-ES
+======================================================================
+
+Loading data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_cmaes_hodgkin_huxley_ik_sandbox/data/standalone_cmaes_hodgkin_huxley_ik.json
+  [Metadata] Recorded schema for: load_data
+True parameters: [1.00e-02 1.00e+01 1.00e+01 1.25e-01 8.00e+01]
+Protocol duration: 1200 ms
+Loaded 4800 time points
+
+Saved: hodgkin_huxley_ik_simulation.png
+Saved: hodgkin_huxley_ik_folded.png
+  [Metadata] Recorded schema for: vector
+
+----------------------------------------------------------------------
+Starting CMA-ES Optimization
+----------------------------------------------------------------------
+Minimising error measure
+Using Covariance Matrix Adaptation Evolution Strategy (CMA-ES)
+Running in sequential mode.
+Population size: 8
+Iter. Eval. Best      Current   Time    
+0     8      7721533   7721533    0:00.5
+1     16     7692534   7692534    0:00.5
+2     24     7692534   7758131    0:00.5
+3     32     7689063   7689063    0:00.5
+20    168    7634192   7642877    0:00.6
+40    328    7618972   7619845    0:00.7
+60    488    7618109   7618297    0:00.9
+80    648    7612188   7612188    0:01.0
+100   808    7608708   7608757    0:01.1
+120   968    7607380   7607380    0:01.2
+140   1128   7605818   7605818    0:01.3
+160   1288   7605622   7605622    0:01.5
+180   1448   7605324   7605331    0:01.6
+200   1608   7604099   7604099    0:01.7
+220   1768   7603969   7603969    0:01.8
+240   1928   7603968   7603968    0:01.9
+260   2088   7603968   7603968    0:02.1
+280   2248   7603968   7603968    0:02.2
+300   2408   7603968   7603968    0:02.3
+320   2568   7603968   7603968    0:02.4
+322   2576   7603968   7603968    0:02.4
+Halting: No significant change for 10 iterations.
+
+======================================================================
+Optimization Results
+======================================================================
+
+Found solution:          True parameters:
+  [Metadata] Recorded schema for: strfloat
+ 1.01249263860462083e-02     1.00000000000000002e-02
+ 1.09430445383692874e+01     1.00000000000000000e+01
+ 1.02654422320354453e+01     1.00000000000000000e+01
+ 1.24249721455966855e-01     1.25000000000000000e-01
+ 8.11022278824354004e+01     8.00000000000000000e+01
+
+Final score: 7603968.090681
+Total iterations: 322
+Total evaluations: 2576
+Time: 2.42 seconds
+
+Saved: hodgkin_huxley_ik_fit.png
+
+======================================================================
+Optimization Complete!
+======================================================================
