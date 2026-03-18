@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Simulates the forward propagation of a single seismic shot using an acoustic wave solver.",
+    "function_docstring": "def forward_single_shot(geometry, model, save=False, dt=1.0):\n    \"\"\"\n    Simulates the forward propagation of a single seismic shot using an acoustic wave solver.\n\n    Args:\n        geometry: An object representing the geometry of the seismic model, which includes spatial dimensions and grid spacing.\n        model: An object representing the seismic model parameters, including velocity profile (vp).\n        save (bool, optional): A flag indicating whether to save the wavefield at each time step. Defaults to False.\n        dt (float, optional): The time step size for the simulation. Defaults to 1.0.\n\n    Returns:\n        Callable[[dt], Tensor]: A function that, when called with a new time step size `dt`, returns a resampled observed data tensor.\n    \"\"\"",
+    "usage_example": "from examples.seismic.acoustic import AcousticWaveSolver\n\n# Define geometry and model objects\ngeometry ="
+}

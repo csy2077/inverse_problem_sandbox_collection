@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Converts a custom object containing data into a NumPy array.",
+    "function_docstring": "def convert2np(rec):\n    \"\"\"\n    Converts the data attribute of a custom object into a NumPy array.\n\n    Args:\n        rec: A custom object with a public attribute 'data'. The 'data' attribute should be convertible to a NumPy array.\n\n    Returns:\n        np.ndarray: A NumPy array representation of the 'data' attribute from the input object.\n    \"\"\"",
+    "usage_example": "class CustomObject:\n    def __init__(self, data):\n        self.data = data\n\nrec = CustomObject(data=[1, 2, 3])\nnp_array = convert2np(rec)\nprint(np_array)  # Output: array([1, 2, 3])"
+}

@@ -1,0 +1,56 @@
+{
+  "seed": 0,
+  "inference": true,
+  "num_samples": 1,
+  "exp_name": "default",
+  "exp_dir": "exps/inference/fwi-acoustic",
+  "algorithm_name": "DiffPIR",
+  "prior": "weights/fwi-5m.pt",
+  
+  "model": {
+    "shape": [128, 128],
+    "spacing": [20.0, 10.0],
+    "tn": 1000.0,
+    "f0": 0.005,
+    "dt": 1.0,
+    "nbl": 80,
+    "nshots": 16,
+    "nreceivers": 129,
+    "unnorm_scale": 1.0,
+    "unnorm_shift": 3.0,
+    "src_depth": 1270.0
+  },
+  
+  "data": {
+    "root": "./data_standalone/fwi-test",
+    "resolution": 128,
+    "raw_resolution": 70,
+    "std": 500.0,
+    "mean": 3000.0,
+    "id_list": [1]
+  },
+  
+  "pretrain": {
+    "img_resolution": 128,
+    "img_channels": 1,
+    "label_dim": 0,
+    "model_channels": 128,
+    "channel_mult": [1, 1, 1, 2, 2],
+    "attn_resolutions": [16],
+    "num_blocks": 1,
+    "dropout": 0.0
+  },
+  
+  "algorithm": {
+    "diffusion_scheduler_config": {
+      "num_steps": 10,
+      "schedule": "vp",
+      "timestep": "vp",
+      "scaling": "vp"
+    },
+    "sigma_n": 1.0,
+    "lamb": 100.0,
+    "xi": 1,
+    "linear": false
+  }
+}
