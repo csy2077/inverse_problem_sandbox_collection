@@ -1,0 +1,19 @@
+================================================================================
+UNIT TEST: matrix2d
+================================================================================
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_cmaes_beeler_reuter_ap_sandbox/run_code/std_data/data_matrix2d.pkl
+No inner data files found (Scenario A: Simple Function)
+--------------------------------------------------------------------------------
+PHASE 1: Loading outer data and creating operator...
+Outer args type: <class 'tuple'>
+Outer kwargs keys: None
+Operator created successfully
+Operator type: <class 'numpy.ndarray'>
+--------------------------------------------------------------------------------
+PHASE 2: Verifying result (Scenario A)...
+Result type: <class 'numpy.ndarray'>
+Expected type: <class 'numpy.ndarray'>
+✓ Verification passed
+--------------------------------------------------------------------------------
+TEST PASSED
+================================================================================

@@ -1,0 +1,6 @@
+{
+  "load_data_from_json": "PASS",
+  "strfloat": "PASS",
+  "vector": "PASS",
+  "matrix2d": "PASS"
+}

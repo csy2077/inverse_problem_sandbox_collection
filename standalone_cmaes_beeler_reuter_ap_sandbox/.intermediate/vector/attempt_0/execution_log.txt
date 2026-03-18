@@ -1,0 +1,23 @@
+================================================================================
+UNIT TEST: vector
+================================================================================
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_cmaes_beeler_reuter_ap_sandbox/run_code/std_data/data_vector.pkl
+No inner data files found (Scenario A: Simple Function)
+--------------------------------------------------------------------------------
+Loading outer data...
+Outer args: <class 'tuple'> with 1 elements
+Outer kwargs: {}
+
+================================================================================
+PHASE 1: Executing vector function
+================================================================================
+Result type: <class 'numpy.ndarray'>
+
+================================================================================
+PHASE 2: Scenario A - Simple Function
+================================================================================
+Verifying result against expected output...
+
+================================================================================
+TEST PASSED
+================================================================================

@@ -1,0 +1,5 @@
+{
+    "function_explanation": "The function 'forward_operator' runs a forward model simulation using given parameters and a model instance over specified time points.",
+    "function_docstring": "def forward_operator(parameters, model, times):\n    \"\"\"\n    Run the forward model simulation with given parameters.\n\n    Args:\n        parameters (array-like): Log-transformed conductance parameters for the simulation.\n        model (ActionPotentialModel): An instance of ActionPotentialModel, which must have a 'simulate' method.\n        times (array-like): Time points at which the simulation is evaluated.\n\n    Returns:\n        np.ndarray: Predicted voltage and calcium transient with shape (n_times, 2), where n_times is the number of time points.\n    \"\"\"",
+    "usage_example": "import numpy as np\n\n# Example parameters and time points\nparameters = np.log(np.array([0.1, 0.2, 0.3]))\ntimes = np.linspace(0, 100, num=1000)\n\n# Assuming 'model' is an instance of ActionPotentialModel\nmodel = ActionPotentialModel()\n\n# Run the forward operator\npredicted_values = forward_operator(parameters, model, times)\nprint(predicted_values)"
+}

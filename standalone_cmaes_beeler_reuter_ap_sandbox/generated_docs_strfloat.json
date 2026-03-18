@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Formats a floating-point number into a string with 17 decimal places.",
+    "function_docstring": "def strfloat(x):\n    \"\"\"\n    Formats a floating-point number into a string with 17 decimal places.\n\n    Args:\n        x (float): A floating-point number to be formatted.\n\n    Returns:\n        str: A string representation of the floating-point number with 17 decimal places.\n    \"\"\"",
+    "usage_example": "formatted_number = strfloat(3.141592653589793)\nprint(formatted_number)  # Output: ' 3.14159265358979310e+00'"
+}

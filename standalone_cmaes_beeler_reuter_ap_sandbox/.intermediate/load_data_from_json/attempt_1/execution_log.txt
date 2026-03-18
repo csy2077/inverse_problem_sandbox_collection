@@ -1,0 +1,20 @@
+================================================================================
+UNIT TEST: load_data_from_json
+================================================================================
+SCENARIO A: Simple Function
+  - Data File: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_cmaes_beeler_reuter_ap_sandbox/run_code/std_data/data_load_data_from_json.pkl
+================================================================================
+
+[PHASE 1] Loading outer data and creating operator...
+  Outer args: 1 positional arguments
+  Outer kwargs: []
+Loading data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_cmaes_beeler_reuter_ap_sandbox/data/standalone_cmaes_beeler_reuter_ap.json
+  Result type: <class 'dict'>
+
+[PHASE 2] Simple Function - Verifying output...
+  Result type: <class 'dict'>
+  Expected type: <class 'dict'>
+
+================================================================================
+TEST PASSED
+================================================================================

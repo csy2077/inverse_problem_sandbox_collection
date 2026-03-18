@@ -1,0 +1,155 @@
+import sys
+import os
+import dill
+import traceback
+
+# Import the target function
+from agent_strfloat import strfloat
+
+# Import verification utility
+from verification_utils import recursive_check
+
+def main():
+    """
+    Robust Unit Test for strfloat function.
+    Handles both simple function and factory/closure patterns.
+    """
+    
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_cmaes_beeler_reuter_ap_sandbox/run_code/std_data/data_strfloat.pkl']
+    
+    print("=" * 80)
+    print("UNIT TEST: strfloat")
+    print("=" * 80)
+    
+    # Step 1: Analyze data paths to determine test strategy
+    outer_path = None
+    inner_paths = []
+    
+    for path in data_paths:
+        if not os.path.exists(path):
+            print(f"ERROR: Data file not found: {path}")
+            sys.exit(1)
+        
+        filename = os.path.basename(path)
+        
+        # Check if this is outer data (exact match for function name)
+        if filename == 'data_strfloat.pkl':
+            outer_path = path
+        # Check if this is inner data (contains parent_function pattern)
+        elif 'parent_function' in filename and 'strfloat' in filename:
+            inner_paths.append(path)
+    
+    if not outer_path:
+        print("ERROR: No outer data file found (data_strfloat.pkl)")
+        sys.exit(1)
+    
+    print(f"Outer data path: {outer_path}")
+    print(f"Inner data paths: {inner_paths if inner_paths else 'None (Simple function scenario)'}")
+    print("-" * 80)
+    
+    try:
+        # Step 2: Load outer data
+        print("Loading outer data...")
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output')
+        
+        print(f"Outer args: {outer_args}")
+        print(f"Outer kwargs: {outer_kwargs}")
+        print("-" * 80)
+        
+        # Step 3: Phase 1 - Reconstruct operator/agent
+        print("Phase 1: Executing strfloat with outer data...")
+        agent_operator = strfloat(*outer_args, **outer_kwargs)
+        print(f"Agent operator created: {type(agent_operator)}")
+        print("-" * 80)
+        
+        # Step 4: Phase 2 - Determine scenario and execute
+        if inner_paths:
+            # Scenario B: Factory/Closure Pattern
+            print("Scenario B detected: Factory/Closure Pattern")
+            print(f"Processing {len(inner_paths)} inner data file(s)...")
+            
+            for inner_path in inner_paths:
+                print(f"\nProcessing inner data: {os.path.basename(inner_path)}")
+                
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                
+                inner_args = inner_data.get('args', ())
+                inner_kwargs = inner_data.get('kwargs', {})
+                expected = inner_data.get('output')
+                
+                print(f"Inner args: {inner_args}")
+                print(f"Inner kwargs: {inner_kwargs}")
+                
+                # Verify agent_operator is callable
+                if not callable(agent_operator):
+                    print(f"ERROR: Agent operator is not callable (type: {type(agent_operator)})")
+                    sys.exit(1)
+                
+                # Execute the agent operator with inner data
+                print("Executing agent_operator with inner data...")
+                result = agent_operator(*inner_args, **inner_kwargs)
+                
+                print(f"Result type: {type(result)}")
+                print(f"Expected type: {type(expected)}")
+                
+                # Verify result
+                print("Verifying result...")
+                passed, msg = recursive_check(expected, result)
+                
+                if not passed:
+                    print("=" * 80)
+                    print("TEST FAILED")
+                    print("=" * 80)
+                    print(f"Verification message: {msg}")
+                    print(f"Expected: {expected}")
+                    print(f"Got: {result}")
+                    sys.exit(1)
+                
+                print(f"Inner test passed for {os.path.basename(inner_path)}")
+        
+        else:
+            # Scenario A: Simple Function
+            print("Scenario A detected: Simple Function")
+            result = agent_operator
+            expected = outer_output
+            
+            print(f"Result type: {type(result)}")
+            print(f"Expected type: {type(expected)}")
+            
+            # Verify result
+            print("Verifying result...")
+            passed, msg = recursive_check(expected, result)
+            
+            if not passed:
+                print("=" * 80)
+                print("TEST FAILED")
+                print("=" * 80)
+                print(f"Verification message: {msg}")
+                print(f"Expected: {expected}")
+                print(f"Got: {result}")
+                sys.exit(1)
+        
+        # All tests passed
+        print("=" * 80)
+        print("TEST PASSED")
+        print("=" * 80)
+        sys.exit(0)
+    
+    except Exception as e:
+        print("=" * 80)
+        print("TEST FAILED WITH EXCEPTION")
+        print("=" * 80)
+        print(f"Exception: {str(e)}")
+        print("\nTraceback:")
+        traceback.print_exc()
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
