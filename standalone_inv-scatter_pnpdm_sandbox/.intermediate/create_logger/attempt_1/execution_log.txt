@@ -1,0 +1,9 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pnpdm_sandbox/run_code/std_data/data_create_logger.pkl
+  func_name: create_logger
+  create_logger returned: <class 'logging.Logger'>
+Scenario A detected: no inner data files, comparing logger output.
+  Logger semantic comparison passed.
+  Expected logger name: __main__, Got: agent_create_logger (name difference is acceptable due to module context)
+  Expected level: 0, Got: 20
+  Expected handler types: set(), Got: {'FileHandler', 'StreamHandler'}
+TEST PASSED

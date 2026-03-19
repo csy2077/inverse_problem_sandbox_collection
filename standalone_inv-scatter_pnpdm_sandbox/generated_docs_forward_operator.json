@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Applies a forward operator to an input tensor to predict scattered fields.",
+    "function_docstring": "Applies the forward operator to an input tensor to predict scattered fields.\n\nArgs:\n    x (torch.Tensor): A tensor of shape (Batch, 1, Ny, Nx) representing the input data.\n    forward_op (CustomObject): An instance of a forward operator with a method `forward(x, unnormalize)` that processes the input tensor `x` and returns the predicted scattered fields.\n\nReturns:\n    torch.Tensor: A tensor of shape (Batch, numTrans, numRec) representing the predicted scattered fields.",
+    "usage_example": "import torch\n\n# Assuming `forward_op` is an instance of a class with a `forward` method\nx = torch.randn(Batch, 1, Ny, Nx)  # Example input tensor\npredicted_fields = forward_operator(x, forward_op)\nprint(predicted_fields.shape)  # Should print (Batch, numTrans, numRec)"
+}

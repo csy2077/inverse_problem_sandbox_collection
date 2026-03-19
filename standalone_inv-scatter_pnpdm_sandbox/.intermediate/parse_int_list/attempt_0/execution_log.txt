@@ -1,0 +1,3 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pnpdm_sandbox/run_code/std_data/data_parse_int_list.pkl
+Successfully called parse_int_list with outer args.
+TEST PASSED

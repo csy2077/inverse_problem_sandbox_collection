@@ -1,0 +1,9 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pnpdm_sandbox/run_code/std_data/data_full_propagate_to_sensor.pkl
+Outer data loaded successfully. Keys: ['func_name', 'args', 'kwargs', 'output']
+Outer args count: 5
+Outer kwargs keys: none
+Executing full_propagate_to_sensor with outer args/kwargs...
+Function executed successfully. Result type: <class 'torch.Tensor'>
+
+Scenario A detected: No inner data files. Comparing direct output.
+TEST PASSED

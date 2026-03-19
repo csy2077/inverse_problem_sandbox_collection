@@ -1,0 +1,49 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pnpdm_sandbox/run_code/std_data/data_main.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Function name: main
+Setting up DhariwalUNet...
+Successfully loaded agent_main with DhariwalUNet injected.
+Detected Scenario A: Simple function call
+Running main()...
+Using device: cuda
+/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+[[34m2026-03-13 06:28:30[0m] Instantiating InverseScatter problem model...
+Loading SVD from cache.
+[[34m2026-03-13 06:28:36[0m] Instantiating Dataset (first test sample only)...
+[[34m2026-03-13 06:28:36[0m] Loaded 1 test sample(s)...
+[[34m2026-03-13 06:28:36[0m] Loading pre-trained model...
+[[34m2026-03-13 06:28:38[0m] Loaded pre-trained model from weights/inv-scatter-5m.pt...
+[[34m2026-03-13 06:28:38[0m] Instantiating PnPDM algorithm...
+[[34m2026-03-13 06:28:38[0m] Instantiating InverseScatterEvaluator...
+[[34m2026-03-13 06:28:38[0m] Running inference on test sample 0...
+
+  0%|          | 0/10 [00:00<?, ?it/s]/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pnpdm_sandbox/agent_main.py:433: UserWarning: Casting complex values to real discards the imaginary part (Triggered internally at /pytorch/aten/src/ATen/native/Copy.cpp:309.)
+  loss = torch.sum(squared_diff, dim=(1, 2)).to(torch.float64)
+
+Iteration 1/10. Avg. Error: 1788.9933:   0%|          | 0/10 [00:00<?, ?it/s]
+Iteration 1/10. Avg. Error: 1788.9933:  10%|█         | 1/10 [00:00<00:04,  2.04it/s]
+Iteration 2/10. Avg. Error: 1446752.1708:  10%|█         | 1/10 [00:00<00:04,  2.04it/s]
+Iteration 2/10. Avg. Error: 1446752.1708:  20%|██        | 2/10 [00:00<00:02,  3.74it/s]
+Iteration 3/10. Avg. Error: 1169605013.4208:  20%|██        | 2/10 [00:00<00:02,  3.74it/s]
+Iteration 3/10. Avg. Error: 1169605013.4208:  30%|███       | 3/10 [00:00<00:01,  5.11it/s]
+Iteration 4/10. Avg. Error: 945550049884.9839:  30%|███       | 3/10 [00:00<00:01,  5.11it/s]
+Iteration 4/10. Avg. Error: 945550049884.9839:  40%|████      | 4/10 [00:00<00:00,  6.14it/s]
+Iteration 5/10. Avg. Error: 764416047475576.7500:  40%|████      | 4/10 [00:00<00:00,  6.14it/s]
+Iteration 5/10. Avg. Error: 764416047475576.7500:  50%|█████     | 5/10 [00:00<00:00,  6.98it/s]
+Iteration 6/10. Avg. Error: 617980894237903744.0000:  50%|█████     | 5/10 [00:01<00:00,  6.98it/s]
+Iteration 6/10. Avg. Error: 617980894237903744.0000:  60%|██████    | 6/10 [00:01<00:00,  7.60it/s]
+Iteration 7/10. Avg. Error: 499597627301511233536.0000:  60%|██████    | 6/10 [00:01<00:00,  7.60it/s]
+Iteration 7/10. Avg. Error: 499597627301511233536.0000:  70%|███████   | 7/10 [00:01<00:00,  8.06it/s]
+Iteration 8/10. Avg. Error: 123784718117415281491968.0000:  70%|███████   | 7/10 [00:01<00:00,  8.06it/s]
+Iteration 9/10. Avg. Error: 30669989335262216557953024.0000:  70%|███████   | 7/10 [00:01<00:00,  8.06it/s]
+Iteration 9/10. Avg. Error: 30669989335262216557953024.0000:  90%|█████████ | 9/10 [00:01<00:00,  9.12it/s]
+Iteration 10/10. Avg. Error: 7599067141687980460676743168.0000:  90%|█████████ | 9/10 [00:01<00:00,  9.12it/s]
+Iteration 10/10. Avg. Error: 7599067141687980460676743168.0000: 100%|██████████| 10/10 [00:01<00:00,  6.97it/s]
+[[34m2026-03-13 06:28:40[0m] Peak GPU memory usage: 7.42 GB
+[[34m2026-03-13 06:28:40[0m] Saved results to exps/inference/inv-scatter-linear/PnPDM/standalone_inv-scatter_pnpdm/result_0.pt.
+[[34m2026-03-13 06:28:40[0m] Metric results: {'psnr': 3.953974723815918, 'ssim': 0.0030538763385266066}...
+[[34m2026-03-13 06:28:40[0m] Evaluation completed...
+[[34m2026-03-13 06:28:40[0m] Final metric results: {'psnr': np.float64(3.953974723815918), 'psnr_std': np.float64(0.0), 'ssim': np.float64(0.0030538763385266066), 'ssim_std': np.float64(0.0)}...
+Comparing results...
+TEST PASSED: 
