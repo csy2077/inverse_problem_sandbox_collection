@@ -1,0 +1,7 @@
+FATAL: Could not import 'main' from 'agent_main': name 'logging' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_DS_DC1_sandbox/test_main.py", line 9, in <module>
+    from agent_main import main
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_DS_DC1_sandbox/agent_main.py", line 14, in <module>
+    log = logging.getLogger(__name__)
+NameError: name 'logging' is not defined

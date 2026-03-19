@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the predicted spectra by applying a linear mixing model using endmembers and abundance matrices.",
+    "function_docstring": "def forward_operator(E, A):\n    \"\"\"\n    Computes the predicted spectra using a linear mixing model.\n\n    Args:\n        E (torch.Tensor): A tensor representing the endmembers with shape (M, N), where M is the number of endmembers and N is the number of spectral bands.\n        A (torch.Tensor): A tensor representing the abundance matrix with shape (N, P), where N is the number of spectral bands and P is the number of pixels or samples.\n\n    Returns:\n        torch.Tensor: A tensor representing the predicted spectra with shape (M, P), where M is the number of endmembers and P is the number of pixels or samples.\n    \"\"\"\n    Y_pred = E @ A\n    return Y_pred",
+    "usage_example": "import torch\n\n# Define endmembers and abundance matrices\nE = torch.rand((5, 10))  # 5 endmembers, 10 spectral bands\nA = torch.rand((10, 20))  # 10 spectral bands, 20 samples\n\n# Compute predicted spectra\nY_pred = forward_operator(E, A)\nprint(Y_pred.shape)  # Output: torch.Size([5, 20])"
+}

@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Evaluate results against ground truth, compute metrics, and save outputs.",
+    "function_docstring": "def evaluate_results(result, hsi, output_dir):\n    \"\"\"Evaluate results against ground truth, compute metrics, save outputs.\n\n    Args:\n        result (dict): A dictionary containing estimated endmembers and abundances with keys 'E_hat' and 'A_hat'.\n        hsi (CustomObject): An object representing hyperspectral image data with methods `get_img_shape()`, `has_GT()`, `get_GT()`, `get_labels()`, `plot_endmembers()`, and `plot_abundances()`.\n        output_dir (str): The directory path where the output files will be saved.\n\n    Returns:\n        dict: A dictionary containing computed metrics such as 'SRE', 'aRMSE', 'SAD', and 'eRMSE'.\n    \"\"\"",
+    "usage_example": "import os\n\n# Assuming `result`, `hsi`, and `output_dir` are defined\nmetrics = evaluate_results(result, hsi, output_dir)\nprint(metrics)"
+}

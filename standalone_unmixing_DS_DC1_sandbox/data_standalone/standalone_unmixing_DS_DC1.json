@@ -1,0 +1,11 @@
+{
+    "seed": 0,
+    "SNR": 30,
+    "projection": false,
+    "l2_normalization": false,
+    "dataset": "DC1",
+    "data_dir": "./data_standalone/",
+    "figs_dir": "./exp_standalone_unmixing_DS_DC1/",
+    "output_dir": "./exp_standalone_unmixing_DS_DC1/",
+    "EPS": 1e-10
+}

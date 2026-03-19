@@ -1,0 +1,12 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_DS_DC1_sandbox/run_code/std_data/data_compute_metric.pkl
+  func_name: compute_metric
+Detected Scenario A: Simple function call
+FAIL: Error executing compute_metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_DS_DC1_sandbox/test_compute_metric.py", line 146, in main
+    result = compute_metric(*outer_args, **outer_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_DS_DC1_sandbox/agent_compute_metric.py", line 11, in compute_metric
+    if detail:
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_DS_DC1_sandbox/gen_std_data.py", line 556, in __call__
+    return 100 * np.sqrt(((E - Eref) ** 2).mean())
+NameError: name 'np' is not defined
