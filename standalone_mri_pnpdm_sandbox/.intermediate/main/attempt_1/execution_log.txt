@@ -1,0 +1,58 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_pnpdm_sandbox/run_code/std_data/data_main.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Function name: main
+Number of args: 0, Number of kwargs: 0
+Expected output type: <class 'NoneType'>
+Scenario A: Simple function - running main(*args, **kwargs)
+/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+Using device: cuda
+Output directory: outputs/standalone_mri_pnpdm
+Instantiating MultiCoilMRI forward operator...
+Instantiating Dataset (first sample only)...
+Loaded 1 test sample(s)...
+Loading pre-trained model from /fs-computility-new/UPDZ02_sunhe/shared/InverseBench/weights/MRI-knee.pt...
+Model loaded successfully!
+Instantiating PnPDM algorithm...
+Instantiating MRI Evaluator...
+/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/utils/data/_utils/collate.py:285: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:206.)
+  return collate([torch.as_tensor(b) for b in batch], collate_fn_map=collate_fn_map)
+
+--- Processing sample 0 ---
+Computing observation (forward model)...
+Running PnPDM inference...
+
+  0%|          | 0/10 [00:00<?, ?it/s]
+Iteration 1/10. Avg. Error: 1614621.678518871:   0%|          | 0/10 [00:00<?, ?it/s]
+Iteration 1/10. Avg. Error: 1614621.678518871:  10%|█         | 1/10 [00:00<00:04,  1.84it/s]
+Iteration 2/10. Avg. Error: 1305152209.31713:  10%|█         | 1/10 [00:00<00:04,  1.84it/s] 
+Iteration 2/10. Avg. Error: 1305152209.31713:  20%|██        | 2/10 [00:00<00:02,  3.09it/s]
+Iteration 3/10. Avg. Error: 1054963845362.1865:  20%|██        | 2/10 [00:00<00:02,  3.09it/s]
+Iteration 3/10. Avg. Error: 1054963845362.1865:  30%|███       | 3/10 [00:00<00:01,  3.99it/s]
+Iteration 4/10. Avg. Error: 852734818021526.2:  30%|███       | 3/10 [00:01<00:01,  3.99it/s] 
+Iteration 4/10. Avg. Error: 852734818021526.2:  40%|████      | 4/10 [00:01<00:01,  4.64it/s]
+Iteration 5/10. Avg. Error: 6.892716507420735e+17:  40%|████      | 4/10 [00:01<00:01,  4.64it/s]
+Iteration 5/10. Avg. Error: 6.892716507420735e+17:  50%|█████     | 5/10 [00:01<00:00,  5.09it/s]
+Iteration 6/10. Avg. Error: 5.571431980647246e+20:  50%|█████     | 5/10 [00:01<00:00,  5.09it/s]
+Iteration 6/10. Avg. Error: 5.571431980647246e+20:  60%|██████    | 6/10 [00:01<00:00,  5.40it/s]
+Iteration 7/10. Avg. Error: 4.503428345478509e+23:  60%|██████    | 6/10 [00:01<00:00,  5.40it/s]
+Iteration 7/10. Avg. Error: 4.503428345478509e+23:  70%|███████   | 7/10 [00:01<00:00,  5.61it/s]
+Iteration 8/10. Avg. Error: 1.11563218782053e+26:  70%|███████   | 7/10 [00:01<00:00,  5.61it/s] 
+Iteration 8/10. Avg. Error: 1.11563218782053e+26:  80%|████████  | 8/10 [00:01<00:00,  6.01it/s]
+Iteration 9/10. Avg. Error: 2.7637503729497534e+28:  80%|████████  | 8/10 [00:01<00:00,  6.01it/s]
+Iteration 9/10. Avg. Error: 2.7637503729497534e+28:  90%|█████████ | 9/10 [00:01<00:00,  6.32it/s]
+Iteration 10/10. Avg. Error: 6.846625825994065e+30:  90%|█████████ | 9/10 [00:01<00:00,  6.32it/s]
+Iteration 10/10. Avg. Error: 6.846625825994065e+30: 100%|██████████| 10/10 [00:01<00:00,  6.54it/s]
+Iteration 10/10. Avg. Error: 6.846625825994065e+30: 100%|██████████| 10/10 [00:01<00:00,  5.13it/s]
+Peak GPU memory usage: 0.56 GB
+Saved results to outputs/standalone_mri_pnpdm/result_0.pt
+Evaluating results...
+Metrics: {'psnr': 1.1601115423567223, 'ssim': 0.13558759763192008, 'data misfit': 6.846625825994065e+30}
+
+--- Final Results ---
+Final metric results: {'psnr': np.float64(1.1601115423567223), 'psnr_std': np.float64(0.0), 'ssim': np.float64(0.13558759763192008), 'ssim_std': np.float64(0.0), 'data misfit': np.float64(6.846625825994065e+30), 'data misfit_std': np.float64(0.0)}
+
+Inference completed successfully!
+Result type: <class 'NoneType'>
+Expected type: <class 'NoneType'>
+TEST PASSED

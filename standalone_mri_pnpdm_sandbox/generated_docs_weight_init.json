@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Initializes a tensor with random values based on the specified weight initialization mode.",
+    "function_docstring": "Initializes a tensor with random values using a specified weight initialization method.\n\nArgs:\n    shape (tuple of int): The shape of the tensor to be initialized.\n    mode (str): The initialization mode, which can be 'xavier_uniform', 'xavier_normal', 'kaiming_uniform', or 'kaiming_normal'.\n    fan_in (int): The number of input units in the weight tensor.\n    fan_out (int): The number of output units in the weight tensor.\n\nReturns:\n    torch.Tensor: A tensor of the specified shape initialized with random values according to the specified mode.",
+    "usage_example": "import torch\n\n# Example usage of weight_init function\nshape = (64, 128)\nmode = 'xavier_uniform'\nfan_in = 64\nfan_out = 128\n\ninitialized_tensor = weight_init(shape, mode, fan_in, fan_out)\nprint(initialized_tensor.shape)  # Output: torch.Size([64, 128])"
+}

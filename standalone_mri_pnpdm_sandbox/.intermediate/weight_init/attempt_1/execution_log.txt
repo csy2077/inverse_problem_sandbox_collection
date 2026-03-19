@@ -1,0 +1,10 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_pnpdm_sandbox/run_code/std_data/data_weight_init.pkl
+  func_name: weight_init
+Detected Scenario A: Simple function call
+  shape=[2], mode=kaiming_uniform, fan_in=1152, fan_out=18
+  Result type: <class 'torch.Tensor'>
+  Type check: PASSED
+  Shape check: PASSED (torch.Size([2]))
+  Dtype check: PASSED (torch.float32)
+  Bound check (kaiming_uniform, bound=0.051031): PASSED
+TEST PASSED

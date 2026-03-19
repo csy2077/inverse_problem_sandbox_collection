@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Generates a list of exponentially decayed sigma values over a specified number of steps.",
+    "function_docstring": "Generates a list of values undergoing exponential decay over a specified number of steps.\n\n    Args:\n        num_steps (int): The total number of steps for the decay process.\n        sigma_max (float): The initial value of sigma at step 0. \n        sigma_min (float): The minimum value that sigma can take.\n        rho (float, optional): The decay rate, a factor applied at each step. Defaults to 0.9.\n\n    Returns:\n        list of float: A list of sigma values after applying exponential decay over 'num_steps'. Each element in the list represents the sigma value at a corresponding step, starting from 'sigma_max' and decaying no lower than 'sigma_min'.",
+    "usage_example": "sigma_scheduler = get_exponential_decay_scheduler(num_steps=100, sigma_max=10.0, sigma_min=0.5)\nprint(sigma_scheduler)  # Outputs a list of decayed sigma values starting from 10.0, never going below 0.5."
+}

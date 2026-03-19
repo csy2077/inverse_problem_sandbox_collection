@@ -1,0 +1,136 @@
+[
+    {
+        "function_name": "parse_int_list",
+        "inputs": {
+            "s": {
+                "type": "str",
+                "value_sample": "0"
+            }
+        },
+        "output": {
+            "type": "list",
+            "length": 1,
+            "elements": [
+                {
+                    "type": "int",
+                    "value_sample": "0"
+                }
+            ]
+        }
+    },
+    {
+        "function_name": "weight_init",
+        "inputs": {
+            "shape": {
+                "type": "list",
+                "length": 2,
+                "elements": [
+                    {
+                        "type": "int",
+                        "value_sample": "512"
+                    },
+                    {
+                        "type": "int",
+                        "value_sample": "128"
+                    }
+                ]
+            },
+            "mode": {
+                "type": "str",
+                "value_sample": "kaiming_uniform"
+            },
+            "fan_in": {
+                "type": "int",
+                "value_sample": "128"
+            },
+            "fan_out": {
+                "type": "int",
+                "value_sample": "512"
+            }
+        },
+        "output": {
+            "type": "torch.Tensor",
+            "shape": [
+                512,
+                128
+            ],
+            "dtype": "torch.float32",
+            "device": "cpu"
+        }
+    },
+    {
+        "function_name": "get_exponential_decay_scheduler",
+        "inputs": {
+            "num_steps": {
+                "type": "int",
+                "value_sample": "10"
+            },
+            "sigma_max": {
+                "type": "int",
+                "value_sample": "10"
+            },
+            "sigma_min": {
+                "type": "float",
+                "value_sample": "0.02"
+            },
+            "rho": {
+                "type": "float",
+                "value_sample": "0.93"
+            }
+        },
+        "output": {
+            "type": "list",
+            "length": 10,
+            "elements": [
+                {
+                    "type": "int",
+                    "value_sample": "10"
+                },
+                {
+                    "type": "float",
+                    "value_sample": "9.3"
+                },
+                {
+                    "type": "float",
+                    "value_sample": "8.649000000000001"
+                },
+                {
+                    "type": "float",
+                    "value_sample": "8.04357"
+                },
+                {
+                    "type": "float",
+                    "value_sample": "7.4805201000000014"
+                },
+                {
+                    "type": "float",
+                    "value_sample": "6.956883693000002"
+                },
+                {
+                    "type": "float",
+                    "value_sample": "6.469901834490002"
+                },
+                {
+                    "type": "float",
+                    "value_sample": "6.017008706075702"
+                },
+                {
+                    "type": "float",
+                    "value_sample": "5.595818096650403"
+                },
+                {
+                    "type": "float",
+                    "value_sample": "5.204110829884875"
+                }
+            ]
+        }
+    },
+    {
+        "function_name": "main",
+        "inputs": {},
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    }
+]
