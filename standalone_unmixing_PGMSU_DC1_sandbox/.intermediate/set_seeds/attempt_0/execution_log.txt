@@ -1,0 +1,7 @@
+Loaded outer data: func_name=set_seeds
+  args types: ['int']
+  kwargs keys: []
+  output type: NoneType
+Detected Scenario A (Simple function)
+  Determinism check passed
+TEST PASSED

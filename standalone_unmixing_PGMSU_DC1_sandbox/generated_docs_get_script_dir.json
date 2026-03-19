@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Retrieves the directory path where the current script is located.",
+    "function_docstring": "def get_script_dir():\n    \"\"\"\n    Retrieves the directory path where the current script is located.\n\n    Returns:\n        str: The absolute path of the directory containing the script.\n    \"\"\"",
+    "usage_example": "import os\n\n# Example usage of get_script_dir\nscript_directory = get_script_dir()\nprint(f\"The script is located in: {script_directory}\")"
+}

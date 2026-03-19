@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_PGMSU_DC1_sandbox/run_code/std_data/data_compute_metric.pkl
+  Keys: ['func_name', 'args', 'kwargs', 'output']
+Detected Scenario A: Simple function call
+Function execution succeeded. Result type: <class 'dict'>
+TEST PASSED

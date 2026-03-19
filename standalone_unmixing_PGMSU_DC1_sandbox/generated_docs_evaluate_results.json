@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Evaluates inversion results by aligning estimated and ground truth data, computes metrics, and saves outputs.",
+    "function_docstring": "Evaluate the inversion results and save outputs.\n\nArgs:\n    result_dict (dict): A dictionary containing estimated matrices 'E_hat' and 'A_hat', and dimensions 'H' and 'W'.\n    data_dict (dict): A dictionary containing ground truth data and HSI information, including 'hsi' object and 'output_dir'.\n\nReturns:\n    dict: A dictionary containing computed metrics such as 'SRE', 'aRMSE', 'SAD', and 'eRMSE'.",
+    "usage_example": "import os\nimport numpy as np\nfrom agent_evaluate_results import evaluate_results\n\nresult_dict = {\n    'E_hat': np.random.rand(10, 10),\n    'A_hat': np.random.rand(10, 10),\n    'H': 10,\n    'W': 10\n}\ndata_dict = {\n    'hsi': hsi_object,  # Assume hsi_object is defined elsewhere\n    'output_dir': '/path/to/output'\n}\n\nmetrics = evaluate_results(result_dict, data_dict)\nprint(metrics)"
+}

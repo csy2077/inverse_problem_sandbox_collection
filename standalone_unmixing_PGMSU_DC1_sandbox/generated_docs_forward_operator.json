@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the predicted spectra using a linear mixing model based on abundance and endmember tensors.",
+    "function_docstring": "def forward_operator(a_tensor, em_tensor):\n    \"\"\"\n    Forward model: Computes the predicted spectra using a linear mixing model.\n\n    Args:\n        a_tensor (torch.Tensor): A tensor representing the abundance with shape (batch_size, 1, num_endmembers).\n        em_tensor (torch.Tensor): A tensor representing the endmembers with shape (batch_size, num_endmembers, num_spectra).\n\n    Returns:\n        torch.Tensor: A tensor representing the predicted spectra with shape (batch_size, num_spectra).\n    \"\"\"",
+    "usage_example": "import torch\n\n# Example tensors\nbatch_size = 10\nnum_endmembers = 5\nnum_spectra = 20\na_tensor = torch.rand(batch_size, 1, num_endmembers)\nem_tensor = torch.rand(batch_size, num_endmembers, num_spectra)\n\n# Compute predicted spectra\ny_hat = forward_operator(a_tensor, em_tensor)\nprint(y_hat.shape)  # Expected output shape: (batch_size, num_spectra)"
+}

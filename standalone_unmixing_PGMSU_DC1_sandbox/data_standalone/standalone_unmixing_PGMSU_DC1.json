@@ -1,0 +1,21 @@
+{
+    "model": {
+        "z_dim": 4,
+        "lr": 0.001,
+        "epochs": 200,
+        "lambda_kl": 0.1,
+        "lambda_sad": 0,
+        "lambda_vol": 0.5
+    },
+    "data": {
+        "dataset": "DC1",
+        "data_dir": "./data_standalone/"
+    },
+    "noise": {
+        "SNR": 30
+    },
+    "seed": 0,
+    "projection": false,
+    "l2_normalization": false,
+    "EPS": 1e-10
+}
