@@ -1,0 +1,6 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_dpg_sandbox/run_code/std_data/data_relative_l2.pkl
+[INFO] Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+[INFO] Scenario A detected: Simple function call.
+[INFO] Executed relative_l2 successfully. Result type: <class 'torch.Tensor'>
+[INFO] Verification passed.
+TEST PASSED

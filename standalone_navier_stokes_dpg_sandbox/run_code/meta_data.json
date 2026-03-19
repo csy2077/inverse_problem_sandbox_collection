@@ -1,0 +1,176 @@
+[
+    {
+        "function_name": "load_config",
+        "inputs": {
+            "json_path": {
+                "type": "str",
+                "value_sample": "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_dpg_sandbox/data_standalone/standalone_navier_stokes_dpg.json"
+            }
+        },
+        "output": {
+            "type": "dict",
+            "value_sample": "{'tf32': True, 'inference': True, 'num_samples': 1, 'compile': False, 'seed': 0, 'wandb': False, 'exp_name': 'default', 'exp_dir': 'exps/inference/navier-stokes-ds2/DPG/default', 'forward_op': {'resolution': 128, 'L': 6.283185307179586, 'forward_time': 1.0, 'Re': 200.0, 'downsample_factor': 2, 'delta_t': 0.01, 'adaptive': True, 'sigma_noise': 0.0, 'unnorm_scale': 10.0}, 'data': {'root': 'data_standalone/navier-stokes-test/Re200.0-t5.0', 'resolution': 128, 'std': 5.0, 'id_list': '0-9'}, 'pretrain': {'prior': 'weights/ns-5m.pt', 'model': {'img_resolution': 128, 'img_channels': 1, 'label_dim': 0, 'model_channels': 128, 'channel_mult': [1, 1, 1, 2, 2], 'attn_resolutions': [16], 'num_blocks': 1, 'dropout': 0.0}}, 'algorithm': {'name': 'DPG', 'diffusion_scheduler_config': {'num_steps': 100, 'schedule': 'vp', 'timestep': 'vp', 'scaling': 'vp'}, 'guidance_scale': 10.0, 'num_mc_samples': 50, 'batch_size': 50}}"
+        }
+    },
+    {
+        "function_name": "create_logger",
+        "inputs": {
+            "logging_dir": {
+                "type": "str",
+                "value_sample": "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_dpg_sandbox/exps/inference/navier-stokes-ds2/DPG/default"
+            },
+            "main_process": {
+                "type": "bool",
+                "value_sample": "True"
+            }
+        },
+        "output": {
+            "type": "CustomObject",
+            "class_name": "Logger",
+            "public_methods": [
+                "addFilter",
+                "addHandler",
+                "callHandlers",
+                "critical",
+                "debug",
+                "error",
+                "exception",
+                "fatal",
+                "filter",
+                "findCaller",
+                "getChild",
+                "getEffectiveLevel",
+                "handle",
+                "hasHandlers",
+                "info",
+                "isEnabledFor",
+                "log",
+                "makeRecord",
+                "removeFilter",
+                "removeHandler",
+                "setLevel",
+                "warn",
+                "warning"
+            ],
+            "attributes": [
+                "filters",
+                "name",
+                "level",
+                "parent",
+                "propagate",
+                "handlers",
+                "disabled",
+                "_cache",
+                "manager"
+            ]
+        }
+    },
+    {
+        "function_name": "parse_int_list",
+        "inputs": {
+            "s": {
+                "type": "list",
+                "length": 1,
+                "elements": [
+                    {
+                        "type": "int",
+                        "value_sample": "0"
+                    }
+                ]
+            }
+        },
+        "output": {
+            "type": "list",
+            "length": 1,
+            "elements": [
+                {
+                    "type": "int",
+                    "value_sample": "0"
+                }
+            ]
+        }
+    },
+    {
+        "function_name": "weight_init",
+        "inputs": {
+            "shape": {
+                "type": "list",
+                "length": 2,
+                "elements": [
+                    {
+                        "type": "int",
+                        "value_sample": "512"
+                    },
+                    {
+                        "type": "int",
+                        "value_sample": "128"
+                    }
+                ]
+            },
+            "mode": {
+                "type": "str",
+                "value_sample": "kaiming_uniform"
+            },
+            "fan_in": {
+                "type": "int",
+                "value_sample": "128"
+            },
+            "fan_out": {
+                "type": "int",
+                "value_sample": "512"
+            }
+        },
+        "output": {
+            "type": "torch.Tensor",
+            "shape": [
+                512,
+                128
+            ],
+            "dtype": "torch.float32",
+            "device": "cpu"
+        }
+    },
+    {
+        "function_name": "relative_l2",
+        "inputs": {
+            "pred": {
+                "type": "torch.Tensor",
+                "shape": [
+                    1,
+                    1,
+                    128,
+                    128
+                ],
+                "dtype": "torch.float32",
+                "device": "cpu"
+            },
+            "target": {
+                "type": "torch.Tensor",
+                "shape": [
+                    1,
+                    1,
+                    128,
+                    128
+                ],
+                "dtype": "torch.float32",
+                "device": "cpu"
+            }
+        },
+        "output": {
+            "type": "torch.Tensor",
+            "shape": [
+                1
+            ],
+            "dtype": "torch.float32",
+            "device": "cpu"
+        }
+    },
+    {
+        "function_name": "main",
+        "inputs": {},
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    }
+]

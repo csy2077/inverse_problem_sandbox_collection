@@ -1,0 +1,1 @@
+FAIL: Verification failed: Logger level mismatch: expected=0, got=20; Handler types mismatch: expected=[], got=['FileHandler', 'StreamHandler']

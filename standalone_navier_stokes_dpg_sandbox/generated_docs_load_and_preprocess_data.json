@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Loads configuration and dataset, sets up forward operator parameters, and loads a pretrained model for inversion tasks.",
+    "function_docstring": "Loads configuration and dataset, sets up forward operator parameters, and loads a pretrained model for inversion tasks.\n\nArgs:\n    config_path (str): Path to the configuration file in JSON format.\n    script_dir (str): Directory path where the script is located, used to resolve relative paths.\n\nReturns:\n    Dict[str, Any]: A dictionary containing configuration, device, neural network model, forward operator parameters, test data list, experiment directory, and logger.",
+    "usage_example": "config_path = '/path/to/config.json'\nscript_dir = '/path/to/script'\nresult = load_and_preprocess_data(config_path, script_dir)\nprint(result['config'])"
+}

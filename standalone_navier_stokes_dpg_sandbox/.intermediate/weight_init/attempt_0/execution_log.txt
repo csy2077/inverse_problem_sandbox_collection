@@ -1,0 +1,8 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_dpg_sandbox/run_code/std_data/data_weight_init.pkl
+  func_name: weight_init
+Detected Scenario A: Simple function call
+  Function returned: <class 'torch.Tensor'>
+  Note: Exact match failed (expected for stochastic function): Value mismatch at output: max difference 0.017530106008052826 > tol
+  Performing structural validation (shape, dtype)...
+  Structural validation passed (shape and dtype match).
+TEST PASSED

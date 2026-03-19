@@ -1,0 +1,56 @@
+{
+  "tf32": true,
+  "inference": true,
+  "num_samples": 1,
+  "compile": false,
+  "seed": 0,
+  "wandb": false,
+  "exp_name": "default",
+  "exp_dir": "exps/inference/navier-stokes-ds2/DPG/default",
+  
+  "forward_op": {
+    "resolution": 128,
+    "L": 6.283185307179586,
+    "forward_time": 1.0,
+    "Re": 200.0,
+    "downsample_factor": 2,
+    "delta_t": 0.01,
+    "adaptive": true,
+    "sigma_noise": 0.0,
+    "unnorm_scale": 10.0
+  },
+  
+  "data": {
+    "root": "data_standalone/navier-stokes-test/Re200.0-t5.0",
+    "resolution": 128,
+    "std": 5.0,
+    "id_list": "0-9"
+  },
+  
+  "pretrain": {
+    "prior": "weights/ns-5m.pt",
+    "model": {
+      "img_resolution": 128,
+      "img_channels": 1,
+      "label_dim": 0,
+      "model_channels": 128,
+      "channel_mult": [1, 1, 1, 2, 2],
+      "attn_resolutions": [16],
+      "num_blocks": 1,
+      "dropout": 0.0
+    }
+  },
+  
+  "algorithm": {
+    "name": "DPG",
+    "diffusion_scheduler_config": {
+      "num_steps": 100,
+      "schedule": "vp",
+      "timestep": "vp",
+      "scaling": "vp"
+    },
+    "guidance_scale": 10.0,
+    "num_mc_samples": 50,
+    "batch_size": 50
+  }
+}

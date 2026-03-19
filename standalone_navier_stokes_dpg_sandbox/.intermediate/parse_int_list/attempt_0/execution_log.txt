@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_dpg_sandbox/run_code/std_data/data_parse_int_list.pkl
+  func_name: parse_int_list
+Phase 1: Executed parse_int_list, result type: <class 'list'>
+  Verification passed for outer data.
+TEST PASSED

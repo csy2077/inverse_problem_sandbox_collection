@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Generates a 2D tensor representing a forcing function based on a given resolution, length, device, and data type.",
+    "function_docstring": "Generates a 2D tensor representing a forcing function based on a given resolution, length, device, and data type.\n\nArgs:\n    resolution (int): The number of divisions along each axis, determining the grid resolution.\n    L (float): The length of the domain in each dimension.\n    device (torch.device): The device on which to perform the computation (e.g., 'cpu' or 'cuda').\n    dtype (torch.dtype): The data type of the resulting tensor (e.g., torch.float32).\n\nReturns:\n    torch.Tensor: A 2D tensor of shape (resolution, resolution) containing the computed forcing values.",
+    "usage_example": "import torch\n\n# Define parameters\nresolution = 64\nL = 2 * torch.pi\ndevice = torch.device('cpu')\ndtype = torch.float32\n\n# Generate the forcing tensor\nforcing_tensor = create_forcing(resolution, L, device, dtype)\n\n# Print the shape of the resulting tensor\nprint(forcing_tensor.shape)  # Output: torch.Size([64, 64])"
+}
