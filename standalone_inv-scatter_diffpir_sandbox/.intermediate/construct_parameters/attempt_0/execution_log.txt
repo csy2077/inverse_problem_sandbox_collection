@@ -1,0 +1,4 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_diffpir_sandbox/run_code/std_data/data_construct_parameters.pkl
+  func_name: construct_parameters
+Phase 1: construct_parameters executed successfully.
+TEST PASSED

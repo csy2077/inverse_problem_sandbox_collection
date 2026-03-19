@@ -1,0 +1,8 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_diffpir_sandbox/run_code/std_data/data_weight_init.pkl
+  func_name: weight_init
+Detected Scenario A: Simple function call
+  Result type: <class 'torch.Tensor'>
+  Note: Direct value comparison failed (expected for stochastic function).
+  Message: Value mismatch at output: max difference 0.008193233981728554 > tol
+  Performing structural verification instead...
+TEST PASSED (structural verification)

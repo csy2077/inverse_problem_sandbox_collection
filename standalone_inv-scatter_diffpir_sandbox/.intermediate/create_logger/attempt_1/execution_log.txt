@@ -1,0 +1,12 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_diffpir_sandbox/run_code/std_data/data_create_logger.pkl
+[INFO] Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+[INFO] Outer args: ('outputs/standalone_inv_scatter_diffpir/DiffPIR/default',)
+[INFO] Outer kwargs: {}
+[INFO] Ensured logging directory exists: outputs/standalone_inv_scatter_diffpir/DiffPIR/default
+[INFO] create_logger returned: <class 'logging.Logger'>
+[INFO] Scenario A detected (simple function).
+[INFO] Both expected and result are Logger instances.
+[INFO] Expected logger name: __main__, level: 0
+[INFO] Result logger name: agent_create_logger, level: 20
+[INFO] Logger structural check passed.
+TEST PASSED

@@ -1,0 +1,9 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_diffpir_sandbox/run_code/std_data/data_is_url.pkl
+Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+Outer args: ('weights/inv-scatter-5m.pt',)
+Outer kwargs: {}
+Expected output: False
+Detected Scenario A: Simple function call
+Execution result: False
+Expected result: False
+TEST PASSED

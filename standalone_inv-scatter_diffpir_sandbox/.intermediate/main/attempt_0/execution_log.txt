@@ -1,0 +1,12 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_diffpir_sandbox/run_code/std_data/data_main.pkl
+Outer data loaded. func_name: main
+  args count: 0, kwargs keys: []
+Detected Scenario A: Simple function call
+Running main(*args, **kwargs)...
+ERROR: Failed to run main(): name 'DhariwalUNet' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_diffpir_sandbox/test_main.py", line 123, in main
+    from agent_main import main as target_main
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_diffpir_sandbox/agent_main.py", line 226, in <module>
+    'DhariwalUNet': DhariwalUNet,
+NameError: name 'DhariwalUNet' is not defined

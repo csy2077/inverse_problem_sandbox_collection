@@ -1,0 +1,5 @@
+{
+    "function_explanation": "The function loads and preprocesses data for inversion tasks, setting up necessary components like datasets, forward operators, and pretrained models.",
+    "function_docstring": "Load and preprocess data for inversion tasks, setting up datasets, forward operators, and pretrained models.\n\nArgs:\n    config (Any): A configuration object containing parameters for data loading, model setup, and algorithm settings.\n    device (str): The device to load the data and models onto, typically 'cuda' or 'cpu'.\n\nReturns:\n    Dict[str, Any]: A dictionary containing the test data loader, test dataset, neural network model, scheduler, forward operator parameters, algorithm parameters, and the configuration object.",
+    "usage_example": "from your_module import load_and_preprocess_data\n\nconfig ="
+}

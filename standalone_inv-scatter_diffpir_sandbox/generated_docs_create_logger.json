@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Initializes and configures a logging.Logger instance depending on the process role and specified directory.",
+    "function_docstring": "Creates and configures a logger for different process contexts.\n\nArgs:\n    logging_dir (str): The directory path where log files should be stored. If used, a log file named 'log.txt' will be created within this directory.\n    main_process (bool, optional): Indicator if the logging is for the main process. Default is True. If True, the logger will log to both console and file; if False, a NullHandler is attached, disabling logging output.\n\nReturns:\n    logging.Logger: A configured logger instance with handlers based on the process role (either NoneHandler or both FileHandler and StreamHandler).",
+    "usage_example": "import logging\n\nlogger = create_logger('/path/to/logging_dir', main_process=True)\n\ndata = {'value': 42}\nlogger.info('Processing data: %s', data)"
+}
