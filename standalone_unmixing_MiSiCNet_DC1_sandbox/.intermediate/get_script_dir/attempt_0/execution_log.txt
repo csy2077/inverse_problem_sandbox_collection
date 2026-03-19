@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_MiSiCNet_DC1_sandbox/run_code/std_data/data_get_script_dir.pkl
+  func_name: get_script_dir
+  get_script_dir executed successfully.
+Detected Scenario A (Simple function).
+TEST PASSED

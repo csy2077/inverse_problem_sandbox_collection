@@ -1,0 +1,17 @@
+{
+    "EPS": 1e-10,
+    "seed": 0,
+    "SNR": 30,
+    "projection": false,
+    "l2_normalization": false,
+    "dataset": "DC1",
+    "data_dir": "./data_standalone/",
+    "figs_dir": "./exp_standalone/",
+    "model": {
+        "niters": 800,
+        "lr": 0.001,
+        "exp_weight": 0.99,
+        "lambd": 0.1,
+        "kernel_size": 3
+    }
+}

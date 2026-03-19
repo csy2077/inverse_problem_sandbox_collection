@@ -1,0 +1,85 @@
+[
+    {
+        "function_name": "get_script_dir",
+        "inputs": {},
+        "output": {
+            "type": "str",
+            "value_sample": "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_MiSiCNet_DC1_sandbox"
+        }
+    },
+    {
+        "function_name": "compute_metric",
+        "inputs": {
+            "metric": {
+                "type": "CustomObject",
+                "class_name": "SRE",
+                "public_methods": [],
+                "attributes": [
+                    "name"
+                ]
+            },
+            "X_gt": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    5,
+                    5625
+                ],
+                "dtype": "float64"
+            },
+            "X_hat": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    5,
+                    5625
+                ],
+                "dtype": "float64"
+            },
+            "labels": {
+                "type": "list",
+                "length": 5,
+                "elements": [
+                    {
+                        "type": "str",
+                        "value_sample": "#0"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#1"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#2"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#3"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#4"
+                    }
+                ]
+            },
+            "detail": {
+                "type": "bool",
+                "value_sample": "False"
+            },
+            "on_endmembers": {
+                "type": "bool",
+                "value_sample": "False"
+            }
+        },
+        "output": {
+            "type": "dict",
+            "value_sample": "{'Overall': 6.2336}"
+        }
+    },
+    {
+        "function_name": "main",
+        "inputs": {},
+        "output": {
+            "type": "dict",
+            "value_sample": "{'SRE': {'Overall': 6.2336}, 'aRMSE': {'Overall': 11.6774, '#0': 4.0769, '#1': 7.8293, '#2': 3.1257, '#3': 15.2071, '#4': 19.0489}, 'SAD': {'Overall': 1.7174, '#0': 0.4435, '#1': 2.1822, '#2': 0.4766, '#3': 3.4979, '#4': 1.9868}, 'eRMSE': {'Overall': 3.7616, '#0': 0.4866, '#1': 2.3489, '#2': 2.7252, '#3': 5.6342, '#4': 5.0818}}"
+        }
+    }
+]
