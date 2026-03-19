@@ -1,0 +1,6 @@
+Outer function: create_logger
+Outer args types: ['str']
+Outer kwargs keys: []
+Agent operator type: Logger
+Note: Logger names differ (expected='__main__', got='agent_create_logger') - acceptable for cross-module test.
+TEST FAILED: Logger level mismatch: expected 0, got 20; Handler types mismatch: expected [], got ['FileHandler', 'StreamHandler']

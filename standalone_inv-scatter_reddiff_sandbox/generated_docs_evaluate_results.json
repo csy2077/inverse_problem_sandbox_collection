@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Evaluates reconstruction results using PSNR and SSIM metrics.",
+    "function_docstring": "Evaluates reconstruction results using PSNR and SSIM metrics.\n\nArgs:\n    pred (torch.Tensor): A tensor representing the reconstructed permittivity, normalized, with shape (B, C, H, W).\n    target (torch.Tensor): A tensor representing the ground truth permittivity, normalized, with shape (B, C, H, W).\n    forward_op_params (dict): A dictionary containing the forward operator parameters, specifically 'unnorm_shift' and 'unnorm_scale'.\n    logger (Optional[Logger]): An optional logger for outputting metric results.\n\nReturns:\n    dict: A dictionary containing the computed metrics 'psnr' and 'ssim'.",
+    "usage_example": "import torch\n\n# Example tensors\npred = torch.rand((4, 3, 256, 256))  # Reconstructed permittivity\ntrue = torch.rand((4, 3, 256, 256))  # Ground truth permittivity\n\n# Forward operator parameters\neval_params = {\n    'unnorm_shift': 0.1,\n    'unnorm_scale': 0.9\n}\n\n# Evaluate results\nmetrics = evaluate_results(pred, true, eval_params)\nprint(metrics)  # Output: {'psnr':"
+}

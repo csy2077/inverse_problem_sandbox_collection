@@ -1,0 +1,6 @@
+Loaded outer data: func_name=is_url
+  args types: ['str']
+  kwargs keys: []
+  expected output type: bool
+Detected Scenario A: Simple function call
+TEST PASSED

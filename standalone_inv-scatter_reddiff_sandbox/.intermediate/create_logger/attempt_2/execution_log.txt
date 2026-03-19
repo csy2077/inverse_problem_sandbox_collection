@@ -1,0 +1,7 @@
+Outer function: create_logger
+Outer args types: ['str']
+Outer kwargs keys: []
+Expected logger level: 0
+Expected handler types: []
+Agent operator type: Logger
+TEST PASSED

@@ -1,0 +1,5 @@
+Outer function: create_logger
+Outer args types: ['str']
+Outer kwargs keys: []
+Agent operator type: Logger
+TEST FAILED: Logger level mismatch: expected 0, got 30; Handler types mismatch: expected [], got ['NullHandler']

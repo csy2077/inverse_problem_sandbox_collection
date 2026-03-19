@@ -1,0 +1,12 @@
+[INFO] Loaded outer data: func_name=weight_init
+[INFO] outer_args types: ['list']
+[INFO] outer_kwargs keys: ['mode', 'fan_in', 'fan_out']
+[INFO] recursive_check did not pass (expected for stochastic function): Value mismatch at output: max difference 0.011814113706350327 > tol
+[INFO] Falling back to structural verification...
+/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_reddiff_sandbox/test_weight_init.py:186: UserWarning: std(): degrees of freedom is <= 0. Correction should be strictly less than the reduction factor (input numel divided by output numel). (Triggered internally at /pytorch/aten/src/ATen/native/ReduceOps.cpp:1857.)
+  actual_std = actual_result.float().std().item()
+/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_reddiff_sandbox/test_weight_init.py:187: UserWarning: std(): degrees of freedom is <= 0. Correction should be strictly less than the reduction factor (input numel divided by output numel). (Triggered internally at /pytorch/aten/src/ATen/native/ReduceOps.cpp:1857.)
+  expected_std = expected.float().std().item()
+[INFO] Mode: kaiming_uniform, expected_std: nan, actual_std: nan
+[PASS] Structural verification passed (shape, dtype, scale).
+TEST PASSED
