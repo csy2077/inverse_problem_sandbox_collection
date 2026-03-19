@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Evaluates MRI reconstruction results using PSNR and SSIM metrics, and computes aggregate statistics.",
+    "function_docstring": "Evaluates MRI reconstruction results using PSNR and SSIM metrics, and computes aggregate statistics.\n\nArgs:\n    inversion_output (dict): A dictionary containing the results of the inversion process, including keys 'results', 'forward_op', 'config', and 'device'.\n    logger (Logger): A logger instance for logging the evaluation process.\n\nReturns:\n    dict: A dictionary containing per-sample metrics and aggregate metrics. The per-sample metrics include PSNR and SSIM values for each sample, and the aggregate metrics include the mean and standard deviation of these metrics across all samples.",
+    "usage_example": "import logging\n\n# Assuming inversion_output is a dictionary with the required structure\ninversion_output = {\n    'results': ["
+}

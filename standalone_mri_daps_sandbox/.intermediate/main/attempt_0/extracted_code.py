@@ -1,0 +1,170 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Ensure the current directory is in the path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from verification_utils import recursive_check
+
+
+def main_test():
+    """Test the main function from agent_main.py"""
+    
+    # Define data paths
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_daps_sandbox/run_code/std_data/data_main.pkl'
+    ]
+    
+    # Separate outer (main) and inner (parent_function) paths
+    outer_path = None
+    inner_paths = []
+    
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+    
+    if outer_path is None:
+        print("ERROR: No outer data file (data_main.pkl) found.")
+        sys.exit(1)
+    
+    # ---- Phase 1: Load outer data ----
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+    except Exception as e:
+        print(f"ERROR: Failed to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    print(f"Outer data keys: {list(outer_data.keys())}")
+    print(f"Function name: {outer_data.get('func_name', 'N/A')}")
+    
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+    
+    # ---- Determine Scenario ----
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print(f"Scenario B detected: {len(inner_paths)} inner data file(s) found.")
+        
+        # Import and run main to get operator
+        print("Importing main from agent_main...")
+        try:
+            from agent_main import main
+        except Exception as e:
+            print(f"ERROR: Failed to import main from agent_main: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        print("Running main(*args, **kwargs) to get operator...")
+        try:
+            agent_operator = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"ERROR: Failed to run main(): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        if not callable(agent_operator):
+            print(f"ERROR: main() did not return a callable. Got: {type(agent_operator)}")
+            sys.exit(1)
+        
+        print(f"Got callable operator: {type(agent_operator)}")
+        
+        # Process each inner path
+        all_passed = True
+        for inner_path in inner_paths:
+            print(f"\nLoading inner data from: {inner_path}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"ERROR: Failed to load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+            
+            print(f"Inner function name: {inner_data.get('func_name', 'N/A')}")
+            print(f"Running operator(*inner_args, **inner_kwargs)...")
+            
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"ERROR: Failed to execute operator: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            # Compare
+            print("Comparing results...")
+            try:
+                passed, msg = recursive_check(inner_expected, result)
+            except Exception as e:
+                print(f"ERROR: recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            if not passed:
+                print(f"FAILED for inner path {os.path.basename(inner_path)}: {msg}")
+                all_passed = False
+            else:
+                print(f"PASSED for inner path {os.path.basename(inner_path)}")
+        
+        if not all_passed:
+            print("\nTEST FAILED")
+            sys.exit(1)
+        else:
+            print("\nTEST PASSED")
+            sys.exit(0)
+    
+    else:
+        # Scenario A: Simple function call
+        print("Scenario A detected: Simple function call.")
+        
+        # Import and run main
+        print("Importing main from agent_main...")
+        try:
+            from agent_main import main
+        except Exception as e:
+            print(f"ERROR: Failed to import main from agent_main: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        print("Running main(*args, **kwargs)...")
+        try:
+            result = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"ERROR: Failed to run main(): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        # Compare
+        print("Comparing results...")
+        try:
+            passed, msg = recursive_check(expected_output, result)
+        except Exception as e:
+            print(f"ERROR: recursive_check raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        if not passed:
+            print(f"FAILED: {msg}")
+            print("\nTEST FAILED")
+            sys.exit(1)
+        else:
+            print("\nTEST PASSED")
+            sys.exit(0)
+
+
+if __name__ == '__main__':
+    main_test()

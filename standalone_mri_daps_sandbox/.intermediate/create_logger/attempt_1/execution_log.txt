@@ -1,0 +1,6 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_daps_sandbox/run_code/std_data/data_create_logger.pkl
+  func_name: create_logger
+  Ensured logging_dir exists: exps/inference/multi-coil-mri-knee/DAPS/default
+  create_logger executed successfully. Result type: <class 'logging.Logger'>
+  Logger attribute-level verification passed.
+TEST PASSED

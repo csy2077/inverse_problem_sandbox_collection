@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Initializes and returns a configured logging.Logger instance, either for the main process or a secondary process.",
+    "function_docstring": "Initializes and configures a logging.Logger instance.\n\nArgs:\n    logging_dir (str): The directory where log files should be stored.\n    main_process (bool, optional): Whether this is being run as the main process. Defaults to True.\n        - If True, the logger will be configured with INFO level, a StreamHandler, and a FileHandler.\n        - If False, the logger will be configured with a NullHandler, effectively disabling it for secondary processes.\n\nReturns:\n    logging.Logger: A logger instance configured with STDERR and file output handlers for main processes, or a NullHandler for non-main processes.",
+    "usage_example": "from your_module import create_logger\n\nlogging_dir = '/path/to/logs'\nlogger = create_logger(logging_dir, main_process=True)\nlogger.info('This is an info message')"
+}

@@ -1,0 +1,5 @@
+{
+    "function_explanation": "The `run_inversion` function executes the DAPS inversion algorithm on a given dataset using specified configurations and logs the results.",
+    "function_docstring": "Runs the DAPS inversion algorithm on a dataset.\n\nArgs:\n    data_dict (dict): A dictionary containing all necessary data and models, including 'forward_op', 'testset', 'testloader', 'net', 'config', and 'device'.\n    algo_config (dict): Configuration for the DAPS algorithm, including settings for annealing, diffusion, and Langevin dynamics.\n    logger (Logger): A logger instance for logging information during the execution.\n\nReturns:\n    dict: A dictionary containing reconstruction results, including 'results', 'forward_op', 'config', and 'device'.",
+    "usage_example": "from your_module import run_inversion\n\n# Assuming data_dict, algo_config, and logger are predefined\nresults = run_inversion(data_dict, algo_config, logger)\n\n# Accessing results\nreconstructed_images = results['results']\nconfig_used = results['config']"
+}
