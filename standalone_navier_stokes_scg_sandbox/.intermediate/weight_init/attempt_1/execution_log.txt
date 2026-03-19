@@ -1,0 +1,10 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_scg_sandbox/run_code/std_data/data_weight_init.pkl
+[INFO] Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+[INFO] Scenario A detected: Simple function call (stochastic function).
+[INFO] shape=[1], mode=kaiming_uniform, fan_in=1152, fan_out=9
+[INFO] weight_init returned: <class 'torch.Tensor'>
+[INFO] Shape check passed: torch.Size([1])
+[INFO] Dtype check passed: torch.float32
+[INFO] Value range check passed for kaiming_uniform (bound=0.05103103630798288)
+[INFO] Scale check passed (ratio=2.0920)
+TEST PASSED

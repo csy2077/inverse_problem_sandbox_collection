@@ -1,0 +1,52 @@
+{
+    "_comment": "All paths are relative to the directory where standalone_navier_stokes_scg.py is located",
+    "tf32": true,
+    "inference": true,
+    "num_samples": 1,
+    "compile": false,
+    "seed": 0,
+    "wandb": false,
+    "exp_name": "default",
+    "exp_dir": "exps/inference/navier-stokes-ds2",
+    "algorithm_name": "SCG",
+    "problem": {
+        "name": "navier-stokes-ds2",
+        "prior": "weights/ns-5m.pt",
+        "forward_time": 1.0,
+        "Re": 200.0,
+        "resolution": 128,
+        "downsample_factor": 2,
+        "sigma_noise": 0.0,
+        "unnorm_scale": 10.0,
+        "adaptive": true,
+        "delta_t": 0.01
+    },
+    "data": {
+        "root": "data_standalone/navier-stokes-test/Re200.0-t5.0",
+        "resolution": 128,
+        "std": 5.0,
+        "id_list": "0"
+    },
+    "pretrain": {
+        "img_resolution": 128,
+        "img_channels": 1,
+        "label_dim": 0,
+        "model_channels": 128,
+        "channel_mult": [1, 1, 1, 2, 2],
+        "attn_resolutions": [16],
+        "num_blocks": 1,
+        "dropout": 0.0
+    },
+    "algorithm": {
+        "name": "SCG",
+        "diffusion_scheduler_config": {
+            "num_steps": 10,
+            "schedule": "vp",
+            "timestep": "vp",
+            "scaling": "vp"
+        },
+        "threshold": 0.25,
+        "num_candidates": 64,
+        "batch_size": 64
+    }
+}

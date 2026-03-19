@@ -1,0 +1,8 @@
+Outer data loaded. func_name=create_logger
+  args types: ['str']
+  kwargs keys: []
+  output type: Logger
+  agent_result type: Logger
+Scenario A detected: Simple function call.
+  Both expected and result are logging.Logger instances.
+FAIL: Logger comparison failed: Level mismatch: expected=0, got=20

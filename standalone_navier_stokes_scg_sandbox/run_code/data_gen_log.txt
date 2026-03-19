@@ -1,0 +1,31 @@
+/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+  [Metadata] Recorded schema for: create_logger
+  [Metadata] Recorded schema for: parse_int_list
+[[34m2026-03-13 09:12:08[0m] Loaded 1 test samples...
+  [Metadata] Recorded schema for: weight_init
+[[34m2026-03-13 09:12:11[0m] Loaded pre-trained model from weights/ns-5m.pt...
+[[34m2026-03-13 09:12:11[0m] Running inference on test sample 0...
+
+  0%|          | 0/10 [00:00<?, ?it/s]
+ 10%|█         | 1/10 [00:00<00:02,  3.37it/s]
+Iteration 4/10. Data fitting loss: 360.1383972167969:  10%|█         | 1/10 [00:01<00:02,  3.37it/s]
+Iteration 4/10. Data fitting loss: 360.1383972167969:  40%|████      | 4/10 [00:01<00:02,  2.66it/s]
+Iteration 5/10. Data fitting loss: 344.61376953125:  40%|████      | 4/10 [00:02<00:02,  2.66it/s]  
+Iteration 5/10. Data fitting loss: 344.61376953125:  50%|█████     | 5/10 [00:02<00:02,  1.83it/s]
+Iteration 6/10. Data fitting loss: 339.041259765625:  50%|█████     | 5/10 [00:03<00:02,  1.83it/s]
+Iteration 6/10. Data fitting loss: 339.041259765625:  60%|██████    | 6/10 [00:03<00:02,  1.50it/s]
+Iteration 7/10. Data fitting loss: 337.93743896484375:  60%|██████    | 6/10 [00:04<00:02,  1.50it/s]
+Iteration 7/10. Data fitting loss: 337.93743896484375:  70%|███████   | 7/10 [00:04<00:02,  1.32it/s]
+Iteration 8/10. Data fitting loss: 341.8758544921875:  70%|███████   | 7/10 [00:05<00:02,  1.32it/s] 
+Iteration 8/10. Data fitting loss: 341.8758544921875:  80%|████████  | 8/10 [00:05<00:01,  1.19it/s]
+Iteration 9/10. Data fitting loss: 351.31903076171875:  80%|████████  | 8/10 [00:06<00:01,  1.19it/s]
+Iteration 9/10. Data fitting loss: 351.31903076171875:  90%|█████████ | 9/10 [00:06<00:00,  1.06it/s]
+Iteration 9/10. Data fitting loss: 351.31903076171875: 100%|██████████| 10/10 [00:06<00:00,  1.50it/s]
+[[34m2026-03-13 09:12:18[0m] Peak GPU memory usage: 4.14 GB
+[[34m2026-03-13 09:12:18[0m] Saved results to exps/inference/navier-stokes-ds2/SCG/default/result_0.pt.
+  [Metadata] Recorded schema for: relative_l2
+[[34m2026-03-13 09:12:18[0m] Metric results: {'relative l2': 1.7334551811218262}...
+[[34m2026-03-13 09:12:18[0m] Evaluation completed...
+[[34m2026-03-13 09:12:18[0m] Final metric results: {'relative l2': np.float64(1.7334551811218262), 'relative l2_std': np.float64(0.0)}...
+  [Metadata] Recorded schema for: main

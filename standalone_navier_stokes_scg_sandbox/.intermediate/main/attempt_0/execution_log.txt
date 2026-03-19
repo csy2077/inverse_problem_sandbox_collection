@@ -1,0 +1,14 @@
+[INFO] Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_scg_sandbox/run_code/std_data/data_main.pkl
+[INFO] Outer data loaded. func_name=main
+[INFO] args count: 0, kwargs keys: []
+[INFO] Expected output type: <class 'NoneType'>
+[WARN] CONFIG not found in agent_main module. Attempting to proceed anyway.
+[INFO] Scenario A detected: Simple function call.
+[INFO] Executing main(*args, **kwargs)...
+[FAIL] main() raised an exception: name 'CONFIG' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_scg_sandbox/test_main.py", line 85, in test_main
+    actual_result = main(*outer_args, **outer_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_scg_sandbox/agent_main.py", line 713, in main
+    if CONFIG["tf32"]:
+NameError: name 'CONFIG' is not defined

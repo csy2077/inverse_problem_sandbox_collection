@@ -1,0 +1,175 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Ensure the agent_main module can be found
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from verification_utils import recursive_check
+
+
+def test_main():
+    """Test the main function using captured standard data."""
+    
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_scg_sandbox/run_code/std_data/data_main.pkl'
+    ]
+    
+    # -----------------------------------------------------------
+    # Step 1: Classify paths into outer (main) and inner (parent_function)
+    # -----------------------------------------------------------
+    outer_path = None
+    inner_paths = []
+    
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+    
+    assert outer_path is not None, "No outer data file (data_main.pkl) found!"
+    
+    # -----------------------------------------------------------
+    # Step 2: Load outer data
+    # -----------------------------------------------------------
+    print(f"[INFO] Loading outer data from: {outer_path}")
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+    except Exception as e:
+        print(f"[FAIL] Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+    
+    print(f"[INFO] Outer data loaded. func_name={outer_data.get('func_name', 'unknown')}")
+    print(f"[INFO] args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+    print(f"[INFO] Expected output type: {type(expected_output)}")
+    
+    # -----------------------------------------------------------
+    # Step 3: Import main and inject CONFIG if needed
+    # -----------------------------------------------------------
+    # The main() function references a global CONFIG that must exist in agent_main's module.
+    # We need to ensure it's set before calling main().
+    # The captured args/kwargs for main() are empty since it reads CONFIG globally.
+    # The CONFIG was likely already embedded in agent_main.py or needs to be injected.
+    
+    try:
+        import agent_main
+        from agent_main import main
+    except Exception as e:
+        print(f"[FAIL] Could not import agent_main / main: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    # Check if CONFIG exists in agent_main; if not, we may need to handle this
+    if not hasattr(agent_main, 'CONFIG'):
+        print("[WARN] CONFIG not found in agent_main module. Attempting to proceed anyway.")
+    
+    # -----------------------------------------------------------
+    # Step 4: Execute main (Scenario A - no inner paths)
+    # -----------------------------------------------------------
+    if len(inner_paths) == 0:
+        # Scenario A: Simple function call
+        print("[INFO] Scenario A detected: Simple function call.")
+        print("[INFO] Executing main(*args, **kwargs)...")
+        
+        try:
+            actual_result = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"[FAIL] main() raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        print(f"[INFO] main() returned. Result type: {type(actual_result)}")
+        
+        # -----------------------------------------------------------
+        # Step 5: Compare results
+        # -----------------------------------------------------------
+        try:
+            passed, msg = recursive_check(expected_output, actual_result)
+        except Exception as e:
+            print(f"[FAIL] recursive_check raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        if passed:
+            print("TEST PASSED")
+            sys.exit(0)
+        else:
+            print(f"TEST FAILED: {msg}")
+            sys.exit(1)
+    
+    else:
+        # Scenario B: Factory/Closure pattern
+        print(f"[INFO] Scenario B detected: {len(inner_paths)} inner data file(s) found.")
+        
+        # Phase 1: Create the operator
+        print("[INFO] Phase 1: Creating operator via main(*args, **kwargs)...")
+        try:
+            agent_operator = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"[FAIL] main() raised an exception during operator creation: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        if not callable(agent_operator):
+            print(f"[FAIL] main() did not return a callable. Got: {type(agent_operator)}")
+            sys.exit(1)
+        
+        print(f"[INFO] Operator created successfully. Type: {type(agent_operator)}")
+        
+        # Phase 2: Execute with inner data and verify
+        for inner_path in sorted(inner_paths):
+            print(f"\n[INFO] Loading inner data from: {inner_path}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"[FAIL] Could not load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+            
+            print(f"[INFO] Inner data: func_name={inner_data.get('func_name', 'unknown')}, "
+                  f"args count={len(inner_args)}, kwargs keys={list(inner_kwargs.keys())}")
+            
+            print("[INFO] Executing agent_operator(*inner_args, **inner_kwargs)...")
+            try:
+                actual_result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"[FAIL] Operator execution raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            print(f"[INFO] Operator returned. Result type: {type(actual_result)}")
+            
+            try:
+                passed, msg = recursive_check(inner_expected, actual_result)
+            except Exception as e:
+                print(f"[FAIL] recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            if not passed:
+                print(f"TEST FAILED on {os.path.basename(inner_path)}: {msg}")
+                sys.exit(1)
+            else:
+                print(f"[INFO] Passed check for {os.path.basename(inner_path)}")
+        
+        print("TEST PASSED")
+        sys.exit(0)
+
+
+if __name__ == '__main__':
+    test_main()

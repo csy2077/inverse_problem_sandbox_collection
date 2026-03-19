@@ -1,0 +1,401 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+import json
+import math
+
+# Ensure the agent_main module can be found
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from verification_utils import recursive_check
+
+
+def test_main():
+    """Test the main function using captured standard data."""
+    
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_scg_sandbox/run_code/std_data/data_main.pkl'
+    ]
+    
+    # -----------------------------------------------------------
+    # Step 1: Classify paths into outer (main) and inner (parent_function)
+    # -----------------------------------------------------------
+    outer_path = None
+    inner_paths = []
+    
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+    
+    assert outer_path is not None, "No outer data file (data_main.pkl) found!"
+    
+    # -----------------------------------------------------------
+    # Step 2: Load outer data
+    # -----------------------------------------------------------
+    print(f"[INFO] Loading outer data from: {outer_path}")
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+    except Exception as e:
+        print(f"[FAIL] Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+    
+    print(f"[INFO] Outer data loaded. func_name={outer_data.get('func_name', 'unknown')}")
+    print(f"[INFO] args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+    print(f"[INFO] Expected output type: {type(expected_output)}")
+    
+    # -----------------------------------------------------------
+    # Step 3: Import agent_main and inject CONFIG before calling main
+    # -----------------------------------------------------------
+    try:
+        import agent_main
+        from agent_main import main
+    except Exception as e:
+        print(f"[FAIL] Could not import agent_main / main: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    # The main() function references a global CONFIG that must exist in agent_main's module.
+    # We need to find and load the config or construct a reasonable one.
+    if not hasattr(agent_main, 'CONFIG'):
+        print("[WARN] CONFIG not found in agent_main module. Attempting to locate/construct it.")
+        
+        # Try to find config files in the project directory
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        run_code_dir = os.path.join(base_dir, 'run_code')
+        
+        config_candidates = []
+        for search_dir in [base_dir, run_code_dir]:
+            if os.path.isdir(search_dir):
+                for fname in os.listdir(search_dir):
+                    if fname.endswith('.json') or fname.endswith('.yaml') or fname == 'config.yaml':
+                        config_candidates.append(os.path.join(search_dir, fname))
+        
+        # Also search for any existing experiment config
+        config_loaded = False
+        for cpath in config_candidates:
+            try:
+                if cpath.endswith('.json'):
+                    with open(cpath, 'r') as f:
+                        config_data = json.load(f)
+                    if isinstance(config_data, dict) and ('problem' in config_data or 'data' in config_data):
+                        agent_main.CONFIG = config_data
+                        config_loaded = True
+                        print(f"[INFO] Loaded CONFIG from: {cpath}")
+                        break
+            except Exception:
+                continue
+        
+        if not config_loaded:
+            # Try to find config in subdirectories
+            for root_dir in [base_dir, run_code_dir]:
+                if not os.path.isdir(root_dir):
+                    continue
+                for dirpath, dirnames, filenames in os.walk(root_dir):
+                    for fname in filenames:
+                        if fname in ('config.json', 'config.yaml', 'config.yml'):
+                            fpath = os.path.join(dirpath, fname)
+                            try:
+                                if fname.endswith('.json'):
+                                    with open(fpath, 'r') as f:
+                                        config_data = json.load(f)
+                                elif fname.endswith(('.yaml', '.yml')):
+                                    try:
+                                        import yaml
+                                        with open(fpath, 'r') as f:
+                                            config_data = yaml.safe_load(f)
+                                    except ImportError:
+                                        continue
+                                if isinstance(config_data, dict) and ('problem' in config_data or 'data' in config_data):
+                                    agent_main.CONFIG = config_data
+                                    config_loaded = True
+                                    print(f"[INFO] Loaded CONFIG from: {fpath}")
+                                    break
+                            except Exception:
+                                continue
+                    if config_loaded:
+                        break
+        
+        if not config_loaded:
+            # Search for the exp_dir pattern to find previously saved configs
+            for root_dir in [base_dir, '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_scg_sandbox']:
+                if not os.path.isdir(root_dir):
+                    continue
+                for dirpath, dirnames, filenames in os.walk(root_dir):
+                    if 'config.yaml' in filenames:
+                        fpath = os.path.join(dirpath, 'config.yaml')
+                        try:
+                            # config.yaml saved by main() is actually JSON
+                            with open(fpath, 'r') as f:
+                                config_data = json.load(f)
+                            if isinstance(config_data, dict) and 'problem' in config_data:
+                                agent_main.CONFIG = config_data
+                                config_loaded = True
+                                print(f"[INFO] Loaded CONFIG from saved experiment: {fpath}")
+                                break
+                        except Exception:
+                            try:
+                                import yaml
+                                with open(fpath, 'r') as f:
+                                    config_data = yaml.safe_load(f)
+                                if isinstance(config_data, dict) and 'problem' in config_data:
+                                    agent_main.CONFIG = config_data
+                                    config_loaded = True
+                                    print(f"[INFO] Loaded CONFIG from saved experiment (yaml): {fpath}")
+                                    break
+                            except Exception:
+                                continue
+                    if config_loaded:
+                        break
+        
+        if not config_loaded:
+            # Try reading the agent_main.py source for CONFIG definition
+            agent_main_path = os.path.join(base_dir, 'agent_main.py')
+            if os.path.exists(agent_main_path):
+                try:
+                    with open(agent_main_path, 'r') as f:
+                        source = f.read()
+                    # Look for CONFIG = { ... } or CONFIG = json.loads(...) patterns
+                    import re
+                    # Try to find CONFIG assignment
+                    match = re.search(r'CONFIG\s*=\s*(\{.*?\})\s*\n', source, re.DOTALL)
+                    if match:
+                        config_str = match.group(1)
+                        try:
+                            config_data = eval(config_str)
+                            if isinstance(config_data, dict):
+                                agent_main.CONFIG = config_data
+                                config_loaded = True
+                                print("[INFO] Extracted CONFIG from agent_main.py source")
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+        
+        if not config_loaded:
+            # Last resort: construct a default CONFIG based on the code analysis
+            # Look for any .lmdb directories and .pt checkpoint files
+            sandbox_dir = '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_scg_sandbox'
+            run_code_dir2 = os.path.join(sandbox_dir, 'run_code')
+            
+            # Find LMDB data root
+            lmdb_root = None
+            ckpt_path = None
+            for search_dir in [sandbox_dir, run_code_dir2, base_dir]:
+                if not os.path.isdir(search_dir):
+                    continue
+                for dirpath, dirnames, filenames in os.walk(search_dir):
+                    for dname in dirnames:
+                        full = os.path.join(dirpath, dname)
+                        if os.path.exists(os.path.join(full, 'data.mdb')) or dname.endswith('.lmdb'):
+                            lmdb_root = full
+                    for fname in filenames:
+                        if fname.endswith('.pt') or fname.endswith('.pkl'):
+                            if 'ckpt' in fname.lower() or 'model' in fname.lower() or 'edm' in fname.lower():
+                                ckpt_path = os.path.join(dirpath, fname)
+                    if lmdb_root and ckpt_path:
+                        break
+            
+            if lmdb_root is None:
+                # Try common paths
+                for candidate in [
+                    os.path.join(sandbox_dir, 'data'),
+                    os.path.join(run_code_dir2, 'data'),
+                    os.path.join(sandbox_dir, 'ns_data'),
+                ]:
+                    if os.path.isdir(candidate):
+                        if os.path.exists(os.path.join(candidate, 'data.mdb')):
+                            lmdb_root = candidate
+                            break
+            
+            print(f"[INFO] Found LMDB root: {lmdb_root}")
+            print(f"[INFO] Found checkpoint: {ckpt_path}")
+            
+            if lmdb_root is None or ckpt_path is None:
+                print("[FAIL] Cannot construct CONFIG: missing data paths")
+                print("[INFO] Searching entire sandbox for relevant files...")
+                for search_dir in [sandbox_dir]:
+                    if os.path.isdir(search_dir):
+                        for dirpath, dirnames, filenames in os.walk(search_dir):
+                            for fname in filenames:
+                                fpath = os.path.join(dirpath, fname)
+                                if fname == 'data.mdb':
+                                    print(f"  LMDB: {dirpath}")
+                                    if lmdb_root is None:
+                                        lmdb_root = dirpath
+                                if fname.endswith('.pt'):
+                                    fsize = os.path.getsize(fpath) / (1024*1024)
+                                    if fsize > 10:  # checkpoint likely > 10MB
+                                        print(f"  Checkpoint candidate ({fsize:.0f}MB): {fpath}")
+                                        if ckpt_path is None:
+                                            ckpt_path = fpath
+            
+            if lmdb_root is None or ckpt_path is None:
+                print("[FAIL] Cannot find required data files to construct CONFIG.")
+                sys.exit(1)
+            
+            default_config = {
+                "tf32": True,
+                "seed": 42,
+                "exp_dir": os.path.join(base_dir, "experiments"),
+                "algorithm_name": "scg",
+                "exp_name": "test_run",
+                "inference": True,
+                "num_samples": 1,
+                "problem": {
+                    "resolution": 128,
+                    "forward_time": 1.0,
+                    "Re": 200.0,
+                    "downsample_factor": 2,
+                    "sigma_noise": 0.0,
+                    "unnorm_scale": 10.0,
+                    "adaptive": True,
+                    "delta_t": 0.01,
+                    "prior": ckpt_path,
+                },
+                "data": {
+                    "root": lmdb_root,
+                    "resolution": 128,
+                    "std": 5.0,
+                    "id_list": [0],
+                },
+                "pretrain": {
+                    "img_resolution": 128,
+                    "img_channels": 1,
+                    "label_dim": 0,
+                    "model_channels": 192,
+                    "channel_mult": [1, 2, 3, 4],
+                    "attn_resolutions": [32, 16, 8],
+                    "num_blocks": 3,
+                    "dropout": 0.10,
+                },
+                "algorithm": {
+                    "diffusion_scheduler_config": {
+                        "num_steps": 10,
+                        "sigma_max": 100,
+                        "sigma_min": 0.01,
+                        "schedule": "linear",
+                        "timestep": "poly-7",
+                        "scaling": "none",
+                    },
+                    "num_candidates": 8,
+                    "threshold": 0.25,
+                    "batch_size": 8,
+                },
+            }
+            agent_main.CONFIG = default_config
+            config_loaded = True
+            print("[INFO] Constructed default CONFIG")
+    
+    # -----------------------------------------------------------
+    # Step 4: Execute main (Scenario A - no inner paths)
+    # -----------------------------------------------------------
+    if len(inner_paths) == 0:
+        # Scenario A: Simple function call
+        print("[INFO] Scenario A detected: Simple function call.")
+        print(f"[INFO] Expected output is: {expected_output}")
+        print("[INFO] Executing main(*args, **kwargs)...")
+        
+        try:
+            actual_result = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"[FAIL] main() raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        print(f"[INFO] main() returned. Result type: {type(actual_result)}")
+        
+        # -----------------------------------------------------------
+        # Step 5: Compare results
+        # -----------------------------------------------------------
+        try:
+            passed, msg = recursive_check(expected_output, actual_result)
+        except Exception as e:
+            print(f"[FAIL] recursive_check raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        if passed:
+            print("TEST PASSED")
+            sys.exit(0)
+        else:
+            print(f"TEST FAILED: {msg}")
+            sys.exit(1)
+    
+    else:
+        # Scenario B: Factory/Closure pattern
+        print(f"[INFO] Scenario B detected: {len(inner_paths)} inner data file(s) found.")
+        
+        # Phase 1: Create the operator
+        print("[INFO] Phase 1: Creating operator via main(*args, **kwargs)...")
+        try:
+            agent_operator = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"[FAIL] main() raised an exception during operator creation: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        if not callable(agent_operator):
+            print(f"[FAIL] main() did not return a callable. Got: {type(agent_operator)}")
+            sys.exit(1)
+        
+        print(f"[INFO] Operator created successfully. Type: {type(agent_operator)}")
+        
+        # Phase 2: Execute with inner data and verify
+        for inner_path in sorted(inner_paths):
+            print(f"\n[INFO] Loading inner data from: {inner_path}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"[FAIL] Could not load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+            
+            print(f"[INFO] Inner data: func_name={inner_data.get('func_name', 'unknown')}, "
+                  f"args count={len(inner_args)}, kwargs keys={list(inner_kwargs.keys())}")
+            
+            print("[INFO] Executing agent_operator(*inner_args, **inner_kwargs)...")
+            try:
+                actual_result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"[FAIL] Operator execution raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            print(f"[INFO] Operator returned. Result type: {type(actual_result)}")
+            
+            try:
+                passed, msg = recursive_check(inner_expected, actual_result)
+            except Exception as e:
+                print(f"[FAIL] recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            if not passed:
+                print(f"TEST FAILED on {os.path.basename(inner_path)}: {msg}")
+                sys.exit(1)
+            else:
+                print(f"[INFO] Passed check for {os.path.basename(inner_path)}")
+        
+        print("TEST PASSED")
+        sys.exit(0)
+
+
+if __name__ == '__main__':
+    test_main()

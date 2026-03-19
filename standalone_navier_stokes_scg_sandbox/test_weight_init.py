@@ -1,0 +1,251 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_weight_init import weight_init
+
+# Import verification utility
+from verification_utils import recursive_check
+
+
+def main():
+    # All data paths provided
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_scg_sandbox/run_code/std_data/data_weight_init.pkl'
+    ]
+
+    # Separate outer (direct function data) and inner (parent_function / closure) paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: Could not find outer data file (data_weight_init.pkl).")
+        sys.exit(1)
+
+    # --- Phase 1: Load outer data ---
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"[INFO] Loaded outer data from: {outer_path}")
+        print(f"[INFO] Keys in outer_data: {list(outer_data.keys())}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data file: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    # --- Determine Scenario ---
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("[INFO] Scenario B detected: Factory/Closure pattern.")
+
+        try:
+            agent_operator = weight_init(*outer_args, **outer_kwargs)
+            print(f"[INFO] weight_init returned: {type(agent_operator)}")
+        except Exception as e:
+            print(f"FAIL: Error calling weight_init with outer args: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable from weight_init, got {type(agent_operator)}")
+            sys.exit(1)
+
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"[INFO] Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data file: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                actual_result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Error executing agent_operator with inner args: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, actual_result)
+            except Exception as e:
+                print(f"FAIL: Error during recursive_check: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Verification failed for inner data {os.path.basename(inner_path)}")
+                print(f"  Message: {msg}")
+                sys.exit(1)
+            else:
+                print(f"[INFO] Inner data {os.path.basename(inner_path)} passed verification.")
+
+    else:
+        # Scenario A: Simple function call
+        # weight_init uses torch.rand / torch.randn which are stochastic.
+        # We cannot reproduce the exact same random output. Instead, we verify
+        # structural properties: shape, dtype, and value range / statistical bounds.
+        print("[INFO] Scenario A detected: Simple function call (stochastic function).")
+
+        expected = outer_output
+
+        # Extract the arguments to understand mode, shape, fan_in, fan_out
+        # Signature: weight_init(shape, mode, fan_in, fan_out)
+        try:
+            if len(outer_args) >= 1:
+                shape = outer_args[0]
+            else:
+                shape = outer_kwargs.get('shape')
+            if len(outer_args) >= 2:
+                mode = outer_args[1]
+            else:
+                mode = outer_kwargs.get('mode')
+            if len(outer_args) >= 3:
+                fan_in = outer_args[2]
+            else:
+                fan_in = outer_kwargs.get('fan_in')
+            if len(outer_args) >= 4:
+                fan_out = outer_args[3]
+            else:
+                fan_out = outer_kwargs.get('fan_out')
+
+            print(f"[INFO] shape={shape}, mode={mode}, fan_in={fan_in}, fan_out={fan_out}")
+        except Exception as e:
+            print(f"FAIL: Could not extract arguments: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        # Execute function
+        try:
+            actual_result = weight_init(*outer_args, **outer_kwargs)
+            print(f"[INFO] weight_init returned: {type(actual_result)}")
+        except Exception as e:
+            print(f"FAIL: Error calling weight_init: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        # Verify structural properties
+        all_passed = True
+        fail_messages = []
+
+        # 1. Check type
+        if not isinstance(actual_result, torch.Tensor):
+            fail_messages.append(f"Expected torch.Tensor, got {type(actual_result)}")
+            all_passed = False
+
+        # 2. Check shape matches expected
+        if isinstance(expected, torch.Tensor) and isinstance(actual_result, torch.Tensor):
+            if actual_result.shape != expected.shape:
+                fail_messages.append(f"Shape mismatch: expected {expected.shape}, got {actual_result.shape}")
+                all_passed = False
+            else:
+                print(f"[INFO] Shape check passed: {actual_result.shape}")
+
+            # 3. Check dtype matches expected
+            if actual_result.dtype != expected.dtype:
+                fail_messages.append(f"Dtype mismatch: expected {expected.dtype}, got {actual_result.dtype}")
+                all_passed = False
+            else:
+                print(f"[INFO] Dtype check passed: {actual_result.dtype}")
+
+            # 4. Check value range based on mode
+            if mode == 'xavier_uniform':
+                bound = np.sqrt(6 / (fan_in + fan_out))
+                if actual_result.abs().max().item() > bound + 1e-6:
+                    fail_messages.append(
+                        f"Xavier uniform: values out of range [-{bound}, {bound}], "
+                        f"max abs = {actual_result.abs().max().item()}"
+                    )
+                    all_passed = False
+                else:
+                    print(f"[INFO] Value range check passed for xavier_uniform (bound={bound})")
+
+            elif mode == 'kaiming_uniform':
+                bound = np.sqrt(3 / fan_in)
+                if actual_result.abs().max().item() > bound + 1e-6:
+                    fail_messages.append(
+                        f"Kaiming uniform: values out of range [-{bound}, {bound}], "
+                        f"max abs = {actual_result.abs().max().item()}"
+                    )
+                    all_passed = False
+                else:
+                    print(f"[INFO] Value range check passed for kaiming_uniform (bound={bound})")
+
+            elif mode == 'xavier_normal':
+                std_expected = np.sqrt(2 / (fan_in + fan_out))
+                # For normal distributions, check that std is roughly correct
+                actual_std = actual_result.std().item()
+                # Allow generous tolerance for stochastic check
+                if actual_result.numel() > 100:
+                    if abs(actual_std - std_expected) > 3 * std_expected:
+                        fail_messages.append(
+                            f"Xavier normal: std {actual_std} far from expected {std_expected}"
+                        )
+                        all_passed = False
+                    else:
+                        print(f"[INFO] Std check passed for xavier_normal (expected ~{std_expected}, got {actual_std})")
+                else:
+                    print(f"[INFO] Too few elements for statistical check, skipping std check")
+
+            elif mode == 'kaiming_normal':
+                std_expected = np.sqrt(1 / fan_in)
+                actual_std = actual_result.std().item()
+                if actual_result.numel() > 100:
+                    if abs(actual_std - std_expected) > 3 * std_expected:
+                        fail_messages.append(
+                            f"Kaiming normal: std {actual_std} far from expected {std_expected}"
+                        )
+                        all_passed = False
+                    else:
+                        print(f"[INFO] Std check passed for kaiming_normal (expected ~{std_expected}, got {actual_std})")
+                else:
+                    print(f"[INFO] Too few elements for statistical check, skipping std check")
+
+            # 5. Also verify that the expected output itself has the right properties
+            # (sanity check that our function produces similar scale)
+            if expected.numel() > 0 and actual_result.numel() > 0:
+                expected_scale = expected.abs().mean().item()
+                actual_scale = actual_result.abs().mean().item()
+                if expected_scale > 0:
+                    ratio = actual_scale / expected_scale
+                    # Allow a generous ratio for stochastic outputs
+                    if ratio < 0.1 or ratio > 10.0:
+                        fail_messages.append(
+                            f"Scale mismatch: expected mean abs {expected_scale}, "
+                            f"got {actual_scale} (ratio={ratio})"
+                        )
+                        all_passed = False
+                    else:
+                        print(f"[INFO] Scale check passed (ratio={ratio:.4f})")
+
+        if not all_passed:
+            for msg in fail_messages:
+                print(f"FAIL: {msg}")
+            sys.exit(1)
+
+    print("TEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
