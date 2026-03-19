@@ -1,0 +1,6 @@
+Loaded outer data: func_name=set_seeds
+  args types: ['int']
+  kwargs keys: []
+  expected output type: NoneType
+  Reproducibility sanity check passed.
+TEST PASSED

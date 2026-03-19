@@ -1,0 +1,16 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnAA_DC1_sandbox/run_code/std_data/data_main.pkl
+Outer data loaded successfully. func_name=main
+  args count: 0, kwargs keys: []
+Scenario A detected: Simple function call
+Calling main(*args, **kwargs)...
+FAILED during main() call: Data file not found: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnAA_DC1_sandbox/./data/DC1.mat
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnAA_DC1_sandbox/test_main.py", line 185, in main_test
+    result = main(*outer_args, **outer_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnAA_DC1_sandbox/agent_main.py", line 524, in main
+    hsi = HSIWithGT(
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnAA_DC1_sandbox/agent_main.py", line 194, in __init__
+    super().__init__(
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnAA_DC1_sandbox/agent_main.py", line 56, in __init__
+    assert os.path.isfile(path), f"Data file not found: {path}"
+AssertionError: Data file not found: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnAA_DC1_sandbox/./data/DC1.mat

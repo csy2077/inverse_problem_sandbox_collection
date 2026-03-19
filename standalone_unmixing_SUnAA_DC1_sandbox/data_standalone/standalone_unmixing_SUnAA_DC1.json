@@ -1,0 +1,15 @@
+{
+    "EPS": 1e-10,
+    "seed": 0,
+    "SNR": 30,
+    "projection": false,
+    "l2_normalization": false,
+    "force_align": false,
+    "dataset": "DC1",
+    "data_dir": "./data_standalone/",
+    "figs_dir": "./exp_standalone_unmixing_SUnAA_DC1/",
+    "model": {
+        "T": 500,
+        "low_rank": false
+    }
+}

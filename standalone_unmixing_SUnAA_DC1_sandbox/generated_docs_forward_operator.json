@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the predicted observations by applying a forward model using matrix multiplication.",
+    "function_docstring": "def forward_operator(D, B, A):\n    \"\"\"\n    Computes the predicted observations using a forward model defined by matrix multiplication.\n\n    Args:\n        D (Tensor): A dictionary matrix with shape (L, M), representing the basis for the model.\n        B (Tensor): A coefficient matrix with shape (M, p), mapping the dictionary to endmembers.\n        A (Tensor): An abundance matrix with shape (p, N), representing the proportions of endmembers.\n\n    Returns:\n        Tensor: The predicted observations with shape (L, N), resulting from the matrix multiplication (D @ B) @ A.\n    \"\"\"\n    return (D @ B) @ A",
+    "usage_example": "import torch\n\n# Example matrices\nD = torch.randn(L, M)\nB = torch.randn(M, p)\nA = torch.randn(p, N)\n\n# Compute predicted observations\nY_pred = forward_operator(D, B, A)\nprint(Y_pred.shape)  # Expected shape: (L, N)"
+}

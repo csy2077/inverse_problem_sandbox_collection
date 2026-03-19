@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnAA_DC1_sandbox/run_code/std_data/data_compute_metric.pkl
+  func_name: compute_metric
+Detected Scenario A: Simple function call
+compute_metric returned: <class 'dict'>
+TEST PASSED

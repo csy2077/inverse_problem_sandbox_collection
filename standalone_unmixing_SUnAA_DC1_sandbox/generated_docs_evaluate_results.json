@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Evaluates results by computing metrics and saving outputs based on provided data and configuration.",
+    "function_docstring": "Evaluate results and save outputs.\n\nArgs:\n    result (dict): A dictionary containing the estimated abundances and endmembers, with keys 'A_hat' and 'E_hat'.\n    data (dict): A dictionary containing ground truth data and configuration settings, including 'H', 'W', 'p', 'L', 'figs_dir', 'config', 'A_gt', 'labels', and 'index'.\n\nReturns:\n    dict: A dictionary containing computed metrics such as SRE and aRMSE, if ground truth is available.",
+    "usage_example": "import logging\n\nlogging.basicConfig(level=logging.INFO)\n\nresult = {\n    'A_hat': np.random.rand(5, 100),\n    'E_hat': np.random.rand(10, 5)\n}\ndata = {\n    'H': 10,\n    'W': 10,\n    'p': 5,\n    'L': 10,\n    'figs_dir': '/path/to/figs',\n    'config': {'force_align': True},\n    'A_gt': np.random.rand(5, 100),\n    'labels': ['label1', 'label2', 'label3', 'label4', 'label5'],\n    'index': None\n}\n\nmetrics = evaluate_results(result, data)\nprint(metrics)"
+}
