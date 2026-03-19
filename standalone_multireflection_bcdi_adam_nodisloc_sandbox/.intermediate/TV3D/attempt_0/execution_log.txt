@@ -1,0 +1,6 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_multireflection_bcdi_adam_nodisloc_sandbox/run_code/std_data/data_TV3D.pkl
+  func_name: TV3D
+Detected Scenario A: Simple function call
+Function executed successfully, result type: <class 'torch.Tensor'>
+  Verification passed
+TEST PASSED

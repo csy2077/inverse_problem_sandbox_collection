@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates buffer sizes based on coefficients of expansion and shape dimensions.",
+    "function_docstring": "def getBufferSize(coef_of_exp, shp):\n    \"\"\"\n    Calculate buffer sizes for each dimension based on the coefficients of expansion.\n\n    Args:\n        coef_of_exp (list of float): A list of coefficients of expansion for each dimension.\n        shp (list of int): A list representing the shape dimensions for which buffer sizes are calculated.\n\n    Returns:\n        numpy.ndarray: An array of integers representing the buffer sizes for each dimension.\n    \"\"\"",
+    "usage_example": "import numpy as np\n\n# Example coefficients of expansion and shape\ncoef_of_exp = [1.2, 1.5, 1.8]\nshape = [100, 200, 300]\n\n# Calculate buffer sizes\nbuffer_sizes = getBufferSize(coef_of_exp, shape)\nprint(buffer_sizes)"
+}

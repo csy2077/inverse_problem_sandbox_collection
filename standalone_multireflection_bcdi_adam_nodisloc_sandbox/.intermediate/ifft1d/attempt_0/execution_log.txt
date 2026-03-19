@@ -1,0 +1,6 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_multireflection_bcdi_adam_nodisloc_sandbox/run_code/std_data/data_ifft1d.pkl
+  func_name: ifft1d
+Detected Scenario A: Simple function call
+Successfully executed ifft1d()
+PASS: Outer data verification passed.
+TEST PASSED

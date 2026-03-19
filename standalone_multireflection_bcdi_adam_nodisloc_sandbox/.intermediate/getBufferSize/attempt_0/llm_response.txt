@@ -1,0 +1,147 @@
+
+
+```python
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_getBufferSize import getBufferSize
+
+# Import verification utility
+from verification_utils import recursive_check
+
+
+def main():
+    # Define data paths
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_multireflection_bcdi_adam_nodisloc_sandbox/run_code/std_data/data_getBufferSize.pkl'
+    ]
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: Could not find outer data file (data_getBufferSize.pkl).")
+        sys.exit(1)
+
+    # Phase 1: Load outer data and reconstruct operator
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"  func_name: {outer_data.get('func_name', 'N/A')}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data file: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+
+    # Determine scenario
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("Detected Scenario B: Factory/Closure pattern")
+
+        try:
+            agent_operator = getBufferSize(*outer_args, **outer_kwargs)
+            print("Phase 1: Successfully created operator/closure.")
+        except Exception as e:
+            print(f"FAIL: Phase 1 execution failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable operator, got {type(agent_operator)}")
+            sys.exit(1)
+
+        # Phase 2: Load inner data and execute
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data file: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output')
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+                print("Phase 2: Successfully executed operator with inner args.")
+            except Exception as e:
+                print(f"FAIL: Phase 2 execution failed: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # Comparison
+            try:
+                passed, msg = recursive_check(expected, result)
+                if passed:
+                    print(f"TEST PASSED (inner: {os.path.basename(inner_path)})")
+                else:
+                    print(f"FAIL: Verification failed for {os.path.basename(inner_path)}")
+                    print(f"  Message: {msg}")
+                    sys.exit(1)
+            except Exception as e:
+                print(f"FAIL: Verification raised exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+    else:
+        # Scenario A: Simple function call
+        print("Detected Scenario A: Simple function call")
+
+        try:
+            result = getBufferSize(*outer_args, **outer_kwargs)
+            print("Phase 1: Successfully executed getBufferSize.")
+        except Exception as e:
+            print(f"FAIL: Execution failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_data.get('output')
+
+        # Comparison
+        try:
+            passed, msg = recursive_check(expected, result)
+            if passed:
+                print("TEST PASSED")
+            else:
+                print(f"FAIL: Verification failed.")
+                print(f"  Message: {msg}")
+                print(f"  Expected type: {type(expected)}")
+                print(f"  Result type: {type(result)}")
+                try:
+                    print(f"  Expected value: {expected}")
+                    print(f"  Result value: {result}")
+                except Exception:
+                    pass
+                sys.exit(1)
+        except Exception as e:
+            print(f"FAIL: Verification raised exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+    print("All tests passed successfully.")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
+```

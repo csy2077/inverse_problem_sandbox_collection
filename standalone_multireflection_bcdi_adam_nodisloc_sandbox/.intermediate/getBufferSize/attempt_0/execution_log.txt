@@ -1,0 +1,6 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_multireflection_bcdi_adam_nodisloc_sandbox/run_code/std_data/data_getBufferSize.pkl
+  func_name: getBufferSize
+Detected Scenario A: Simple function call
+Phase 1: Successfully executed getBufferSize.
+TEST PASSED
+All tests passed successfully.

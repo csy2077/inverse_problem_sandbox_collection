@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the Total Variation (TV) norm for a 3D array, indicating the sum of variabilities between adjacent elements in all three dimensions.",
+    "function_docstring": "Computes the Total Variation (TV) norm for a 3D tensor.\n\nArgs:\n    arr (torch.Tensor): A 3D tensor with shape (D, H, W) that represents the input array on which          the TV norm is calculated.\n\nReturns:\n    torch.Tensor: A single scalar tensor representing the total variation norm of the input array.",
+    "usage_example": "import torch\n\n# Example 3D tensor\narr = torch.rand(10, 20, 30)  # shape (D, H, W)\n\n# Compute the Total Variation (TV) norm\nresult = TV3D(arr)\n\nprint('Total Variation Norm:', result.item())"
+}

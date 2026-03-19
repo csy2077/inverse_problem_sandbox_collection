@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Performs a 1D Fast Fourier Transform (FFT) on a specified dimension of a tensor using orthogonal normalization.",
+    "function_docstring": "```python\ndef fft1d(arr, n):\n    \"\"\"\n    Performs a 1D Fast Fourier Transform (FFT) on a specified dimension of a tensor using orthogonal normalization.\n\n    Args:\n        arr (torch.Tensor): A tensor of arbitrary shape, representing the input data to be transformed.\n        n (int): The dimension along which to perform the 1D FFT.\n\n    Returns:\n        torch.Tensor: A tensor of the same shape as `arr`, containing the transformed data.\n    \"\"\"\n```",
+    "usage_example": "```python\nimport torch\nfrom agent_fft1d import fft1d\n\n# Create a sample tensor\narr = torch.randn(128, 64)\n\n# Perform 1D FFT along the second dimension\nresult = fft1d(arr, n=1)\n\nprint(result)\n```"
+}
