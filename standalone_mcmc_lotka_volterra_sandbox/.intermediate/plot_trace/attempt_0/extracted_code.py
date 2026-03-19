@@ -1,0 +1,201 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_plot_trace import plot_trace
+from verification_utils import recursive_check
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_lotka_volterra_sandbox/run_code/std_data/data_plot_trace.pkl'
+    ]
+
+    # Classify paths into outer and inner
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file found.")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"  func_name: {outer_data.get('func_name', 'N/A')}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    # Determine scenario
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("Detected Scenario B: Factory/Closure pattern")
+
+        # Phase 1: Reconstruct operator
+        try:
+            agent_operator = plot_trace(*outer_args, **outer_kwargs)
+            print("Phase 1: Operator created successfully.")
+        except Exception as e:
+            print(f"FAIL: Could not create operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable operator, got {type(agent_operator)}")
+            sys.exit(1)
+
+        # Phase 2: Execute with inner data
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+                print("Phase 2: Operator executed successfully.")
+            except Exception as e:
+                print(f"FAIL: Operator execution failed: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # Comparison
+            try:
+                passed, msg = recursive_check(expected, result)
+                if not passed:
+                    print(f"FAIL: {msg}")
+                    sys.exit(1)
+                else:
+                    print("TEST PASSED")
+                    sys.exit(0)
+            except Exception as e:
+                print(f"FAIL: Verification error: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+    else:
+        # Scenario A: Simple function call
+        print("Detected Scenario A: Simple function call")
+
+        # Modify save_path to avoid overwriting or path issues - use a temp path
+        # Check if 'save_path' is in kwargs and adjust to a temp location
+        modified_kwargs = dict(outer_kwargs)
+        if 'save_path' in modified_kwargs:
+            original_save_path = modified_kwargs['save_path']
+            temp_save_path = os.path.join('/tmp', os.path.basename(str(original_save_path)))
+            modified_kwargs['save_path'] = temp_save_path
+            print(f"  Redirecting save_path: {original_save_path} -> {temp_save_path}")
+        else:
+            # Check positional args - save_path is the 3rd argument
+            outer_args_list = list(outer_args)
+            if len(outer_args_list) >= 3:
+                original_save_path = outer_args_list[2]
+                temp_save_path = os.path.join('/tmp', os.path.basename(str(original_save_path)))
+                outer_args_list[2] = temp_save_path
+                outer_args = tuple(outer_args_list)
+                print(f"  Redirecting save_path: {original_save_path} -> {temp_save_path}")
+            else:
+                # Use default temp save path
+                modified_kwargs['save_path'] = '/tmp/test_mcmc_trace.png'
+
+        expected = outer_output
+
+        try:
+            import matplotlib
+            matplotlib.use('Agg')  # Non-interactive backend
+        except Exception:
+            pass
+
+        try:
+            result = plot_trace(*outer_args, **modified_kwargs)
+            print("Function executed successfully.")
+        except Exception as e:
+            print(f"FAIL: Function execution failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        # Comparison
+        # For matplotlib figures and axes, recursive_check might not work directly.
+        # We do a structural check: result should be a tuple of (fig, axes)
+        try:
+            passed, msg = recursive_check(expected, result)
+            if not passed:
+                # If recursive_check fails on matplotlib objects, do structural validation
+                print(f"  recursive_check message: {msg}")
+                print("  Attempting structural validation for matplotlib output...")
+
+                # Validate structure: should be tuple of (fig, axes)
+                import matplotlib.pyplot as plt
+                import matplotlib.figure
+
+                structural_pass = True
+                fail_reasons = []
+
+                if not isinstance(result, tuple):
+                    structural_pass = False
+                    fail_reasons.append(f"Expected tuple, got {type(result)}")
+                elif len(result) != 2:
+                    structural_pass = False
+                    fail_reasons.append(f"Expected tuple of length 2, got length {len(result)}")
+                else:
+                    fig_result, axes_result = result
+                    if not isinstance(fig_result, matplotlib.figure.Figure):
+                        structural_pass = False
+                        fail_reasons.append(f"First element should be Figure, got {type(fig_result)}")
+                    if not isinstance(axes_result, np.ndarray):
+                        structural_pass = False
+                        fail_reasons.append(f"Second element should be ndarray of Axes, got {type(axes_result)}")
+                    else:
+                        # Verify axes shape matches expected
+                        if isinstance(expected, tuple) and len(expected) == 2:
+                            expected_fig, expected_axes = expected
+                            if isinstance(expected_axes, np.ndarray):
+                                if axes_result.shape != expected_axes.shape:
+                                    structural_pass = False
+                                    fail_reasons.append(
+                                        f"Axes shape mismatch: expected {expected_axes.shape}, got {axes_result.shape}"
+                                    )
+
+                if structural_pass:
+                    print("  Structural validation PASSED.")
+                    print("TEST PASSED")
+                    sys.exit(0)
+                else:
+                    for reason in fail_reasons:
+                        print(f"  FAIL: {reason}")
+                    sys.exit(1)
+            else:
+                print("TEST PASSED")
+                sys.exit(0)
+        except Exception as e:
+            print(f"FAIL: Verification error: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

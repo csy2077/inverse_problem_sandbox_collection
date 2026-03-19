@@ -1,0 +1,10 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_lotka_volterra_sandbox/run_code/std_data/data_plot_trace.pkl
+  func_name: plot_trace
+Detected Scenario A: Simple function call
+  Redirecting save_path: lotka_volterra_trace_hmc.png -> /tmp/lotka_volterra_trace_hmc.png
+Trace plot saved to: /tmp/lotka_volterra_trace_hmc.png
+Function executed successfully.
+  recursive_check message: Value mismatch at output[0]: expected Figure(1200x1200), got Figure(1200x1200)
+  Attempting structural validation for matplotlib output...
+  Structural validation PASSED.
+TEST PASSED

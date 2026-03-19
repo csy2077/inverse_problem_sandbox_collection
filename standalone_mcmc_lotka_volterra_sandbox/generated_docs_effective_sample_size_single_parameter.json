@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the effective sample size for a single parameter from a sequence of samples.",
+    "function_docstring": "def effective_sample_size_single_parameter(x):\n    \"\"\"\n    Computes the effective sample size (ESS) for a single parameter from a sequence of samples.\n\n    Args:\n        x (array-like): A sequence of samples, typically a one-dimensional array or list, representing the parameter values.\n\n    Returns:\n        float: The effective sample size, indicating the number of independent samples equivalent to the given sequence.\n    \"\"\"",
+    "usage_example": "import numpy as np\n\n# Example sequence of samples\nsamples = np.random.normal(loc=0, scale=1, size=1000)\n\n# Calculate effective sample size\ness = effective_sample_size_single_parameter(samples)\nprint(f'Effective Sample Size: {ess}')"
+}

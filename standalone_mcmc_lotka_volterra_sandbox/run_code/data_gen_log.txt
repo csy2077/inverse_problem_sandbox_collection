@@ -1,0 +1,104 @@
+======================================================================
+Lotka-Volterra Predator-Prey Model - MCMC Inference
+======================================================================
+
+Loading data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_lotka_volterra_sandbox/data/standalone_mcmc_lotka_volterra.json
+  [Metadata] Recorded schema for: load_data
+Loaded 21 time points
+Loaded 21 data points (hare-lynx populations)
+Outputs: 2
+Parameters: 4
+Data plot saved to: lotka_volterra_data.png
+Phase plot saved to: lotka_volterra_phase.png
+  [Metadata] Recorded schema for: vector
+  [Metadata] Recorded schema for: matrix2d
+
+Setting up MCMC with Adaptive Covariance...
+Number of model parameters: 4
+Number of total parameters: 6
+  (4 model params + 2 noise sigma params)
+
+======================================================================
+Part 1: Adaptive Covariance MCMC
+======================================================================
+Running MCMC (400 iterations, 4 chains)...
+Using Haario-Bardenet adaptive covariance MCMC
+Generating 4 chains.
+Running in sequential mode.
+Iter. 50/400
+Iter. 100/400
+Iter. 150/400
+Iter. 200/400
+Initial phase completed.
+Iter. 250/400
+Iter. 300/400
+Iter. 350/400
+Iter. 400/400
+Halting: Maximum number of iterations (400) reached.
+Time: 2.67 seconds
+
+Generating trace plots...
+Trace plot saved to: lotka_volterra_trace_adaptive.png
+  [Metadata] Recorded schema for: plot_trace
+
+======================================================================
+MCMC Summary (Adaptive Covariance)
+======================================================================
+  [Metadata] Recorded schema for: _within
+  [Metadata] Recorded schema for: _between
+  [Metadata] Recorded schema for: rhat
+  [Metadata] Recorded schema for: autocorrelation
+  [Metadata] Recorded schema for: _autocorrelate_negative
+  [Metadata] Recorded schema for: effective_sample_size_single_parameter
+  [Metadata] Recorded schema for: effective_sample_size
+param    mean    std.    2.5%    25%    50%    75%    97.5%    rhat    ess    ess per sec.
+-------  ------  ------  ------  -----  -----  -----  -------  ------  -----  --------------
+a        0.43    0.05    0.37    0.38   0.42   0.44   0.53     1.98    22.25  8.35
+b        0.18    0.03    0.15    0.16   0.16   0.19   0.25     1.91    21.88  8.21
+c        0.92    0.09    0.77    0.88   0.90   1.01   1.03     3.15    24.51  9.19
+d        0.28    0.03    0.23    0.27   0.28   0.30   0.32     2.78    27.21  10.21
+sigma_1  0.30    0.03    0.24    0.28   0.30   0.33   0.35     2.15    36.63  13.74
+sigma_2  0.35    0.11    0.21    0.28   0.31   0.38   0.59     2.36    14.97  5.61
+
+Generating posterior predictive plot...
+Posterior predictive plot saved to: lotka_volterra_posterior_predictive.png
+
+======================================================================
+Part 2: Hamiltonian Monte Carlo
+======================================================================
+Running HMC (20 iterations, 4 chains)...
+Using Hamiltonian Monte Carlo
+Generating 4 chains.
+Running in sequential mode.
+Iter. 5/20
+Iter. 10/20
+Iter. 15/20
+Iter. 20/20
+Halting: Maximum number of iterations (20) reached.
+Time: 7.78 seconds
+
+Generating HMC trace plots...
+Trace plot saved to: lotka_volterra_trace_hmc.png
+
+======================================================================
+MCMC Summary (Hamiltonian Monte Carlo)
+======================================================================
+param    mean    std.    2.5%    25%    50%    75%    97.5%    rhat    ess    ess per sec.
+-------  ------  ------  ------  -----  -----  -----  -------  ------  -----  --------------
+a        0.36    0.04    0.31    0.32   0.35   0.39   0.44     1.92    14.37  1.85
+b        0.15    0.02    0.12    0.14   0.15   0.16   0.19     1.99    15.98  2.05
+c        1.10    0.12    0.90    1.00   1.13   1.21   1.28     1.73    13.75  1.77
+d        0.34    0.04    0.27    0.30   0.34   0.37   0.38     1.68    15.54  2.00
+sigma_1  0.28    0.04    0.22    0.25   0.28   0.31   0.37     1.42    15.71  2.02
+sigma_2  0.46    0.09    0.26    0.41   0.48   0.51   0.65     1.44    12.04  1.55
+
+======================================================================
+Done!
+======================================================================
+
+Output files:
+  - lotka_volterra_data.png
+  - lotka_volterra_phase.png
+  - lotka_volterra_trace_adaptive.png
+  - lotka_volterra_posterior_predictive.png
+  - lotka_volterra_trace_hmc.png

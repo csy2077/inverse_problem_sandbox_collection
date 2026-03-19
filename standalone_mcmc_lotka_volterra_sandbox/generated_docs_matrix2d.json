@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Converts a given input into a 2D numpy matrix with float dtype, ensuring immutability.",
+    "function_docstring": "Converts the input into a 2D numpy matrix with float dtype.\n\nArgs:\n    x (array-like): An array-like object that can be converted into a numpy array. If the input is a 1D array, it will be reshaped into a column vector.\n\nReturns:\n    numpy.ndarray: A 2D numpy array with float dtype, which is immutable.",
+    "usage_example": "import numpy as np\n\n# Example usage of matrix2d\ninput_data = [1, 2, 3]\nresult = matrix2d(input_data)\nprint(result)\n# Output: array([[1.], [2.], [3.]])"
+}

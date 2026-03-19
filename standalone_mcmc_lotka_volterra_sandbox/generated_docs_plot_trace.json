@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Generates and saves trace plots for MCMC samples, displaying histograms and iteration plots for each parameter.",
+    "function_docstring": "Generates trace plots for MCMC samples, displaying histograms and iteration plots for each parameter.\n\nArgs:\n    samples (List[np.ndarray]): A list of 2D numpy arrays, each representing a chain of MCMC samples with shape (iterations, parameters).\n    parameter_names (Optional[List[str]]): A list of strings representing the names of the parameters. If not provided, default names will be used.\n    save_path (str): The file path where the plot image will be saved. Defaults to 'mcmc_trace.png'.\n\nReturns:\n    Tuple[matplotlib.figure.Figure, np.ndarray]: A tuple containing the matplotlib figure and an array of axes objects used for plotting.",
+    "usage_example": "import numpy as np\nfrom agent_plot_trace import plot_trace\n\n# Example MCMC samples\nsamples = [np.random.randn(1000, 3) for _ in range(3)]\n\n# Plot and save the trace\nfig, axes = plot_trace(samples, parameter_names=['alpha', 'beta', 'gamma'], save_path='trace_plot.png')"
+}

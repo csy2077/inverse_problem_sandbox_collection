@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_lotka_volterra_sandbox/run_code/std_data/data_vector.pkl
+  func_name: vector
+Detected Scenario A: Simple function call
+Phase 1: Successfully executed vector()
+TEST PASSED

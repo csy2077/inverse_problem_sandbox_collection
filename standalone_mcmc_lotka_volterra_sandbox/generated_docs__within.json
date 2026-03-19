@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the mean of the within-chain variances for a set of chains.",
+    "function_docstring": "def _within(chains: np.ndarray) -> np.ndarray:\n    \"\"\"\n    Computes the mean of the within-chain variances for a given set of chains.\n\n    Args:\n        chains (np.ndarray): A 2D array where each row represents a chain and columns represent samples within that chain.\n\n    Returns:\n        np.ndarray: A 1D array representing the mean of the within-chain variances across all chains.\n    \"\"\"",
+    "usage_example": "import numpy as np\n\n# Example usage of _within function\nchains = np.random.rand(5, 100)  # 5 chains, each with 100 samples\nmean_within_chain_var = _within(chains)\nprint(mean_within_chain_var)"
+}

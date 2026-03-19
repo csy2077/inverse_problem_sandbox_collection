@@ -1,0 +1,5 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_lotka_volterra_sandbox/run_code/std_data/data_load_data.pkl
+[INFO] Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+[INFO] load_data executed successfully. Result type: <class 'dict'>
+[INFO] Scenario A detected (simple function)
+TEST PASSED

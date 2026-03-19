@@ -1,0 +1,13 @@
+{
+  "load_data": "PASS",
+  "vector": "PASS",
+  "matrix2d": "PASS",
+  "autocorrelation": "PASS",
+  "_autocorrelate_negative": "PASS",
+  "effective_sample_size_single_parameter": "PASS",
+  "effective_sample_size": "PASS",
+  "_within": "PASS",
+  "_between": "PASS",
+  "rhat": "PASS",
+  "plot_trace": "PASS"
+}
