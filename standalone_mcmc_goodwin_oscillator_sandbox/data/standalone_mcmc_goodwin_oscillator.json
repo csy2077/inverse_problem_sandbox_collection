@@ -1,0 +1,53 @@
+{
+    "model": {
+        "name": "Goodwin Oscillator",
+        "description": "Three-state Goodwin oscillator toy model for gene expression oscillations",
+        "initial_conditions": [0.0054, 0.053, 1.93],
+        "n_outputs": 3,
+        "n_parameters": 5,
+        "parameter_names": ["k2", "k3", "m1", "m2", "m3"],
+        "state_names": ["mRNA (x)", "Protein (y)", "Protein (z)"]
+    },
+    "suggested_parameters": [2.0, 4.0, 0.12, 0.08, 0.1],
+    "suggested_times": {
+        "start": 0,
+        "end": 100,
+        "n_points": 200
+    },
+    "noise_levels": {
+        "sigma_x": 0.001,
+        "sigma_y": 0.01,
+        "sigma_z": 0.1
+    },
+    "random_seed": 42,
+    "mcmc_settings": {
+        "part1_known_noise": {
+            "description": "MCMC with known noise levels using Haario-Bardenet ACMC",
+            "prior_lower": [1, 1, 0.01, 0.01, 0.01],
+            "prior_upper": [10, 10, 1, 1, 1],
+            "initial_positions": [[5, 5, 0.5, 0.5, 0.5]],
+            "n_chains": 3,
+            "max_iterations": 500,
+            "original_iterations": 5000,
+            "parameter_names": ["k2", "k3", "m1", "m2", "m3"]
+        },
+        "optimization": {
+            "description": "XNES optimization",
+            "initial_position": [5, 5, 0.5, 0.5, 0.5],
+            "max_iterations": 200
+        },
+        "part3_unknown_noise": {
+            "description": "Relativistic MCMC with unknown noise levels",
+            "prior_lower": [0, 0, 0, 0, 0, 0, 0, 0],
+            "prior_upper": [10, 10, 1, 1, 1, 1, 1, 1],
+            "initial_position_multipliers": [1.1, 0.9, 1.15, 1.2],
+            "n_chains": 4,
+            "max_iterations": 20,
+            "original_iterations": 200,
+            "leapfrog_step_size": [0.1, 0.5, 0.002, 0.002, 0.002, 0.0005, 0.001, 0.01],
+            "leapfrog_steps": 10,
+            "parameter_names": ["k2", "k3", "m1", "m2", "m3", "sigma_x", "sigma_y", "sigma_z"]
+        }
+    }
+}
+

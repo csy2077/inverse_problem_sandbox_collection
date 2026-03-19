@@ -1,0 +1,9 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_goodwin_oscillator_sandbox/run_code/std_data/data_effective_sample_size.pkl
+  func_name: effective_sample_size
+  args types: ['ndarray']
+  kwargs keys: []
+  output type: list
+Detected Scenario A: Simple function call.
+Execution successful, result type: list
+  Verification passed.
+TEST PASSED

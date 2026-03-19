@@ -1,0 +1,6 @@
+Successfully loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_goodwin_oscillator_sandbox/run_code/std_data/data_effective_sample_size_single_parameter.pkl
+Outer data func_name: effective_sample_size_single_parameter
+Outer args count: 1, Outer kwargs keys: []
+Scenario A detected: Simple function call
+Function executed successfully. Result type: <class 'numpy.float64'>
+TEST PASSED

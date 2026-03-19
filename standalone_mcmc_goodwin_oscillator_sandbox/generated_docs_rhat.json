@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the R-hat statistic for assessing the convergence of MCMC chains.",
+    "function_docstring": "def rhat(chains, warm_up=0.0):\n    \"\"\"\n    Computes the R-hat statistic to assess the convergence of Markov Chain Monte Carlo (MCMC) chains.\n\n    Args:\n        chains (np.ndarray): A 2D or 3D numpy array representing MCMC chains, where the first dimension is the number of chains and the second dimension is the number of samples per chain. If 3D, the third dimension represents multiple parameters.\n        warm_up (float, optional): A float value between 0 and 1 indicating the proportion of initial samples to discard as warm-up. Defaults to 0.0.\n\n    Returns:\n        float: The R-hat statistic, a measure of convergence for the MCMC chains.\n    \"\"\"",
+    "usage_example": "import numpy as np\n\n# Example MCMC chains\nchains = np.random.randn(4, 100, 3)  # 4 chains, 100 samples each, 3 parameters\n\n# Calculate R-hat statistic\nrhat_value = rhat(chains, warm_up=0.1)\nprint(f\"R-hat statistic: {rhat_value}\")"
+}

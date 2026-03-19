@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the between-chain variance for given Markov chains.",
+    "function_docstring": "Computes the between-chain variance for a set of Markov chains.\n\nArgs:\n    chains (numpy.ndarray): A 2-dimensional numpy array representing M chains of length N, shaped (M, N).\n\nReturns:\n    float: The between-chain variance adjusted by the number of samples per chain.",
+    "usage_example": "import numpy as np\n\n# Example data for M chains each of length N\nchains = np.random.randn(5, 100)  # For example, 5 chains each 100 samples long\n\n# Calculate the between-chain variance\nbetween_variance = _between(chains)\nprint(\"Between-chain variance:\", between_variance)"
+}

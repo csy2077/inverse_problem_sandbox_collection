@@ -1,0 +1,7 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_goodwin_oscillator_sandbox/run_code/std_data/data_plot_series.pkl
+  func_name: plot_series
+Detected Scenario A: Simple function call
+Posterior predictive plot saved to: /tmp/test_posterior_predictive.png
+Successfully called plot_series.
+Structural verification PASSED for matplotlib objects.
+TEST PASSED

@@ -1,0 +1,14 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_goodwin_oscillator_sandbox/run_code/std_data/data_plot_series.pkl
+  func_name: plot_series
+Detected Scenario A: Simple function call
+FAIL: Error calling plot_series: name 'odeint' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_goodwin_oscillator_sandbox/test_plot_series.py", line 131, in main
+    result = plot_series(*outer_args, **modified_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_goodwin_oscillator_sandbox/agent_plot_series.py", line 30, in plot_series
+    predicted_values.append(problem.evaluate(params))
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_goodwin_oscillator_sandbox/gen_std_data.py", line 367, in evaluate
+    y = np.asarray(self._model.simulate(parameters, self._times))
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_goodwin_oscillator_sandbox/gen_std_data.py", line 343, in simulate
+    values = odeint(self._rhs, self._y0, times, args=(parameters,))
+NameError: name 'odeint' is not defined

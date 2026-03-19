@@ -1,0 +1,10 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_goodwin_oscillator_sandbox/run_code/std_data/data_plot_series.pkl
+  func_name: plot_series
+Detected Scenario A: Simple function call
+Posterior predictive plot saved to: /tmp/test_posterior_predictive.png
+Successfully called plot_series.
+  recursive_check message: Value mismatch at output[0]: expected Figure(1000x900), got Figure(1000x900)
+  Attempting structural verification for matplotlib objects...
+  Structural verification FAILED: Second element not Axes or list of Axes, got <class 'numpy.ndarray'>
+FAIL: Verification failed.
+  Message: Second element not Axes or list of Axes, got <class 'numpy.ndarray'>

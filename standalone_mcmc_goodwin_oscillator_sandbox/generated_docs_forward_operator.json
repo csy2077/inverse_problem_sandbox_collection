@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Simulates the Goodwin oscillator model using provided parameters and time points.",
+    "function_docstring": "Simulates the Goodwin oscillator model using the provided parameters and time points.\n\nArgs:\n    parameters (array-like): A list or array containing the model parameters [k2, k3, m1, m2, m3].\n    model (GoodwinOscillatorModel): An instance of the GoodwinOscillatorModel class, which must have a 'simulate' method.\n    times (array-like): A list or array of time points at which the simulation is evaluated.\n\nReturns:\n    np.ndarray: An array of predicted state values at each time point, with shape (n_times, n_outputs).",
+    "usage_example": "import numpy as np\n\n# Example parameters and time points\ntimes = np.linspace(0, 10, 100)\nparameters = [0.1, 0.2, 0.3, 0.4, 0.5]\n\n# Assuming 'model' is an instance of GoodwinOscillatorModel\nresult = forward_operator(parameters, model, times)\nprint(result)"
+}

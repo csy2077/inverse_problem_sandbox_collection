@@ -1,0 +1,111 @@
+======================================================================
+Goodwin Oscillator Model - MCMC Inference
+======================================================================
+
+Loading data from JSON file...
+  [Metadata] Recorded schema for: load_data
+Loaded model: Goodwin Oscillator
+  [Metadata] Recorded schema for: get_suggested_times
+
+True Parameters:
+  k2: 2.0, k3: 4.0
+  m1: 0.12, m2: 0.08, m3: 0.1
+
+Clean simulation plot saved to: goodwin_simulation.png
+Noisy data plot saved to: goodwin_noisy_data.png
+
+======================================================================
+PART 1: MCMC with Known Noise Levels
+======================================================================
+  [Metadata] Recorded schema for: vector
+  [Metadata] Recorded schema for: matrix2d
+
+Running MCMC (500 iterations, 3 chains)...
+(Originally 5000 iterations - reduced 10x for speed)
+Done!
+  [Metadata] Recorded schema for: _within
+  [Metadata] Recorded schema for: _between
+  [Metadata] Recorded schema for: rhat
+  [Metadata] Recorded schema for: autocorrelation
+  [Metadata] Recorded schema for: _autocorrelate_negative
+  [Metadata] Recorded schema for: effective_sample_size_single_parameter
+  [Metadata] Recorded schema for: effective_sample_size
+
+MCMC Summary (Known Noise):
+param    mean    std.    2.5%    25%    50%    75%    97.5%    rhat    ess     ess per sec.
+-------  ------  ------  ------  -----  -----  -----  -------  ------  ------  --------------
+k2       4.45    0.43    3.91    4.04   4.34   5.01   5.02     2.67    18.33   7.18
+k3       5.92    0.68    4.94    5.15   6.03   6.65   6.99     3.56    47.91   18.77
+m1       0.16    0.15    0.03    0.04   0.08   0.31   0.50     2.03    33.08   12.96
+m2       0.36    0.27    0.03    0.05   0.34   0.53   0.79     4.76    71.14   27.87
+m3       0.13    0.08    0.03    0.04   0.13   0.19   0.21     1.88    103.19  40.42
+Trace plot saved to: goodwin_mcmc_trace_1.png
+  [Metadata] Recorded schema for: plot_trace
+
+======================================================================
+PART 2: Optimization with XNES
+======================================================================
+
+Optimization Results:
+            k2       k3       m1       m2       m3
+real         2        4     0.12     0.08      0.1
+found    9.008    7.043   0.7223    0.107   0.2262
+
+======================================================================
+PART 3: Relativistic MCMC with Unknown Noise Levels
+======================================================================
+
+Running Relativistic MCMC (20 iterations, 4 chains)...
+(Originally 200 iterations - reduced 10x for speed)
+Using Relativistic MCMC
+Generating 4 chains.
+Running in sequential mode.
+Iteration 1/20
+Iteration 2/20
+Iteration 3/20
+Iteration 4/20
+Iteration 5/20
+Iteration 6/20
+Iteration 7/20
+Iteration 8/20
+Iteration 9/20
+Iteration 10/20
+Iteration 11/20
+Iteration 12/20
+Iteration 13/20
+Iteration 14/20
+Iteration 15/20
+Iteration 16/20
+Iteration 17/20
+Iteration 18/20
+Iteration 19/20
+Iteration 20/20
+Halting: Maximum number of iterations (20) reached.
+Time: 9.35 seconds
+Done!
+
+MCMC Summary (Unknown Noise):
+param    mean    std.    2.5%    25%    50%    75%    97.5%    rhat    ess    ess per sec.
+-------  ------  ------  ------  -----  -----  -----  -------  ------  -----  --------------
+k2       2.10    0.18    1.95    2.03   2.07   2.10   2.64     1.12    17.05  1.82
+k3       3.94    0.26    3.70    3.75   3.88   4.10   4.60     1.13    19.43  2.08
+m1       0.13    0.01    0.11    0.12   0.13   0.13   0.14     1.93    15.05  1.61
+m2       0.08    0.00    0.07    0.08   0.08   0.08   0.09     1.06    21.60  2.31
+m3       0.10    0.01    0.09    0.10   0.10   0.10   0.12     1.47    15.32  1.64
+sigma_x  0.00    0.00    0.00    0.00   0.00   0.00   0.00     1.11    19.50  2.09
+sigma_y  0.01    0.00    0.01    0.01   0.01   0.01   0.01     1.26    14.45  1.55
+sigma_z  0.12    0.03    0.09    0.10   0.11   0.13   0.19     1.56    11.80  1.26
+Trace plot saved to: goodwin_mcmc_trace_2.png
+Posterior predictive plot saved to: goodwin_series.png
+  [Metadata] Recorded schema for: plot_series
+
+======================================================================
+Done!
+======================================================================
+
+Output files:
+  - goodwin_simulation.png: Clean model simulation
+  - goodwin_noisy_data.png: Noisy data used for inference
+  - goodwin_mcmc_trace_1.png: MCMC trace plots (known noise)
+  - goodwin_mcmc_trace_2.png: MCMC trace plots (unknown noise)
+  - goodwin_series.png: Posterior predictive time series

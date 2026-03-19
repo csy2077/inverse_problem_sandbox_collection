@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_goodwin_oscillator_sandbox/run_code/std_data/data_matrix2d.pkl
+  func_name: matrix2d
+Phase 1: matrix2d executed successfully.
+Scenario A detected: No inner data files. Comparing direct output.
+TEST PASSED

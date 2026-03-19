@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the autocorrelation of a 1-dimensional NumPy array.",
+    "function_docstring": "\"\"\"\nCalculates the autocorrelation of a given 1-dimensional NumPy array.\n\nArgs:\n    x (numpy.ndarray): A 1-dimensional array of any length containing numerical values.\n        The array is first standardized and the autocorrelation is computed.\n\nReturns:\n    numpy.ndarray: The autocorrelation of the input array, starting from the zero lag.\n    The returned array is of length 'len(x)'.\n\"\"\"",
+    "usage_example": "import numpy as np\n\n# Example array\nx = np.array([1.0, 2.0, 3.0, 4.0, 5.0])\n\n# Calculate autocorrelation\nresult = autocorrelation(x)\nprint(result)"
+}
