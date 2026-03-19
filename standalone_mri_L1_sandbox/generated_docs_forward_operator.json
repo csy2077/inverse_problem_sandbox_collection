@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Applies the MRI forward operator to transform an image into masked k-space data.",
+    "function_docstring": "Applies the MRI forward operator to transform an image into masked k-space data.\n\nArgs:\n    x (torch.Tensor): A tensor representing the input image with shape (Batch, Channels, Height, Width).\n    maps (torch.Tensor): A tensor representing the coil sensitivity maps with shape (Batch, Coils, Height, Width).\n    mask (torch.Tensor): A tensor representing the k-space mask with shape (Batch, Coils, Height, Width).\n\nReturns:\n    torch.Tensor: A tensor containing the masked k-space data with shape (Batch, Coils, Height, Width, 2), where the last dimension represents the real and imaginary parts.",
+    "usage_example": "import torch\n\n# Example tensors\nx = torch.rand((B, 2, H, W), dtype=torch.float64)  # Input image\nmaps = torch.rand((B, C, H, W), dtype=torch.complex128)  # Coil sensitivity maps\nmask = torch.rand((B, C, H, W), dtype=torch.complex128)  # k-space mask\n\n# Apply the forward operator\nmasked_kspace = forward_operator(x, maps, mask)\nprint(masked_kspace.shape)  # Should output: (B, C, H, W, 2)"
+}

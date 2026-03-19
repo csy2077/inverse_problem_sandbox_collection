@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Generates an undersampling mask for MRI data based on the specified acceleration ratio and pattern.",
+    "function_docstring": "Creates an undersampling mask for MRI data.\n\nArgs:\n    total_lines (int): The total number of lines in the MRI data.\n    acceleration_ratio (float): The factor by which the data is undersampled. Must be greater than 1.\n    pattern (str): The pattern of undersampling, either 'random' or 'equispaced'.\n    mask_seed (int): The seed for the random number generator to ensure reproducibility.\n\nReturns:\n    np.ndarray: A 1D array representing the undersampling mask, with the same length as `total_lines`.",
+    "usage_example": "import numpy as np\n\n# Example usage of _create_mask function\nmask = _create_mask(total_lines=256, acceleration_ratio=4.0, pattern='random', mask_seed=42)\nprint(mask)"
+}

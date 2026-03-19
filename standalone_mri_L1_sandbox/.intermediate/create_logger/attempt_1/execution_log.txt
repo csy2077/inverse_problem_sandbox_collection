@@ -1,0 +1,8 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_L1_sandbox/run_code/std_data/data_create_logger.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Outer args: ('exps/inference/multi-coil-mri-knee-standalone/CS-MRI-L1Wavelet/standalone_first_sample',)
+Outer kwargs: {}
+create_logger returned: <class 'logging.Logger'>
+Log level correctly set to INFO (expected obj had 0 due to capture context)
+Logger validation passed (structural equivalence check).
+TEST PASSED

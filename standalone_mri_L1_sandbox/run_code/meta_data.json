@@ -1,0 +1,82 @@
+[
+    {
+        "function_name": "create_logger",
+        "inputs": {
+            "logging_dir": {
+                "type": "str",
+                "value_sample": "exps/inference/multi-coil-mri-knee-standalone/CS-MRI-L1Wavelet/standalone_first_sample"
+            },
+            "main_process": {
+                "type": "bool",
+                "value_sample": "True"
+            }
+        },
+        "output": {
+            "type": "CustomObject",
+            "class_name": "Logger",
+            "public_methods": [
+                "addFilter",
+                "addHandler",
+                "callHandlers",
+                "critical",
+                "debug",
+                "error",
+                "exception",
+                "fatal",
+                "filter",
+                "findCaller",
+                "getChild",
+                "getEffectiveLevel",
+                "handle",
+                "hasHandlers",
+                "info",
+                "isEnabledFor",
+                "log",
+                "makeRecord",
+                "removeFilter",
+                "removeHandler",
+                "setLevel",
+                "warn",
+                "warning"
+            ],
+            "attributes": [
+                "filters",
+                "name",
+                "level",
+                "parent",
+                "propagate",
+                "handlers",
+                "disabled",
+                "_cache",
+                "manager"
+            ]
+        }
+    },
+    {
+        "function_name": "parse_int_list",
+        "inputs": {
+            "s": {
+                "type": "str",
+                "value_sample": "0"
+            }
+        },
+        "output": {
+            "type": "list",
+            "length": 1,
+            "elements": [
+                {
+                    "type": "int",
+                    "value_sample": "0"
+                }
+            ]
+        }
+    },
+    {
+        "function_name": "main",
+        "inputs": {},
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    }
+]
