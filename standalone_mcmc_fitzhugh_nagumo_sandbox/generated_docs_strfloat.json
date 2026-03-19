@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Formats a floating-point number into a string with a fixed precision of 17 decimal places.",
+    "function_docstring": "Formats a floating-point number into a string with a fixed precision of 17 decimal places.\n\nArgs:\n    x (float): A floating-point number to be formatted.\n\nReturns:\n    str: A string representation of the floating-point number with 17 decimal places.",
+    "usage_example": "formatted_number = strfloat(3.141592653589793)\nprint(formatted_number)  # Output: ' 3.14159265358979312'"
+}

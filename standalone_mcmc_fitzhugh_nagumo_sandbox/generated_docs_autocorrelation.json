@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the autocorrelation of a given 1D numpy array.",
+    "function_docstring": "Computes the autocorrelation of a given 1D numpy array.\n\n    The function normalizes the input array by subtracting its mean and dividing by its standard deviation, scaled by the square root of its length. It then computes the full autocorrelation using numpy's correlate function and returns the second half of the result.\n\n    Args:\n        x (numpy.ndarray): A 1D numpy array representing the input signal for which the autocorrelation is to be computed.\n\n    Returns:\n        numpy.ndarray: A 1D numpy array containing the autocorrelation of the input signal, with the same length as the input array.",
+    "usage_example": "import numpy as np\n\n# Example usage of the autocorrelation function\nsignal = np.array([1, 2, 3, 4, 5])\nautocorr_result = autocorrelation(signal)\nprint(autocorr_result)"
+}

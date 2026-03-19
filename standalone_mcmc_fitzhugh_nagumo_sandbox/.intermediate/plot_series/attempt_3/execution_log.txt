@@ -1,0 +1,12 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/run_code/std_data/data_plot_series.pkl
+  Function name: plot_series
+  Number of args: 2
+  Kwargs keys: ['filename']
+
+Scenario A detected: Simple function call.
+Executing plot_series with loaded args/kwargs...
+Saved: fitzhugh_nagumo_series.png
+Comparing results...
+  Comparison result: Structural figure comparison passed
+
+TEST PASSED

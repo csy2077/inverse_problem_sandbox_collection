@@ -1,0 +1,20 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/run_code/std_data/data_plot_series.pkl
+  Function name: plot_series
+  Number of args: 2
+  Kwargs keys: ['filename']
+
+Scenario A detected: Simple function call.
+Executing plot_series with loaded args/kwargs...
+FAIL: Error calling plot_series: name 'vector' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/test_plot_series.py", line 128, in main
+    result = plot_series(*outer_args, **outer_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/agent_plot_series.py", line 31, in plot_series
+    predicted_values.append(problem.evaluate(params))
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/gen_std_data.py", line 367, in evaluate
+    y = np.asarray(self._model.simulate(parameters, self._times))
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/gen_std_data.py", line 321, in simulate
+    return self._simulate(parameters, times, False)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/gen_std_data.py", line 324, in _simulate
+    times = vector(times)
+NameError: name 'vector' is not defined

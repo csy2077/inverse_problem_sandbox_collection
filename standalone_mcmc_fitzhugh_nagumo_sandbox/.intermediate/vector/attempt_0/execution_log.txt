@@ -1,0 +1,9 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/run_code/std_data/data_vector.pkl
+[INFO] Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+[INFO] outer_args types: ['ndarray']
+[INFO] outer_kwargs keys: []
+[INFO] vector() executed successfully. Result type: ndarray
+[INFO] Scenario A detected: Simple function verification.
+[INFO] Expected type: ndarray
+[INFO] Actual type: ndarray
+TEST PASSED

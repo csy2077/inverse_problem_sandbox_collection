@@ -1,0 +1,5 @@
+{
+    "function_explanation": "The function evaluates and visualizes the results of an inversion process using MCMC chains.",
+    "function_docstring": "Evaluate and visualize inversion results.\n\nArgs:\n    data (dict): A dictionary containing preprocessed data, including a 'problem' key with a CustomObject that has methods `n_parameters()`, `n_outputs()`, `evaluate()`, and `times()`, and an attribute `values()`.\n    inversion_results (dict): A dictionary containing the results of the inversion process, including 'chains' (a list of arrays representing MCMC chains) and 'mcmc_time' (a float representing the time taken for MCMC sampling).\n\nRaises:\n    ValueError: If the chains are not 2D or 3D arrays, or if the warm-up period is not between 0 and 1.",
+    "usage_example": "data = {\n    'problem': problem_instance  # An instance of a problem class with required methods and attributes\n}\ninversion_results = {\n    'chains': [np.random.randn(1000, 5)],  # Example MCMC chains\n    'mcmc_time': 3600  # Example MCMC time in seconds\n}\nevaluate_results(data, inversion_results)"
+}

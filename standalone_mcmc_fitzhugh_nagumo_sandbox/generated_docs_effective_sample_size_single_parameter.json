@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the effective sample size for a single parameter from a time series data.",
+    "function_docstring": "Calculates the effective sample size (ESS) for a single parameter from a time series data.\n\nThis function computes the ESS by first calculating the autocorrelation of the input data and then determining the point where the autocorrelation becomes negative. The ESS is then calculated using the sum of the autocorrelation values up to this point.\n\nArgs:\n    x (numpy.ndarray): A one-dimensional array representing the time series data for which the effective sample size is to be calculated.\n\nReturns:\n    float: The effective sample size of the input time series data.",
+    "usage_example": "import numpy as np\n\ndata = np.random.normal(size=1000)\ness = effective_sample_size_single_parameter(data)\nprint(f'Effective Sample Size: {ess}')"
+}

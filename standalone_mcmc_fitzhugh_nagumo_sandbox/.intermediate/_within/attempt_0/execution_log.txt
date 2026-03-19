@@ -1,0 +1,4 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/run_code/std_data/data__within.pkl
+  func_name: _within
+Phase 1 (Scenario A): _within returned: <class 'numpy.ndarray'>
+TEST PASSED

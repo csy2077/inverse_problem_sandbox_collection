@@ -1,0 +1,113 @@
+============================================================
+FitzHugh-Nagumo Model: Optimization and MCMC Inference
+============================================================
+
+Loading data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/data/standalone_mcmc_fitzhugh_nagumo.json
+  [Metadata] Recorded schema for: load_data
+  [Metadata] Recorded schema for: vector
+
+--- Data Loaded ---
+True parameters: a=0.1, b=0.5, c=3
+Number of time points: 200
+Noise sigma: 0.5
+Saved: fitzhugh_nagumo_simulation.png
+Saved: fitzhugh_nagumo_noisy.png
+  [Metadata] Recorded schema for: matrix2d
+
+--- Optimization ---
+Minimising error measure
+Using CMA-ES
+Running in sequential mode.
+Population size: 7
+Iter:      0  Eval:        7  Best:   1.5750e+02  Time:     0.02
+Iter:      1  Eval:       14  Best:   1.5750e+02  Time:     0.04
+Iter:      2  Eval:       21  Best:   1.5750e+02  Time:     0.06
+Iter:     20  Eval:      147  Best:   9.3030e+01  Time:     0.70
+Iter:     40  Eval:      287  Best:   9.1474e+01  Time:     1.44
+Iter:     60  Eval:      427  Best:   9.1457e+01  Time:     2.19
+Iter:     80  Eval:      567  Best:   9.1457e+01  Time:     2.93
+Iter:    100  Eval:      707  Best:   9.1457e+01  Time:     3.67
+Iter:    120  Eval:      847  Best:   9.1457e+01  Time:     4.42
+Iter:    140  Eval:      987  Best:   9.1457e+01  Time:     5.17
+Iter:    160  Eval:     1127  Best:   9.1457e+01  Time:     5.91
+Iter:    180  Eval:     1267  Best:   9.1457e+01  Time:     6.65
+Iter:    200  Eval:     1407  Best:   9.1457e+01  Time:     7.38
+Iter:    220  Eval:     1547  Best:   9.1457e+01  Time:     8.11
+Iter:    240  Eval:     1687  Best:   9.1457e+01  Time:     8.83
+Iter:    260  Eval:     1827  Best:   9.1457e+01  Time:     9.55
+Iter:    280  Eval:     1967  Best:   9.1457e+01  Time:    10.29
+Iter:    300  Eval:     2107  Best:   9.1457e+01  Time:    11.03
+Iter:    320  Eval:     2247  Best:   9.1457e+01  Time:    11.76
+Iter:    340  Eval:     2387  Best:   9.1457e+01  Time:    12.50
+Iter:    360  Eval:     2527  Best:   9.1457e+01  Time:    13.24
+Iter:    380  Eval:     2667  Best:   9.1457e+01  Time:    13.98
+Iter:    400  Eval:     2807  Best:   9.1457e+01  Time:    14.71
+Iter:    420  Eval:     2947  Best:   9.1457e+01  Time:    15.44
+Iter:    440  Eval:     3087  Best:   9.1457e+01  Time:    16.15
+Iter:    460  Eval:     3227  Best:   9.1457e+01  Time:    16.88
+Halting: No significant change for 200 iterations.
+  [Metadata] Recorded schema for: optimise
+
+Score at true solution:
+92.03878530798254
+
+Found solution:          True parameters:
+  [Metadata] Recorded schema for: strfloat
+ 1.10680559353450655e-01     1.00000000000000006e-01
+ 5.72931907749869684e-01     5.00000000000000000e-01
+ 2.90811097198348767e+00     3.00000000000000000e+00
+Saved: fitzhugh_nagumo_optimization.png
+
+--- MCMC Sampling ---
+Running...
+Using Monomial-Gamma Hamiltonian Monte Carlo
+Generating 4 chains.
+Running in parallel.
+/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/gen_std_data.py:903: RuntimeWarning: overflow encountered in exp
+  return -self._g(p, a, m) + 2.0 / c * np.log(1.0 + np.exp(c * self._g(p, a, m)))
+Iter:      0  Time:     4.98
+Iter:      1  Time:     5.56
+Iter:      2  Time:     6.16
+Iter:      3  Time:     6.75
+Iter:      4  Time:     7.39
+Iter:      5  Time:     8.02
+Iter:      6  Time:     8.68
+Iter:      7  Time:     9.35
+Iter:      8  Time:     9.94
+Iter:      9  Time:    10.53
+Iter:     10  Time:    11.13
+Iter:     11  Time:    11.73
+Iter:     12  Time:    12.32
+Iter:     13  Time:    12.95
+Iter:     14  Time:    13.58
+Iter:     15  Time:    14.17
+Iter:     16  Time:    14.76
+Iter:     17  Time:    15.34
+Iter:     18  Time:    15.92
+Iter:     19  Time:    16.51
+Halting: Maximum number of iterations (20) reached.
+Done!
+Saved: fitzhugh_nagumo_trace.png
+  [Metadata] Recorded schema for: plot_trace
+  [Metadata] Recorded schema for: _within
+  [Metadata] Recorded schema for: _between
+  [Metadata] Recorded schema for: rhat
+  [Metadata] Recorded schema for: autocorrelation
+  [Metadata] Recorded schema for: _autocorrelate_negative
+  [Metadata] Recorded schema for: effective_sample_size_single_parameter
+  [Metadata] Recorded schema for: effective_sample_size
+
+--- MCMC Summary ---
+param    mean    std.    2.5%    25%    50%    75%    97.5%    rhat    ess    ess per sec.
+-------  ------  ------  ------  -----  -----  -----  -------  ------  -----  --------------
+a        0.09    0.04    0.00    0.08   0.10   0.12   0.14     1.49    16.81  1.02
+b        0.46    0.18    0.09    0.38   0.54   0.59   0.63     2.02    16.41  0.99
+c        3.09    0.34    2.81    2.90   2.95   3.19   4.14     2.02    14.55  0.88
+sigma_V  0.60    0.19    0.43    0.47   0.50   0.67   1.07     3.43    14.19  0.86
+sigma_R  0.53    0.09    0.44    0.47   0.50   0.55   0.81     2.39    15.15  0.92
+Saved: fitzhugh_nagumo_series.png
+  [Metadata] Recorded schema for: plot_series
+
+============================================================
+All outputs saved successfully!
+============================================================

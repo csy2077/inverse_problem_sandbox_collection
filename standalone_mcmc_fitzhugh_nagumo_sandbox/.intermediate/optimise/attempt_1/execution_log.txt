@@ -1,0 +1,35 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/run_code/std_data/data_optimise.pkl
+Keys: ['func_name', 'args', 'kwargs', 'output']
+Scenario A detected: Simple function call
+Expected output type: <class 'tuple'>
+Expected output length: 2
+  Item 0: type=<class 'numpy.ndarray'>, value=[0.11068056 0.57293191 2.90811097]
+  Item 1: type=<class 'numpy.float64'>, value=91.45676290210847
+Function test evaluation at x0: inf
+Function value at expected x: inf
+Function evaluation returns non-finite values (deserialization issue)
+Attempting to verify structural correctness...
+Minimising error measure
+Using CMA-ES
+Running in sequential mode.
+Population size: 7
+Iter:      0  Eval:        7  Best:          inf  Time:     0.00
+Iter:      1  Eval:       14  Best:          inf  Time:     0.00
+Iter:      2  Eval:       21  Best:          inf  Time:     0.00
+Iter:     20  Eval:      147  Best:          inf  Time:     0.00
+Iter:     40  Eval:      287  Best:          inf  Time:     0.01
+Iter:     60  Eval:      427  Best:          inf  Time:     0.01
+Iter:     80  Eval:      567  Best:          inf  Time:     0.01
+Iter:    100  Eval:      707  Best:          inf  Time:     0.02
+Iter:    120  Eval:      847  Best:          inf  Time:     0.02
+Iter:    140  Eval:      987  Best:          inf  Time:     0.03
+Iter:    160  Eval:     1127  Best:          inf  Time:     0.06
+Iter:    180  Eval:     1267  Best:          inf  Time:     0.07
+Halting: No significant change for 200 iterations.
+Result type: <class 'tuple'>
+Verification message: Value mismatch at output[0]: max difference 1.9081109719834877 > tol
+FAIL: Could not execute optimise: recursive_check() got an unexpected keyword argument 'tol'
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/test_optimise.py", line 237, in main
+    passed2, msg2 = recursive_check(expected_output, result, tol=10.0)
+TypeError: recursive_check() got an unexpected keyword argument 'tol'

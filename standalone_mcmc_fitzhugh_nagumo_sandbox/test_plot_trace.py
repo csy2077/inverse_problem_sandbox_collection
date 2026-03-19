@@ -1,0 +1,200 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend for testing
+import matplotlib.pyplot as plt
+
+# Import the target function
+from agent_plot_trace import plot_trace
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/run_code/std_data/data_plot_trace.pkl'
+    ]
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file found for plot_trace.")
+        sys.exit(1)
+
+    # Phase 1: Load outer data and reconstruct
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"  func_name: {outer_data.get('func_name', 'N/A')}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+
+    # Phase 2: Determine scenario
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("Detected Scenario B: Factory/Closure pattern")
+
+        try:
+            agent_operator = plot_trace(*outer_args, **outer_kwargs)
+            print("Phase 1: plot_trace executed successfully (outer call).")
+        except Exception as e:
+            print(f"FAIL: plot_trace outer call failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable from outer call, got {type(agent_operator)}")
+            sys.exit(1)
+
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output')
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+                print("Phase 2: Inner operator executed successfully.")
+            except Exception as e:
+                print(f"FAIL: Inner operator execution failed: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+                if not passed:
+                    print(f"FAIL: Verification failed for inner data {os.path.basename(inner_path)}: {msg}")
+                    sys.exit(1)
+                else:
+                    print(f"PASS: Inner data {os.path.basename(inner_path)} verified successfully.")
+            except Exception as e:
+                print(f"FAIL: Verification raised exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+    else:
+        # Scenario A: Simple function call
+        print("Detected Scenario A: Simple function call")
+
+        expected = outer_data.get('output')
+
+        try:
+            plt.close('all')  # Clean up any existing figures
+            result = plot_trace(*outer_args, **outer_kwargs)
+            print("Phase 1: plot_trace executed successfully.")
+        except Exception as e:
+            print(f"FAIL: plot_trace execution failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        # For matplotlib objects (fig, axes), we need special handling
+        # The function returns (fig, axes) - these are matplotlib objects
+        # recursive_check may not handle them directly, so we do structural checks
+        try:
+            passed, msg = recursive_check(expected, result)
+            if not passed:
+                # If recursive_check fails on matplotlib objects, do structural validation
+                print(f"recursive_check returned: {msg}")
+                print("Attempting structural validation for matplotlib outputs...")
+
+                # Validate structure: should be a tuple of (fig, axes)
+                structural_pass = True
+                fail_reason = ""
+
+                if not isinstance(result, tuple):
+                    structural_pass = False
+                    fail_reason = f"Expected tuple, got {type(result)}"
+                elif len(result) != 2:
+                    structural_pass = False
+                    fail_reason = f"Expected tuple of length 2, got length {len(result)}"
+                else:
+                    fig_result, axes_result = result
+                    if not isinstance(fig_result, plt.Figure):
+                        structural_pass = False
+                        fail_reason = f"First element should be matplotlib Figure, got {type(fig_result)}"
+                    elif not isinstance(axes_result, np.ndarray):
+                        structural_pass = False
+                        fail_reason = f"Second element should be numpy ndarray of axes, got {type(axes_result)}"
+                    else:
+                        # Validate axes shape matches expected
+                        if isinstance(expected, tuple) and len(expected) == 2:
+                            expected_fig, expected_axes = expected
+                            if isinstance(expected_axes, np.ndarray):
+                                if axes_result.shape != expected_axes.shape:
+                                    structural_pass = False
+                                    fail_reason = f"Axes shape mismatch: expected {expected_axes.shape}, got {axes_result.shape}"
+                                else:
+                                    print(f"  Axes shape matches: {axes_result.shape}")
+
+                            # Validate the number of subplots
+                            n_expected_axes = expected_axes.size if isinstance(expected_axes, np.ndarray) else 0
+                            n_result_axes = axes_result.size
+                            if n_expected_axes != n_result_axes:
+                                structural_pass = False
+                                fail_reason = f"Number of axes mismatch: expected {n_expected_axes}, got {n_result_axes}"
+
+                            # Validate axis labels match
+                            if structural_pass and isinstance(expected_axes, np.ndarray):
+                                for idx in np.ndindex(axes_result.shape):
+                                    exp_ax = expected_axes[idx]
+                                    res_ax = axes_result[idx]
+                                    exp_xlabel = exp_ax.get_xlabel() if hasattr(exp_ax, 'get_xlabel') else ''
+                                    res_xlabel = res_ax.get_xlabel() if hasattr(res_ax, 'get_xlabel') else ''
+                                    exp_ylabel = exp_ax.get_ylabel() if hasattr(exp_ax, 'get_ylabel') else ''
+                                    res_ylabel = res_ax.get_ylabel() if hasattr(res_ax, 'get_ylabel') else ''
+
+                                    if exp_xlabel != res_xlabel:
+                                        structural_pass = False
+                                        fail_reason = f"xlabel mismatch at {idx}: expected '{exp_xlabel}', got '{res_xlabel}'"
+                                        break
+                                    if exp_ylabel != res_ylabel:
+                                        structural_pass = False
+                                        fail_reason = f"ylabel mismatch at {idx}: expected '{exp_ylabel}', got '{res_ylabel}'"
+                                        break
+
+                if structural_pass:
+                    print("Structural validation PASSED for matplotlib output.")
+                else:
+                    print(f"FAIL: Structural validation failed: {fail_reason}")
+                    sys.exit(1)
+            else:
+                print("Verification passed via recursive_check.")
+        except Exception as e:
+            print(f"FAIL: Verification raised exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+    # Clean up matplotlib figures
+    plt.close('all')
+
+    print("TEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

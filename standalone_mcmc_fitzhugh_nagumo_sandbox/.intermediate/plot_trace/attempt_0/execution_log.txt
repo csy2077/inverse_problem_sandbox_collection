@@ -1,0 +1,10 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_fitzhugh_nagumo_sandbox/run_code/std_data/data_plot_trace.pkl
+  func_name: plot_trace
+Detected Scenario A: Simple function call
+Saved: fitzhugh_nagumo_trace.png
+Phase 1: plot_trace executed successfully.
+recursive_check returned: Value mismatch at output[0]: expected Figure(1200x1000), got Figure(1200x1000)
+Attempting structural validation for matplotlib outputs...
+  Axes shape matches: (5, 2)
+Structural validation PASSED for matplotlib output.
+TEST PASSED

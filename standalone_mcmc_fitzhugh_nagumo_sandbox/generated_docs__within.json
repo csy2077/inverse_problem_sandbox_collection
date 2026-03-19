@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the mean of the within-chain variances for a set of MCMC chains.",
+    "function_docstring": "Calculates the mean of the within-chain variances for a set of MCMC chains.\n\nArgs:\n    chains (numpy.ndarray): A 3D numpy array of shape (C, N, D), where C is the number of chains, N is the number of samples per chain, and D is the dimensionality of each sample. The array contains the samples from multiple MCMC chains.\n\nReturns:\n    numpy.ndarray: A 1D numpy array of shape (D,) representing the mean of the within-chain variances across all chains for each dimension.",
+    "usage_example": "import numpy as np\n\n# Example MCMC chains data\nchains = np.random.randn(5, 100, 3)  # 5 chains, 100 samples each, 3 dimensions\n\n# Calculate the mean of the within-chain variances\nwithin_chain_variance_mean = _within(chains)\nprint(within_chain_variance_mean)"
+}

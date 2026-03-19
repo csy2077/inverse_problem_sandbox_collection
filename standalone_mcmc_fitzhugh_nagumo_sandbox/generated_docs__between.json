@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the between-chain variance for a set of MCMC chains.",
+    "function_docstring": "def _between(chains: np.ndarray) -> float:\n    \"\"\"\n    Computes the between-chain variance for a set of Markov Chain Monte Carlo (MCMC) chains.\n\n    Args:\n        chains (np.ndarray): A 2D numpy array of shape (C, N), where C is the number of chains and N is the number of samples per chain.\n            Each row represents a chain, and each column represents a sample from that chain.\n\n    Returns:\n        float: The between-chain variance, which is a measure of the variability between the means of the chains.\n    \"\"\"",
+    "usage_example": "import numpy as np\n\n# Example usage\nchains = np.array([[1.0, 2.0, 3.0], [1.5, 2.5, 3.5], [2.0, 3.0, 4.0]])\nvariance = _between(chains)\nprint(f\"Between-chain variance: {variance}\")"
+}
