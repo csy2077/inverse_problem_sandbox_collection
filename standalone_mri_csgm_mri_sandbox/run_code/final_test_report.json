@@ -1,0 +1,7 @@
+{
+  "parse_int_list": "PASS",
+  "create_logger": "PASS",
+  "weight_init": "PASS",
+  "get_sigmas": "PASS",
+  "main": "PASS"
+}

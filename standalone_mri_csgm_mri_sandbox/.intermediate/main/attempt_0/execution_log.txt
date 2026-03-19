@@ -1,0 +1,11 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_csgm_mri_sandbox/run_code/std_data/data_main.pkl
+Function name: main
+Number of args: 0
+Kwargs keys: none
+FAILED: Could not import main: name 'DhariwalUNet' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_csgm_mri_sandbox/test_main.py", line 45, in main_test
+    from agent_main import main
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_csgm_mri_sandbox/agent_main.py", line 60, in <module>
+    _model_dict = {'DhariwalUNet': DhariwalUNet}
+NameError: name 'DhariwalUNet' is not defined

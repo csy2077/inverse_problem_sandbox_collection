@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Generates a sequence of sigma values based on a specified distribution configuration.",
+    "function_docstring": "Generates a sequence of sigma values based on the provided configuration.\n\nArgs:\n    sigmas_config (dict): A dictionary containing the configuration for generating sigma values. It must include:\n        - 'sigma_dist' (str): The type of distribution to use ('geometric' or 'uniform').\n        - 'sigma_begin' (float): The starting value of the sigma sequence.\n        - 'sigma_end' (float): The ending value of the sigma sequence.\n        - 'num_steps' (int): The number of sigma values to generate.\n\nReturns:\n    numpy.ndarray: An array of sigma values generated according to the specified distribution and parameters.",
+    "usage_example": "import numpy as np\n\n# Define the configuration for sigma generation\nsigmas_config = {\n    'sigma_dist': 'geometric',\n    'sigma_begin': 0.1,\n    'sigma_end': 1.0,\n    'num_steps': 10\n}\n\n# Generate sigma values\nsigmas = get_sigmas(sigmas_config)\nprint(sigmas)"
+}

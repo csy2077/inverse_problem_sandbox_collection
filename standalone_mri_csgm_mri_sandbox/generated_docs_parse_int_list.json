@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Parses and converts a string representation of integers and ranges into a list of integers.",
+    "function_docstring": "\"\"\"\nParses a string containing integers and integer ranges into a list of individual integers.\n\nArgs:\n    s (Union[str, int, List[int], None]): Can be a comma-separated string of integers and/or ranges (e.g., '1,2,5-7'),\n        a single integer, a list of integers, or None. Examples of valid string inputs include:\n        - '1,2,5-7' will produce [1, 2, 5, 6, 7]\n\nReturns:\n    Optional[List[int]]: A list of integers as parsed from the input string, an unaltered list of integers if input\n        is already such a list, or None if the input is None. For a single integer input, returns a list containing\n        that integer.\n\"\"\"",
+    "usage_example": "s = \"1,2,5-7\"\nresult = parse_int_list(s)\nprint(result)  # Output: [1, 2, 5, 6, 7]\n\ns = \"3\"\nresult = parse_int_list(s)\nprint(result)  # Output: [3]\n\ns = [4, 5, 6]\nresult = parse_int_list(s)\nprint(result)  # Output: [4, 5, 6]\n\ns = None\nresult = parse_int_list(s)\nprint(result)  # Output: None"
+}

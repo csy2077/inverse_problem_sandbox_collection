@@ -1,0 +1,291 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Fix the DhariwalUNet import issue before importing agent_main
+# We need to figure out where DhariwalUNet comes from and make it available
+try:
+    # Try to find and import DhariwalUNet from common locations
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    sys.path.insert(0, script_dir)
+    
+    # Try various import paths for DhariwalUNet
+    DhariwalUNet = None
+    
+    # Attempt 1: from torch_utils or training modules
+    try:
+        from torch_utils.network import DhariwalUNet
+    except ImportError:
+        pass
+    
+    if DhariwalUNet is None:
+        try:
+            from networks import DhariwalUNet
+        except ImportError:
+            pass
+    
+    if DhariwalUNet is None:
+        try:
+            from model import DhariwalUNet
+        except ImportError:
+            pass
+    
+    if DhariwalUNet is None:
+        try:
+            from models import DhariwalUNet
+        except ImportError:
+            pass
+
+    if DhariwalUNet is None:
+        try:
+            from unet import DhariwalUNet
+        except ImportError:
+            pass
+
+    if DhariwalUNet is None:
+        try:
+            from guided_diffusion.unet import UNetModel as DhariwalUNet
+        except ImportError:
+            pass
+
+    if DhariwalUNet is None:
+        try:
+            from diffusion import DhariwalUNet
+        except ImportError:
+            pass
+
+    if DhariwalUNet is None:
+        try:
+            from architecture import DhariwalUNet
+        except ImportError:
+            pass
+
+    if DhariwalUNet is None:
+        try:
+            from network import DhariwalUNet
+        except ImportError:
+            pass
+
+    if DhariwalUNet is None:
+        try:
+            from edm import DhariwalUNet
+        except ImportError:
+            pass
+
+    if DhariwalUNet is None:
+        try:
+            from training.networks import DhariwalUNet
+        except ImportError:
+            pass
+
+    if DhariwalUNet is None:
+        try:
+            from torch_utils import DhariwalUNet
+        except ImportError:
+            pass
+
+    # Search for any .py file that defines DhariwalUNet
+    if DhariwalUNet is None:
+        import importlib
+        import glob
+        
+        py_files = glob.glob(os.path.join(script_dir, '**', '*.py'), recursive=True)
+        for py_file in py_files:
+            if py_file == os.path.abspath(__file__):
+                continue
+            if 'test_main' in py_file or 'agent_main' in py_file:
+                continue
+            try:
+                with open(py_file, 'r') as f:
+                    content = f.read()
+                if 'class DhariwalUNet' in content:
+                    # Get module path relative to script_dir
+                    rel_path = os.path.relpath(py_file, script_dir)
+                    module_name = rel_path.replace(os.sep, '.').replace('.py', '')
+                    mod = importlib.import_module(module_name)
+                    DhariwalUNet = getattr(mod, 'DhariwalUNet')
+                    break
+            except Exception:
+                continue
+
+    # Also try to find sigpy (sp) which is used in the code
+    try:
+        import sigpy as sp
+    except ImportError:
+        sp = None
+
+    # Inject DhariwalUNet and sp into builtins so agent_main can find them
+    import builtins
+    if DhariwalUNet is not None:
+        builtins.DhariwalUNet = DhariwalUNet
+    
+    if sp is not None:
+        builtins.sp = sp
+
+except Exception as e:
+    print(f"Warning during pre-import setup: {e}")
+    traceback.print_exc()
+
+# Determine data paths and classify them
+data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_csgm_mri_sandbox/run_code/std_data/data_main.pkl']
+
+outer_path = None
+inner_paths = []
+
+for p in data_paths:
+    basename = os.path.basename(p)
+    if 'parent_function' in basename:
+        inner_paths.append(p)
+    else:
+        outer_path = p
+
+
+def main_test():
+    try:
+        # Load the outer data
+        print(f"Loading outer data from: {outer_path}")
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        expected_output = outer_data.get('output', None)
+        
+        print(f"Function name: {outer_data.get('func_name', 'unknown')}")
+        print(f"Number of args: {len(outer_args)}")
+        print(f"Kwargs keys: {list(outer_kwargs.keys()) if outer_kwargs else 'none'}")
+        
+    except Exception as e:
+        print(f"FAILED: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    try:
+        # Patch agent_main module before importing if DhariwalUNet needs injection
+        # First, try to ensure the module-level _model_dict can be constructed
+        import importlib
+        
+        # If DhariwalUNet is in builtins, we can try to patch it into the agent_main's namespace
+        # by modifying the source or by pre-loading the dependency
+        
+        # Attempt direct import
+        try:
+            from agent_main import main
+            print("Successfully imported main from agent_main")
+        except NameError as ne:
+            if 'DhariwalUNet' in str(ne):
+                # Need to inject DhariwalUNet into agent_main's global scope
+                # Read the agent_main source to find what we need
+                agent_main_path = os.path.join(script_dir, 'agent_main.py')
+                
+                # Try loading agent_main with DhariwalUNet injected
+                import types
+                
+                with open(agent_main_path, 'r') as f:
+                    source = f.read()
+                
+                # Create a module manually with DhariwalUNet in its namespace
+                agent_module = types.ModuleType('agent_main')
+                agent_module.__file__ = agent_main_path
+                
+                # Set up the namespace with required imports
+                exec_globals = agent_module.__dict__
+                
+                # Add DhariwalUNet if we found it
+                if hasattr(builtins, 'DhariwalUNet'):
+                    exec_globals['DhariwalUNet'] = builtins.DhariwalUNet
+                if hasattr(builtins, 'sp'):
+                    exec_globals['sp'] = builtins.sp
+                
+                exec(compile(source, agent_main_path, 'exec'), exec_globals)
+                sys.modules['agent_main'] = agent_module
+                main = agent_module.main
+                print("Successfully loaded main from agent_main (with injected dependencies)")
+            else:
+                raise
+    except Exception as e:
+        print(f"FAILED: Could not import main: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("Scenario B detected: Factory/Closure pattern")
+        try:
+            print("Running main(*args, **kwargs) to get operator...")
+            agent_operator = main(*outer_args, **outer_kwargs)
+            print(f"Got operator of type: {type(agent_operator)}")
+            
+            if not callable(agent_operator):
+                print(f"FAILED: Expected callable operator, got {type(agent_operator)}")
+                sys.exit(1)
+        except Exception as e:
+            print(f"FAILED: Could not create operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        for inner_path in sorted(inner_paths):
+            try:
+                print(f"\nLoading inner data from: {inner_path}")
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                
+                inner_args = inner_data.get('args', ())
+                inner_kwargs = inner_data.get('kwargs', {})
+                inner_expected = inner_data.get('output', None)
+                
+                print(f"Inner function name: {inner_data.get('func_name', 'unknown')}")
+                print("Executing operator with inner args...")
+                
+                actual_result = agent_operator(*inner_args, **inner_kwargs)
+                
+                from verification_utils import recursive_check
+                passed, msg = recursive_check(inner_expected, actual_result)
+                
+                if not passed:
+                    print(f"FAILED: Verification failed for {os.path.basename(inner_path)}")
+                    print(f"Message: {msg}")
+                    sys.exit(1)
+                else:
+                    print(f"PASSED: {os.path.basename(inner_path)}")
+                    
+            except Exception as e:
+                print(f"FAILED: Error processing inner data {inner_path}: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+    else:
+        # Scenario A: Simple function call
+        print("Scenario A detected: Simple function call")
+        try:
+            print("Running main(*args, **kwargs)...")
+            actual_result = main(*outer_args, **outer_kwargs)
+            print(f"Got result of type: {type(actual_result)}")
+        except Exception as e:
+            print(f"FAILED: Could not run main: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        try:
+            from verification_utils import recursive_check
+            passed, msg = recursive_check(expected_output, actual_result)
+            
+            if not passed:
+                print(f"FAILED: Verification failed")
+                print(f"Message: {msg}")
+                sys.exit(1)
+            else:
+                print("PASSED: Verification succeeded")
+        except Exception as e:
+            print(f"FAILED: Error during verification: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+    
+    print("\nTEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main_test()

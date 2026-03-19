@@ -1,0 +1,8 @@
+Loaded outer data: func_name=create_logger
+  args types: ['str']
+  kwargs keys: []
+  expected logger name: __main__
+  expected logger level: 0
+  expected logger handlers: []
+  agent_result type: Logger
+TEST PASSED

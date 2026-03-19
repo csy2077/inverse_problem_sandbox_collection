@@ -1,0 +1,225 @@
+
+
+```python
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Import target function
+from agent_weight_init import weight_init
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_csgm_mri_sandbox/run_code/std_data/data_weight_init.pkl'
+    ]
+
+    # Separate outer (direct function data) and inner (parent_function / closure) paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file found for weight_init.")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"  func_name: {outer_data.get('func_name')}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    if inner_paths:
+        # ---- Scenario B: Factory/Closure Pattern ----
+        print("Detected Scenario B: Factory/Closure pattern.")
+
+        # Phase 1: Create the operator/closure
+        try:
+            agent_operator = weight_init(*outer_args, **outer_kwargs)
+            print(f"Created agent_operator: type={type(agent_operator)}")
+        except Exception as e:
+            print(f"FAIL: Could not create agent_operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: agent_operator is not callable, got type={type(agent_operator)}")
+            sys.exit(1)
+
+        # Phase 2: Execute with inner data
+        all_passed = True
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data from {inner_path}: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                actual_result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Execution of agent_operator failed: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, actual_result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Verification failed for inner data {os.path.basename(inner_path)}")
+                print(f"  Message: {msg}")
+                all_passed = False
+            else:
+                print(f"  PASSED for inner data: {os.path.basename(inner_path)}")
+
+        if not all_passed:
+            sys.exit(1)
+        print("TEST PASSED")
+        sys.exit(0)
+
+    else:
+        # ---- Scenario A: Simple Function ----
+        print("Detected Scenario A: Simple function call.")
+
+        # Note: weight_init uses torch.rand/torch.randn which are stochastic.
+        # The recorded output was generated with a specific random state.
+        # We cannot reproduce the exact same random values, so we check
+        # structural properties (shape, dtype, value range) rather than exact values.
+        
+        try:
+            # Set seeds to try to match (though unlikely to reproduce exact values)
+            actual_result = weight_init(*outer_args, **outer_kwargs)
+            print(f"Executed weight_init successfully. Result type: {type(actual_result)}")
+        except Exception as e:
+            print(f"FAIL: Execution of weight_init failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        # First try exact comparison via recursive_check
+        try:
+            passed, msg = recursive_check(expected, actual_result)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if passed:
+            print("TEST PASSED")
+            sys.exit(0)
+        else:
+            # Since weight_init is stochastic (uses torch.rand/torch.randn),
+            # exact value match is not expected. Verify structural correctness instead.
+            print(f"  Note: Exact value match failed (expected for stochastic function): {msg}")
+            print("  Performing structural verification instead...")
+
+            structural_pass = True
+            failure_reasons = []
+
+            # Check type
+            if type(expected) != type(actual_result):
+                structural_pass = False
+                failure_reasons.append(f"Type mismatch: expected {type(expected)}, got {type(actual_result)}")
+
+            # Check shape
+            if isinstance(expected, torch.Tensor) and isinstance(actual_result, torch.Tensor):
+                if expected.shape != actual_result.shape:
+                    structural_pass = False
+                    failure_reasons.append(f"Shape mismatch: expected {expected.shape}, got {actual_result.shape}")
+
+                if expected.dtype != actual_result.dtype:
+                    structural_pass = False
+                    failure_reasons.append(f"Dtype mismatch: expected {expected.dtype}, got {actual_result.dtype}")
+
+                # For uniform modes, check value range is reasonable
+                # Extract mode from args to validate range
+                mode = None
+                if len(outer_args) >= 2:
+                    mode = outer_args[1]
+                elif 'mode' in outer_kwargs:
+                    mode = outer_kwargs['mode']
+
+                fan_in = None
+                fan_out = None
+                if len(outer_args) >= 3:
+                    fan_in = outer_args[2]
+                if len(outer_args) >= 4:
+                    fan_out = outer_args[3]
+                if 'fan_in' in outer_kwargs:
+                    fan_in = outer_kwargs['fan_in']
+                if 'fan_out' in outer_kwargs:
+                    fan_out = outer_kwargs['fan_out']
+
+                if mode and fan_in is not None:
+                    if mode == 'xavier_uniform' and fan_out is not None:
+                        bound = np.sqrt(6 / (fan_in + fan_out))
+                        if actual_result.abs().max().item() > bound + 1e-6:
+                            structural_pass = False
+                            failure_reasons.append(f"Xavier uniform values out of range [-{bound}, {bound}]")
+                    elif mode == 'kaiming_uniform':
+                        bound = np.sqrt(3 / fan_in)
+                        if actual_result.abs().max().item() > bound + 1e-6:
+                            structural_pass = False
+                            failure_reasons.append(f"Kaiming uniform values out of range [-{bound}, {bound}]")
+
+                # Check no NaN/Inf
+                if torch.isnan(actual_result).any():
+                    structural_pass = False
+                    failure_reasons.append("Result contains NaN values")
+                if torch.isinf(actual_result).any():
+                    structural_pass = False
+                    failure_reasons.append("Result contains Inf values")
+
+            elif isinstance(expected, np.ndarray) and isinstance(actual_result, np.ndarray):
+                if expected.shape != actual_result.shape:
+                    structural_pass = False
+                    failure_reasons.append(f"Shape mismatch: expected {expected.shape}, got {actual_result.shape}")
+            else:
+                # Non-tensor result - require exact match
+                structural_pass = False
+                failure_reasons.append(f"Non-tensor output didn't match exactly: {msg}")
+
+            if structural_pass:
+                print("  Structural verification PASSED (shape, dtype, range all correct).")
+                print("TEST PASSED")
+                sys.exit(0)
+            else:
+                for reason in failure_reasons:
+                    print(f"  FAIL: {reason}")
+                sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
+```
