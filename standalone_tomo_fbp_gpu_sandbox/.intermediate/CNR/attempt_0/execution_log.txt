@@ -1,0 +1,8 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_CNR.pkl
+  func_name: CNR
+  args count: 1
+  kwargs keys: ['froi_signal', 'froi_background']
+Detected Scenario A: Simple function call.
+CNR returned: <class 'numpy.float32'>
+PASS: Result verified successfully.
+TEST PASSED

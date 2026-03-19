@@ -1,0 +1,5 @@
+{
+    "function_explanation": "The function evaluates tomographic reconstruction results by saving outputs and computing various metrics.",
+    "function_docstring": "\"\"\"\n    Evaluate reconstruction results and save outputs.\n    \n    Args:\n        preprocessed_data (dict): Contains the preprocessed sinogram data, angles, pixel size, and number of detectors.\n        inversion_result (dict): Contains reconstruction data and projection matrix.\n        output_dir (str): Directory path where the output files will be saved.\n        roi_signal_path (str, optional): Path to a signal ROI file. Defaults to None.\n        roi_background_path (str, optional): Path to a background ROI file. Defaults to None.\n    \n    Returns:\n        dict: Evaluation metrics including residual norm, reconstruction statistics (shape, min, max, mean),\n              SSIM (optional), NRMSE (optional), and CNR (optional).\n    \"\"\"",
+    "usage_example": "evaluate_results(preprocessed_data, inversion_result, '/path/to/output', roi_signal_path='signal.roi', roi_background_path='background.roi')"
+}

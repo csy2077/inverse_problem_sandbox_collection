@@ -1,0 +1,317 @@
+```python
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import pickle
+
+# Ensure the current directory is in the path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from agent_recon_slice import recon_slice
+from verification_utils import recursive_check
+
+
+def try_load_data(filepath):
+    """Try multiple approaches to load the data file."""
+    errors = []
+    
+    # Check file exists and has content
+    if not os.path.exists(filepath):
+        return None, f"File does not exist: {filepath}"
+    
+    file_size = os.path.getsize(filepath)
+    if file_size == 0:
+        return None, f"File is empty (0 bytes): {filepath}"
+    
+    print(f"File size: {file_size} bytes")
+    
+    # Attempt 1: dill with 'rb'
+    try:
+        with open(filepath, 'rb') as f:
+            data = dill.load(f)
+        return data, None
+    except Exception as e:
+        errors.append(f"dill.load failed: {e}")
+    
+    # Attempt 2: pickle with 'rb'
+    try:
+        with open(filepath, 'rb') as f:
+            data = pickle.load(f)
+        return data, None
+    except Exception as e:
+        errors.append(f"pickle.load failed: {e}")
+    
+    # Attempt 3: dill.loads on bytes
+    try:
+        with open(filepath, 'rb') as f:
+            raw = f.read()
+        data = dill.loads(raw)
+        return data, None
+    except Exception as e:
+        errors.append(f"dill.loads failed: {e}")
+    
+    # Attempt 4: pickle.loads on bytes
+    try:
+        with open(filepath, 'rb') as f:
+            raw = f.read()
+        data = pickle.loads(raw)
+        return data, None
+    except Exception as e:
+        errors.append(f"pickle.loads failed: {e}")
+
+    # Attempt 5: Try loading with numpy
+    try:
+        data = np.load(filepath, allow_pickle=True)
+        if isinstance(data, np.ndarray) and data.dtype == object:
+            data = data.item()
+        return data, None
+    except Exception as e:
+        errors.append(f"np.load failed: {e}")
+
+    # Attempt 6: Try multiple objects in file (dill.load multiple times)
+    try:
+        results = []
+        with open(filepath, 'rb') as f:
+            while True:
+                try:
+                    obj = dill.load(f)
+                    results.append(obj)
+                except EOFError:
+                    break
+        if results:
+            if len(results) == 1:
+                return results[0], None
+            else:
+                # Try to combine into a dict if they look like parts
+                return results, None
+    except Exception as e:
+        errors.append(f"multi-object dill.load failed: {e}")
+
+    # Attempt 7: Read raw bytes and look for valid pickle header after some offset
+    try:
+        with open(filepath, 'rb') as f:
+            raw = f.read()
+        # Look for pickle protocol headers
+        for offset in range(min(256, len(raw))):
+            if raw[offset:offset+1] in (b'\x80',):  # pickle protocol 2+ header
+                try:
+                    data = pickle.loads(raw[offset:])
+                    return data, None
+                except Exception:
+                    pass
+                try:
+                    data = dill.loads(raw[offset:])
+                    return data, None
+                except Exception:
+                    pass
+    except Exception as e:
+        errors.append(f"offset scan failed: {e}")
+
+    return None, "All load attempts failed:\n" + "\n".join(errors)
+
+
+def find_all_data_files(base_dir, func_name):
+    """Search for all related pkl files in the directory."""
+    found = []
+    if not os.path.isdir(base_dir):
+        return found
+    for fname in os.listdir(base_dir):
+        if fname.endswith('.pkl') and func_name in fname:
+            found.append(os.path.join(base_dir, fname))
+    return sorted(found)
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl'
+    ]
+
+    # Also scan the directory for any related files we might have missed
+    std_data_dir = '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data'
+    if os.path.isdir(std_data_dir):
+        all_related = find_all_data_files(std_data_dir, 'recon_slice')
+        print(f"All related pkl files found in std_data dir: {all_related}")
+        # Merge with data_paths
+        for p in all_related:
+            if p not in data_paths:
+                data_paths.append(p)
+    
+    print(f"All data paths: {data_paths}")
+
+    # Separate outer (standard) and inner (parent_function) paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        elif basename == 'data_recon_slice.pkl':
+            outer_path = p
+        elif 'recon_slice' in basename and 'parent' not in basename:
+            # Possibly a standard data file with slightly different name
+            if outer_path is None:
+                outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file (data_recon_slice.pkl) found.")
+        sys.exit(1)
+
+    # --- Phase 1: Load outer data and run recon_slice ---
+    print(f"\nLoading outer data from: {outer_path}")
+    outer_data, load_err = try_load_data(outer_path)
+    
+    if outer_data is None:
+        print(f"FAIL: Could not load outer data file: {load_err}")
+        
+        # If loading failed, check if the file might be a standard_data file with different prefix
+        alt_path = os.path.join(std_data_dir, 'standard_data_recon_slice.pkl')
+        if os.path.exists(alt_path) and alt_path != outer_path:
+            print(f"Trying alternative path: {alt_path}")
+            outer_data, load_err2 = try_load_data(alt_path)
+            if outer_data is None:
+                print(f"FAIL: Alternative also failed: {load_err2}")
+                sys.exit(1)
+            else:
+                print("Successfully loaded from alternative path.")
+        else:
+            sys.exit(1)
+
+    # Handle if outer_data is a list (multiple objects loaded)
+    if isinstance(outer_data, list) and not isinstance(outer_data, dict):
+        if len(outer_data) == 1:
+            outer_data = outer_data[0]
+        else:
+            # Try to find the dict with 'args' key
+            for item in outer_data:
+                if isinstance(item, dict) and 'args' in item:
+                    outer_data = item
+                    break
+
+    if not isinstance(outer_data, dict):
+        print(f"WARN: outer_data is not a dict, it's {type(outer_data)}. Trying to work with it.")
+        # If it's a tuple or list, maybe it's (args, kwargs, output)
+        if isinstance(outer_data, (tuple, list)) and len(outer_data) >= 2:
+            outer_data = {'args': outer_data[0], 'kwargs': outer_data[1] if len(outer_data) > 1 else {}, 'output': outer_data[2] if len(outer_data) > 2 else None}
+        else:
+            print(f"FAIL: Cannot interpret outer_data of type {type(outer_data)}")
+            sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    print(f"Outer data func_name: {outer_data.get('func_name', 'N/A')}")
+    print(f"Outer args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+
+    # Print some info about args for debugging
+    for i, arg in enumerate(outer_args):
+        if hasattr(arg, 'shape'):
+            print(f"  arg[{i}]: {type(arg).__name__}, shape={arg.shape}, dtype={arg.dtype}")
+        elif isinstance(arg, str):
+            print(f"  arg[{i}]: str = '{arg}'")
+        else:
+            print(f"  arg[{i}]: {type(arg).__name__}")
+
+    # Check if this is Scenario A or Scenario B
+    if inner_paths:
+        # --- Scenario B: Factory/Closure pattern ---
+        print("\nDetected Scenario B (Factory/Closure pattern)")
+
+        try:
+            agent_operator = recon_slice(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: recon_slice (outer call) raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable from recon_slice, got {type(agent_operator)}")
+            sys.exit(1)
+
+        print(f"Agent operator type: {type(agent_operator)}")
+
+        # --- Phase 2: Load inner data and execute operator ---
+        for inner_path in inner_paths:
+            print(f"\nLoading inner data from: {inner_path}")
+            inner_data, inner_err = try_load_data(inner_path)
+            
+            if inner_data is None:
+                print(f"FAIL: Could not load inner data file: {inner_err}")
+                sys.exit(1)
+
+            if isinstance(inner_data, list) and len(inner_data) == 1:
+                inner_data = inner_data[0]
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            print(f"Inner data func_name: {inner_data.get('func_name', 'N/A')}")
+            print(f"Inner args count: {len(inner_args)}, kwargs keys: {list(inner_kwargs.keys())}")
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: agent_operator (inner call) raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # --- Comparison ---
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Verification failed for inner data {os.path.basename(inner_path)}")
+                print(f"Message: {msg}")
+                sys.exit(1)
+            else:
+                print(f"PASS: Inner data {os.path.basename(inner_path)} verified successfully.")
+
+    else:
+        # --- Scenario A: Simple function call ---
+        print("\nDetected Scenario A (Simple function call)")
+
+        try:
+            result = recon_slice(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: recon_slice raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        print(f"Result type: {type(result)}")
+        if hasattr(result, 'shape'):
+            print(f"Result shape: {result.shape}, dtype: {result.dtype}")
+        if hasattr(expected, 'shape'):
+            print(f"Expected shape: {expected.shape}, dtype: {expected.dtype}")
+
+        # --- Comparison ---
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: Verification failed.")
+            print(f"Message: {msg}")
+            sys.exit(1)
+        else:
+            print("PASS: Output verified successfully.")
+
+    print("\nTEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
+```

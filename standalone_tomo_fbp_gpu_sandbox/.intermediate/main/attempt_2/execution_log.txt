@@ -1,0 +1,36 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_main.pkl
+Outer data loaded successfully.
+  func_name: main
+  args count: 0
+  kwargs keys: []
+
+--- Phase 1: Executing main(*args, **kwargs) ---
+--- FBP GPU Reconstruction (Headless) ---
+Using CUDA device: 3
+Reading sinogram from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/data/sinogram.tiff
+Sinogram shape: (1125, 924)
+> Starting Reconstruction...
+Attempting reconstruction with FBP_CUDA...
+Reconstruction complete. Output shape: (924, 924)
+Saving result to: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/output_fbp_gpu/recon_result.tiff
+File saved: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/output_fbp_gpu/recon_result.tiff
+
+--- Saving Plots to PNG ---
+Sinogram plot saved: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/output_fbp_gpu/sinogram.png
+Reconstruction plot saved: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/output_fbp_gpu/reconstruction.png
+Comparison plot saved: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/output_fbp_gpu/comparison.png
+Done.
+
+--- Evaluation ---
+Generating Reference (Ground Truth) for evaluation...
+SSIM : 0.9286
+NRMSE: 0.1940
+CNR  : 11.7728
+main() executed successfully.
+
+--- Scenario A: Simple function, comparing direct output ---
+
+--- Verification ---
+TEST PASSED
+
+All tests passed successfully.

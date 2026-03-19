@@ -1,0 +1,101 @@
+All related pkl files: ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl']
+All files in std_data_dir: ['data_CNR.pkl', 'data_NRMSE.pkl', 'data_SSIM.pkl', 'data_get_astra_proj_matrix.pkl', 'data_get_circular_mask.pkl', 'data_get_rect_coordinates_from_roi.pkl', 'data_main.pkl', 'data_read_tiff.pkl', 'data_recon_slice.pkl', 'data_reconstruct.pkl', 'data_save_comparison_plot.pkl', 'data_save_reconstruction_plot.pkl', 'data_save_sinogram_plot.pkl', 'data_write_tiff.pkl']
+  data_CNR.pkl: 3415712 bytes
+  data_NRMSE.pkl: 6830652 bytes
+  data_SSIM.pkl: 6830651 bytes
+  data_get_astra_proj_matrix.pkl: 16954 bytes
+  data_get_circular_mask.pkl: 854111 bytes
+  data_get_rect_coordinates_from_roi.pkl: 227 bytes
+  data_main.pkl: 77 bytes
+  data_read_tiff.pkl: 4158428 bytes
+  data_recon_slice.pkl: 4165925 bytes
+  data_reconstruct.pkl: 7582635 bytes
+  data_save_comparison_plot.pkl: 7573598 bytes
+  data_save_reconstruction_plot.pkl: 3415563 bytes
+  data_save_sinogram_plot.pkl: 4158447 bytes
+  data_write_tiff.pkl: 3415548 bytes
+
+Outer path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+Inner paths: []
+
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+  File size: 4165925 bytes
+  Raw bytes length: 4165925
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+FAIL: Could not load outer data file.
+  Error: dill.loads: Ran out of input
+  Error: pickle.loads: No module named '__builtin__'
+  Error: dill.load(file): Ran out of input
+  Error: dill.loads recurse: Ran out of input
+  Error: np.load: Failed to interpret file <_io.BytesIO object at 0x7f397aea2f68> as a pickle
+
+Last resort: trying all pkl files in the directory...
+  Trying: data_CNR.pkl
+  File size: 3415712 bytes
+  Raw bytes length: 3415712
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+  Trying: data_NRMSE.pkl
+  File size: 6830652 bytes
+  Raw bytes length: 6830652
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+  Trying: data_SSIM.pkl
+  File size: 6830651 bytes
+  Raw bytes length: 6830651
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+  Trying: data_get_astra_proj_matrix.pkl
+  File size: 16954 bytes
+  Raw bytes length: 16954
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Trying: data_get_circular_mask.pkl
+  File size: 854111 bytes
+  Raw bytes length: 854111
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+  Trying: data_get_rect_coordinates_from_roi.pkl
+  File size: 227 bytes
+  Raw bytes length: 227
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+  Trying: data_main.pkl
+  File size: 77 bytes
+  Raw bytes length: 77
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+  Trying: data_read_tiff.pkl
+  File size: 4158428 bytes
+  Raw bytes length: 4158428
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+  Trying: data_recon_slice.pkl
+  File size: 4165925 bytes
+  Raw bytes length: 4165925
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Trying: data_reconstruct.pkl
+  File size: 7582635 bytes
+  Raw bytes length: 7582635
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+  Trying: data_save_comparison_plot.pkl
+  File size: 7573598 bytes
+  Raw bytes length: 7573598
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+  Trying: data_save_reconstruction_plot.pkl
+  File size: 3415563 bytes
+  Raw bytes length: 3415563
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+  Trying: data_save_sinogram_plot.pkl
+  File size: 4158447 bytes
+  Raw bytes length: 4158447
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+  Trying: data_write_tiff.pkl
+  File size: 3415548 bytes
+  Raw bytes length: 3415548
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Success with dill.loads(raw_bytes)
+FAIL: All loading attempts exhausted.

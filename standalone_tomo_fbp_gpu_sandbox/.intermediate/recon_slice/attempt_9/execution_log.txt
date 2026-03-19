@@ -1,0 +1,75 @@
+Files in std_data_dir:
+  data_CNR.pkl: 3415712 bytes
+  data_NRMSE.pkl: 6830652 bytes
+  data_SSIM.pkl: 6830651 bytes
+  data_get_astra_proj_matrix.pkl: 16954 bytes
+  data_get_circular_mask.pkl: 854111 bytes
+  data_get_rect_coordinates_from_roi.pkl: 227 bytes
+  data_main.pkl: 77 bytes
+  data_read_tiff.pkl: 4158428 bytes
+  data_recon_slice.pkl: 4165925 bytes
+  data_reconstruct.pkl: 7582635 bytes
+  data_save_comparison_plot.pkl: 7573598 bytes
+  data_save_reconstruction_plot.pkl: 3415563 bytes
+  data_save_sinogram_plot.pkl: 4158447 bytes
+  data_write_tiff.pkl: 3415548 bytes
+
+Outer path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+Inner paths: []
+
+Attempting to load outer data with dill...
+  dill.load failed: Ran out of input
+  dill recurse failed: Ran out of input
+
+  Direct load failed. Reconstructing test data from other pkl files...
+  Loading data_reconstruct.pkl for context...
+    Keys: ['func_name', 'args', 'kwargs', 'output']
+    args count: 3
+      arg[0]: ndarray shape=(1125, 924) dtype=float32
+      arg[1]: ndarray shape=(1125,) dtype=float64
+      arg[2]: str = SIRT_CUDA
+    kwargs: ['parameters', 'pixel_size']
+      parameters: dict = {'iterations': 200}
+      pixel_size: float = 0.0029
+
+  Extracted from reconstruct:
+    sinogram: (1125, 924), dtype=float32
+    angles: (1125,), dtype=float64
+    method: SIRT_CUDA
+    parameters: {'iterations': 200}
+    pixel_size: 0.0029
+    offset: 0
+
+  Loading data_get_astra_proj_matrix.pkl...
+    Failed to load: Ran out of input
+
+  Attempting to create pmat via agent_get_astra_proj_matrix...
+    Failed to create via agent: name 'scipy' is not defined
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 187, in main
+    from agent_get_astra_proj_matrix import get_astra_proj_matrix
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/agent_get_astra_proj_matrix.py", line 10, in <module>
+    class OpTomo(scipy.sparse.linalg.LinearOperator):
+NameError: name 'scipy' is not defined
+
+  Attempting to create pmat directly with astra...
+    Created pmat via astra.OpTomo: OpTomo
+
+  Successfully built outer_data for recon_slice test
+
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+func_name: recon_slice
+Outer args count: 3
+  arg[0]: ndarray shape=(1125, 924) dtype=float32
+  arg[1]: str = 'SIRT_CUDA'
+  arg[2]: OpTomo shape=(1039500, 853776) dtype=<class 'numpy.float32'>
+Outer kwargs: ['parameters', 'pixel_size', 'offset']
+  parameters: dict = {'iterations': 200}
+  pixel_size: float = 0.0029
+  offset: int = 0
+Expected output: ndarray shape=(924, 924) dtype=float32
+
+=== Scenario A: Simple function call ===
+Result type: <class 'numpy.ndarray'>
+Result shape: (924, 924), dtype: float32
+TEST PASSED

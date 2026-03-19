@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Saves a visual representation of a reconstruction matrix to a PNG file.",
+    "function_docstring": "Saves a reconstruction visualization as a PNG file.\n\nArgs:\n    rec (numpy.ndarray): A 2D numpy array representing the reconstruction data to be visualized. Each element corresponds to an intensity value used for the grayscale image rendering.\n    output_path (str): The file path where the resulting plot will be saved as a PNG file. This should include the desired file name.",
+    "usage_example": "import numpy as np\n\n# Example reconstruction data\nreconstruction_data = np.random.rand(256, 256)  # Assuming a 256x256 reconstruction matrix\n\n# Output file path\nfile_path = 'reconstruction_plot.png'\n\n# Save the reconstruction plot\nsave_reconstruction_plot(reconstruction_data, file_path)"
+}

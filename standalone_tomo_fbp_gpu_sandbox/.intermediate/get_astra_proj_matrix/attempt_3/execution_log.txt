@@ -1,0 +1,22 @@
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_get_astra_proj_matrix.pkl (size: 16954 bytes)
+WARNING: Could not load outer data file: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_get_astra_proj_matrix.pkl. File size: 16954 bytes. Errors: ['dill.load: Ran out of input', "pickle.load: No module named '__builtin__'", "pickle.load(latin1): No module named '__builtin__'", 'dill.Unpickler: Ran out of input']
+Traceback (most recent call last):
+  File "test_get_astra_proj_matrix.py", line 145, in main
+    outer_data = try_load_pickle(outer_path)
+  File "test_get_astra_proj_matrix.py", line 81, in try_load_pickle
+    raise RuntimeError(f"Could not load {filepath}. File size: {file_size} bytes. Errors: {errors}")
+RuntimeError: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_get_astra_proj_matrix.pkl. File size: 16954 bytes. Errors: ['dill.load: Ran out of input', "pickle.load: No module named '__builtin__'", "pickle.load(latin1): No module named '__builtin__'", 'dill.Unpickler: Ran out of input']
+
+Outer data file is unavailable. Running with default test parameters...
+Using default params: nd=256, angles shape=(180,), method='FBP_CUDA'
+Creating operator via get_astra_proj_matrix...
+Operator created successfully. Type: OpTomo
+  Shape: (46080, 65536)
+  vshape: (256, 256)
+  sshape: (180, 256)
+  dtype: <class 'numpy.float32'>
+  FP functional: OK (output shape (180, 256))
+  BP functional: OK (output shape (256, 256))
+  Transpose available: OpTomoTranspose
+
+TEST PASSED

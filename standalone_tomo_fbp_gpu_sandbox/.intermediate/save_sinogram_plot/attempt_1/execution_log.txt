@@ -1,0 +1,8 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_save_sinogram_plot.pkl
+  func_name: save_sinogram_plot
+Sinogram plot saved: /tmp/tmpbjy2dbe6/test_sinogram.png
+Phase 1: Function executed successfully.
+  Output file created: /tmp/tmpbjy2dbe6/test_sinogram.png
+  File size: 1098560 bytes
+Verification passed: 
+TEST PASSED

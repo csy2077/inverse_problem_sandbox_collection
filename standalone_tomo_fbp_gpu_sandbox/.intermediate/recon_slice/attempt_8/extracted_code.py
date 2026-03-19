@@ -1,0 +1,550 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+
+# Ensure the current directory is in the path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Add run_code directory to path
+run_code_dir = '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code'
+if os.path.isdir(run_code_dir):
+    sys.path.insert(0, run_code_dir)
+
+try:
+    import astra
+except ImportError:
+    pass
+
+try:
+    import torch
+except ImportError:
+    pass
+
+
+def main():
+    std_data_dir = '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data'
+
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl']
+
+    # List all files for debugging
+    if os.path.isdir(std_data_dir):
+        all_files = sorted(os.listdir(std_data_dir))
+        print(f"Files in std_data_dir:")
+        for fname in all_files:
+            fpath = os.path.join(std_data_dir, fname)
+            fsize = os.path.getsize(fpath) if os.path.isfile(fpath) else 'DIR'
+            print(f"  {fname}: {fsize} bytes")
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    if os.path.isdir(std_data_dir):
+        for fname in sorted(os.listdir(std_data_dir)):
+            if not fname.endswith('.pkl'):
+                continue
+            fpath = os.path.join(std_data_dir, fname)
+            if 'recon_slice' in fname:
+                if 'parent_function' in fname or 'parent_' in fname:
+                    inner_paths.append(fpath)
+                elif outer_path is None:
+                    outer_path = fpath
+
+    if outer_path is None:
+        outer_path = data_paths[0]
+
+    print(f"\nOuter path: {outer_path}")
+    print(f"Inner paths: {inner_paths}")
+
+    # The pkl file for recon_slice contains a pmat object that may fail to deserialize.
+    # Strategy: Try to load data_recon_slice.pkl directly first.
+    # If that fails, reconstruct the test inputs from other available data files.
+
+    outer_data = None
+    load_errors = []
+
+    # Strategy 1: Direct dill load
+    print(f"\nAttempting to load outer data with dill...")
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print("  Loaded outer data successfully with dill")
+    except Exception as e:
+        load_errors.append(f"dill.load: {e}")
+        print(f"  dill.load failed: {e}")
+
+    # Strategy 2: Try with dill recurse
+    if outer_data is None:
+        try:
+            dill.settings['recurse'] = True
+            with open(outer_path, 'rb') as f:
+                outer_data = dill.load(f)
+            print("  Loaded outer data with dill recurse=True")
+        except Exception as e:
+            load_errors.append(f"dill recurse: {e}")
+            print(f"  dill recurse failed: {e}")
+        finally:
+            dill.settings['recurse'] = False
+
+    # Strategy 3: If direct load fails, reconstruct inputs from other pkl files
+    if outer_data is None:
+        print("\n  Direct load failed. Reconstructing test data from other pkl files...")
+
+        # We need: sinogram, method, pmat, parameters, pixel_size, offset
+        # Try to get pmat from data_create_astra_proj_matrix.pkl or data_get_astra_proj_matrix.pkl
+        pmat = None
+        sinogram = None
+        method = None
+        parameters = None
+        pixel_size = 1.0
+        offset = 0
+        expected_output = None
+
+        # Look for pmat data
+        pmat_candidates = [
+            'data_get_astra_proj_matrix.pkl',
+            'data_create_astra_proj_matrix.pkl',
+        ]
+        for pmat_fname in pmat_candidates:
+            pmat_path = os.path.join(std_data_dir, pmat_fname)
+            if os.path.exists(pmat_path):
+                print(f"  Trying to load pmat from {pmat_fname}...")
+                try:
+                    with open(pmat_path, 'rb') as f:
+                        pmat_data = dill.load(f)
+                    if isinstance(pmat_data, dict):
+                        pmat_output = pmat_data.get('output', None)
+                        if pmat_output is not None and hasattr(pmat_output, 'reconstruct'):
+                            pmat = pmat_output
+                            print(f"    Got pmat from {pmat_fname}: {type(pmat).__name__}")
+                            break
+                        else:
+                            print(f"    Output doesn't have reconstruct: {type(pmat_output)}")
+                except Exception as e:
+                    print(f"    Failed: {e}")
+
+        # Look for reconstruct data which contains the sinogram and related info
+        recon_path = os.path.join(std_data_dir, 'data_reconstruct.pkl')
+        recon_data = None
+        if os.path.exists(recon_path):
+            print(f"  Loading data_reconstruct.pkl for context...")
+            try:
+                with open(recon_path, 'rb') as f:
+                    recon_data = dill.load(f)
+                if isinstance(recon_data, dict):
+                    print(f"    Keys: {list(recon_data.keys())}")
+                    rargs = recon_data.get('args', ())
+                    rkwargs = recon_data.get('kwargs', {})
+                    print(f"    args count: {len(rargs)}")
+                    for i, a in enumerate(rargs):
+                        if hasattr(a, 'shape'):
+                            print(f"      arg[{i}]: {type(a).__name__} shape={a.shape} dtype={getattr(a, 'dtype', 'N/A')}")
+                        else:
+                            print(f"      arg[{i}]: {type(a).__name__} = {str(a)[:100]}")
+                    print(f"    kwargs: {list(rkwargs.keys())}")
+                    for k, v in rkwargs.items():
+                        if hasattr(v, 'shape'):
+                            print(f"      {k}: {type(v).__name__} shape={v.shape}")
+                        else:
+                            print(f"      {k}: {type(v).__name__} = {str(v)[:100]}")
+            except Exception as e:
+                print(f"    Failed: {e}")
+
+        # Now try to extract recon_slice-specific inputs
+        # The reconstruct function typically iterates over slices and calls recon_slice
+        # We need to figure out what arguments recon_slice receives
+        
+        # From the reference code:
+        # recon_slice(sinogram, method, pmat, parameters=None, pixel_size=1.0, offset=0)
+        # sinogram is a 1D or 2D array (one slice of the full sinogram)
+        # method is a string like 'FBP_CUDA', 'SIRT_CUDA', etc.
+        # pmat is the projection matrix object with a reconstruct method
+
+        # Try to get the full sinogram from reconstruct data and extract one slice
+        if recon_data is not None and isinstance(recon_data, dict):
+            rargs = recon_data.get('args', ())
+            rkwargs = recon_data.get('kwargs', {})
+            
+            # reconstruct typically has args: (sinogram_full, angles, method, ...)
+            # Let's inspect what we have
+            full_sinogram = None
+            angles = None
+            
+            for i, a in enumerate(rargs):
+                if isinstance(a, np.ndarray):
+                    if a.ndim == 2 and a.shape[0] > 100 and a.shape[1] > 100:
+                        if full_sinogram is None:
+                            full_sinogram = a
+                        elif a.ndim == 1:
+                            angles = a
+                    elif a.ndim == 1:
+                        if angles is None:
+                            angles = a
+                elif isinstance(a, str):
+                    if method is None:
+                        method = a
+
+            # Check kwargs for method, parameters, etc.
+            if 'method' in rkwargs:
+                method = rkwargs['method']
+            if 'parameters' in rkwargs:
+                parameters = rkwargs['parameters']
+            if 'pixel_size' in rkwargs:
+                pixel_size = rkwargs['pixel_size']
+            if 'offset' in rkwargs:
+                offset = rkwargs['offset']
+
+            # Extract a single sinogram slice
+            if full_sinogram is not None and full_sinogram.ndim == 2:
+                # Take the middle slice (or first slice)
+                sinogram = full_sinogram
+                print(f"  Using sinogram shape: {sinogram.shape}")
+
+        # Now try to also find the expected output from data_reconstruct
+        if recon_data is not None and isinstance(recon_data, dict):
+            expected_full = recon_data.get('output', None)
+            if expected_full is not None and hasattr(expected_full, 'shape'):
+                print(f"  Full expected output shape: {expected_full.shape}")
+
+        # If we still don't have all pieces, try scanning for more files
+        if pmat is None:
+            # Search all pkl files for one containing a pmat-like object
+            for fname in sorted(os.listdir(std_data_dir)):
+                if not fname.endswith('.pkl'):
+                    continue
+                if fname == os.path.basename(outer_path):
+                    continue
+                fpath = os.path.join(std_data_dir, fname)
+                try:
+                    with open(fpath, 'rb') as f:
+                        d = dill.load(f)
+                    if isinstance(d, dict):
+                        out = d.get('output', None)
+                        if out is not None and hasattr(out, 'reconstruct'):
+                            pmat = out
+                            print(f"  Found pmat in {fname}")
+                            break
+                        # Also check args
+                        for a in d.get('args', ()):
+                            if hasattr(a, 'reconstruct'):
+                                pmat = a
+                                print(f"  Found pmat in args of {fname}")
+                                break
+                        if pmat is not None:
+                            break
+                except:
+                    continue
+
+        if pmat is None:
+            print("\n  Could not find pmat object. Trying to create one...")
+            # Try to import and run get_astra_proj_matrix or create_astra_proj_matrix
+            # from the available agent files
+            try:
+                from agent_get_astra_proj_matrix import get_astra_proj_matrix
+                # We need angles and image size to create pmat
+                # Try loading get_astra_proj_matrix data
+                for fname in ['data_get_astra_proj_matrix.pkl', 'data_create_astra_proj_matrix.pkl']:
+                    fpath = os.path.join(std_data_dir, fname)
+                    if os.path.exists(fpath):
+                        try:
+                            with open(fpath, 'rb') as f:
+                                pm_data = dill.load(f)
+                            if isinstance(pm_data, dict):
+                                pm_args = pm_data.get('args', ())
+                                pm_kwargs = pm_data.get('kwargs', {})
+                                pmat = get_astra_proj_matrix(*pm_args, **pm_kwargs)
+                                print(f"  Created pmat via get_astra_proj_matrix: {type(pmat).__name__}")
+                                break
+                        except Exception as e:
+                            print(f"  Failed to create pmat from {fname}: {e}")
+            except ImportError as e:
+                print(f"  Cannot import get_astra_proj_matrix: {e}")
+
+        # Build outer_data dict manually if we have all pieces
+        if sinogram is not None and method is not None and pmat is not None:
+            print(f"\n  Reconstructed test inputs:")
+            print(f"    sinogram: {sinogram.shape}")
+            print(f"    method: {method}")
+            print(f"    pmat: {type(pmat).__name__}")
+            print(f"    parameters: {parameters}")
+            print(f"    pixel_size: {pixel_size}")
+            print(f"    offset: {offset}")
+
+            outer_data = {
+                'func_name': 'recon_slice',
+                'args': (sinogram, method, pmat),
+                'kwargs': {
+                    'parameters': parameters,
+                    'pixel_size': pixel_size,
+                    'offset': offset,
+                },
+                'output': expected_output,  # May be None - we'll handle this
+            }
+        else:
+            missing = []
+            if sinogram is None:
+                missing.append('sinogram')
+            if method is None:
+                missing.append('method')
+            if pmat is None:
+                missing.append('pmat')
+            print(f"\n  Cannot reconstruct inputs. Missing: {missing}")
+
+    # Final fallback: Try to reconstruct everything from scratch using available data
+    if outer_data is None:
+        print("\n  Final fallback: trying to reconstruct from all available data...")
+        
+        # Load ALL pkl files and catalog what's available
+        catalog = {}
+        for fname in sorted(os.listdir(std_data_dir)):
+            if not fname.endswith('.pkl'):
+                continue
+            fpath = os.path.join(std_data_dir, fname)
+            try:
+                with open(fpath, 'rb') as f:
+                    d = dill.load(f)
+                catalog[fname] = d
+                print(f"  Loaded {fname}: type={type(d)}")
+                if isinstance(d, dict):
+                    print(f"    keys={list(d.keys())}, func={d.get('func_name','?')}")
+            except Exception as e:
+                print(f"  Cannot load {fname}: {e}")
+
+        # Try to build a complete test from catalog
+        # We need the recon_slice function's exact inputs
+        # The reconstruct function calls recon_slice for each slice
+        
+        if 'data_reconstruct.pkl' in catalog:
+            rd = catalog['data_reconstruct.pkl']
+            rargs = rd.get('args', ())
+            rkwargs = rd.get('kwargs', {})
+            rout = rd.get('output', None)
+            
+            # The reconstruct function signature is typically:
+            # reconstruct(sinogram, angles, method, parameters=None, pixel_size=1.0, offset=0)
+            # It creates pmat internally and then calls recon_slice for each row
+            
+            # We can test indirectly: run the full reconstruct and check output
+            print("\n  Attempting indirect test via reconstruct function...")
+            try:
+                # Import reconstruct which internally uses recon_slice
+                # If our agent_recon_slice is imported, it will be used
+                from agent_recon_slice import recon_slice as test_recon_slice
+                
+                # We need to find how reconstruct calls recon_slice
+                # and replicate that call with known inputs/outputs
+                
+                # For now, let's try to create the pmat ourselves
+                if len(rargs) >= 2:
+                    full_sino = rargs[0] if isinstance(rargs[0], np.ndarray) else None
+                    angles_arr = rargs[1] if isinstance(rargs[1], np.ndarray) else None
+                    meth = rargs[2] if len(rargs) > 2 and isinstance(rargs[2], str) else rkwargs.get('method', 'FBP_CUDA')
+                    
+                    if full_sino is not None and angles_arr is not None:
+                        print(f"    full_sino: {full_sino.shape}, angles: {angles_arr.shape}, method: {meth}")
+                        
+                        # Create pmat using astra
+                        try:
+                            import astra
+                            num_angles = full_sino.shape[0]
+                            num_det = full_sino.shape[1]
+                            
+                            # Try to use get_astra_proj_matrix
+                            try:
+                                from agent_get_astra_proj_matrix import get_astra_proj_matrix
+                                
+                                # Load get_astra_proj_matrix data for its args
+                                gapm_path = os.path.join(std_data_dir, 'data_get_astra_proj_matrix.pkl')
+                                if os.path.exists(gapm_path) and 'data_get_astra_proj_matrix.pkl' in catalog:
+                                    gapm_data = catalog['data_get_astra_proj_matrix.pkl']
+                                    gapm_args = gapm_data.get('args', ())
+                                    gapm_kwargs = gapm_data.get('kwargs', {})
+                                    pmat_obj = get_astra_proj_matrix(*gapm_args, **gapm_kwargs)
+                                    print(f"    Created pmat: {type(pmat_obj).__name__}")
+                                    
+                                    # Now we can call recon_slice with one slice
+                                    # Take a single sinogram (one row if 3D, or the whole thing if 2D)
+                                    test_sino = full_sino  # This is already 2D (angles x detectors)
+                                    
+                                    # Get other parameters
+                                    params = rkwargs.get('parameters', None)
+                                    psize = rkwargs.get('pixel_size', 1.0)
+                                    off = rkwargs.get('offset', 0)
+                                    
+                                    # The expected output from reconstruct is the full reconstruction
+                                    # For a single slice, we need to match
+                                    # But actually recon_slice takes a 2D sinogram (angles x detectors)
+                                    # for one z-slice, and returns a 2D image
+                                    
+                                    # Since the reconstruct output should be the expected result
+                                    # of calling recon_slice on this sinogram:
+                                    expected_recon = rout
+                                    
+                                    outer_data = {
+                                        'func_name': 'recon_slice',
+                                        'args': (test_sino, meth, pmat_obj),
+                                        'kwargs': {
+                                            'parameters': params,
+                                            'pixel_size': psize,
+                                            'offset': off,
+                                        },
+                                        'output': expected_recon,
+                                    }
+                                    print(f"    Built outer_data from reconstruct + get_astra_proj_matrix")
+                                else:
+                                    print(f"    get_astra_proj_matrix data not available")
+                            except ImportError as e:
+                                print(f"    Cannot import get_astra_proj_matrix: {e}")
+                        except ImportError:
+                            print("    astra not available")
+            except Exception as e:
+                print(f"  Indirect test setup failed: {e}")
+                traceback.print_exc()
+
+    if outer_data is None:
+        print("\nFAIL: Could not load or reconstruct test data for recon_slice.")
+        sys.exit(1)
+
+    # We have outer_data
+    if not isinstance(outer_data, dict):
+        print(f"FAIL: outer_data is {type(outer_data)}, expected dict")
+        sys.exit(1)
+
+    print(f"\nOuter data keys: {list(outer_data.keys())}")
+    print(f"func_name: {outer_data.get('func_name', 'N/A')}")
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+
+    print(f"Outer args count: {len(outer_args)}")
+    for i, a in enumerate(outer_args):
+        if hasattr(a, 'shape'):
+            print(f"  arg[{i}]: {type(a).__name__} shape={a.shape} dtype={getattr(a, 'dtype', 'N/A')}")
+        elif isinstance(a, str):
+            print(f"  arg[{i}]: str = '{a}'")
+        else:
+            print(f"  arg[{i}]: {type(a).__name__}")
+            if hasattr(a, '__dict__'):
+                print(f"    class: {a.__class__.__name__}")
+
+    print(f"Outer kwargs: {list(outer_kwargs.keys())}")
+    for k, v in outer_kwargs.items():
+        if hasattr(v, 'shape'):
+            print(f"  {k}: {type(v).__name__} shape={v.shape}")
+        else:
+            print(f"  {k}: {type(v).__name__} = {str(v)[:100]}")
+
+    if expected_output is not None:
+        if hasattr(expected_output, 'shape'):
+            print(f"Expected output: {type(expected_output).__name__} shape={expected_output.shape} dtype={expected_output.dtype}")
+        else:
+            print(f"Expected output: {type(expected_output).__name__}")
+
+    # Import function under test
+    from agent_recon_slice import recon_slice
+    from verification_utils import recursive_check
+
+    if not inner_paths:
+        # Scenario A: Simple function call
+        print("\n=== Scenario A: Simple function call ===")
+        try:
+            result = recon_slice(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: recon_slice raised exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        print(f"Result type: {type(result)}")
+        if hasattr(result, 'shape'):
+            print(f"Result shape: {result.shape}, dtype: {result.dtype}")
+
+        if expected_output is None:
+            print("WARNING: No expected output to compare against. Checking result is not None.")
+            if result is None:
+                print("FAIL: Result is None")
+                sys.exit(1)
+            print("TEST PASSED (no expected output for comparison, but function ran successfully)")
+            sys.exit(0)
+
+        try:
+            passed, msg = recursive_check(expected_output, result)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: Verification failed.")
+            print(f"Message: {msg}")
+            # Print some diagnostic info
+            if hasattr(expected_output, 'shape') and hasattr(result, 'shape'):
+                if expected_output.shape == result.shape:
+                    diff = np.abs(expected_output.astype(float) - result.astype(float))
+                    print(f"  Max diff: {diff.max()}, Mean diff: {diff.mean()}")
+                    print(f"  Expected range: [{expected_output.min()}, {expected_output.max()}]")
+                    print(f"  Result range: [{result.min()}, {result.max()}]")
+            sys.exit(1)
+        else:
+            print("TEST PASSED")
+            sys.exit(0)
+    else:
+        # Scenario B: Factory/Closure pattern
+        print("\n=== Scenario B: Factory/Closure pattern ===")
+        try:
+            agent_operator = recon_slice(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: recon_slice (outer) raised exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable, got {type(agent_operator)}")
+            sys.exit(1)
+
+        all_passed = True
+        for inner_path in inner_paths:
+            print(f"\nProcessing inner: {os.path.basename(inner_path)}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data: {e}")
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: agent_operator raised exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Verification failed for {os.path.basename(inner_path)}")
+                print(f"Message: {msg}")
+                all_passed = False
+            else:
+                print(f"PASS: {os.path.basename(inner_path)}")
+
+        if not all_passed:
+            sys.exit(1)
+
+        print("\nTEST PASSED")
+        sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

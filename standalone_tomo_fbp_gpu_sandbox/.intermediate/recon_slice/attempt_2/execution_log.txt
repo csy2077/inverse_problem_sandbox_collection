@@ -1,0 +1,22 @@
+All related pkl files found in std_data dir: ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl']
+All data paths: ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl']
+
+Inspecting file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+File header (hex): 80037d710028580900000066756e635f6e616d657101580b0000007265636f6e
+File header (repr): b'\x80\x03}q\x00(X\t\x00\x00\x00func_nameq\x01X\x0b\x00\x00\x00recon'
+Detected: Pickle protocol 3
+
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+File size: 4165925 bytes
+Standard load failed, trying robust_load...
+File size: 4165925 bytes
+FAIL: Could not load outer data file after all attempts.
+Last error: All load attempts failed:
+dill.loads failed: Ran out of input
+pickle.loads failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+Python2Unpickler failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+DillPython2Unpickler failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+np.load failed: Failed to interpret file '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl' as a pickle
+pickle.load encoding=latin1 failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+pickle.load encoding=bytes failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+Python2UnpicklerLatin1 failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>

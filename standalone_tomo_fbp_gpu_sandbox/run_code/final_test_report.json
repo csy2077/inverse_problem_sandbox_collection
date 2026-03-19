@@ -1,0 +1,18 @@
+{
+  "read_tiff": "PASS",
+  "write_tiff": "PASS",
+  "write_tiff_stack": "SKIPPED_NO_DATA",
+  "get_rect_coordinates_from_roi": "PASS",
+  "get_astra_proj_matrix": "PASS",
+  "recon_slice": "PASS",
+  "recon_stack": "SKIPPED_NO_DATA",
+  "reconstruct": "PASS",
+  "get_circular_mask": "PASS",
+  "CNR": "PASS",
+  "NRMSE": "PASS",
+  "SSIM": "PASS",
+  "save_sinogram_plot": "PASS",
+  "save_reconstruction_plot": "PASS",
+  "save_comparison_plot": "PASS",
+  "main": "PASS"
+}

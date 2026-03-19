@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_SSIM.pkl
+  func_name: SSIM
+Phase 1: Successfully called SSIM with outer args.
+  Check passed for outer data.
+TEST PASSED

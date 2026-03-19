@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Extracts rectangular coordinates from an ImageJ ROI file.",
+    "function_docstring": "def get_rect_coordinates_from_roi(fname):\n    \"\"\"Extracts rectangular coordinates from an ImageJ ROI file.\n\n    Args:\n        fname (str): The file name of the ImageJ ROI file.\n\n    Returns:\n        tuple: A tuple containing four integers representing the minimum and maximum row and column indices of the rectangle.\n            - rowmin (int): The minimum row index.\n            - rowmax (int): The maximum row index.\n            - colmin (int): The minimum column index.\n            - colmax (int): The maximum column index.\n    \"\"\"",
+    "usage_example": "from read_roi import read_roi_file\n\n# Example usage\nroi_file = 'path/to/roi_file.roi'\nrowmin, rowmax, colmin, colmax = get_rect_coordinates_from_roi(roi_file)\nprint(f\"Rectangle coordinates: rowmin={rowmin}, rowmax={rowmax}, colmin={colmin}, colmax={colmax}\")"
+}

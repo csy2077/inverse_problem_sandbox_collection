@@ -1,0 +1,8 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_save_comparison_plot.pkl
+  func_name: save_comparison_plot
+Detected Scenario A (Simple function)
+  Redirecting output to temp path: /tmp/tmp7xa1pduh/comparison.png
+Comparison plot saved: /tmp/tmp7xa1pduh/comparison.png
+  Function executed successfully, result type: <class 'NoneType'>
+  Output file created successfully: /tmp/tmp7xa1pduh/comparison.png (1163171 bytes)
+TEST PASSED

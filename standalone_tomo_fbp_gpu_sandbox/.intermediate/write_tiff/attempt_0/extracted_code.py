@@ -1,0 +1,205 @@
+import sys
+import os
+import dill
+import traceback
+import numpy as np
+
+# Attempt torch import but don't fail if not available
+try:
+    import torch
+except ImportError:
+    torch = None
+
+from agent_write_tiff import write_tiff
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_write_tiff.pkl'
+    ]
+
+    # Classify paths into outer and inner
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: Could not find outer data file (data_write_tiff.pkl)")
+        sys.exit(1)
+
+    # --- Phase 1: Load outer data and reconstruct operator ---
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"Keys in outer_data: {list(outer_data.keys())}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    # For write_tiff, the function writes a file and returns None.
+    # We need to handle the fact that the fname might point to a location
+    # that doesn't exist or we don't have write permission. Let's use a temp dir.
+
+    # Inspect outer_args to find the filename and potentially redirect it
+    # write_tiff(fname, img, overwrite=True)
+    # args[0] = fname, args[1] = img
+
+    if len(inner_paths) > 0:
+        # --- Scenario B: Factory/Closure pattern ---
+        print("Detected Scenario B (Factory/Closure pattern)")
+
+        try:
+            agent_operator = write_tiff(*outer_args, **outer_kwargs)
+            print(f"Agent operator created: {agent_operator}")
+        except Exception as e:
+            print(f"FAIL: Could not create agent operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: agent_operator is not callable, got {type(agent_operator)}")
+            sys.exit(1)
+
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data from {inner_path}: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Could not execute agent_operator: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+                if not passed:
+                    print(f"FAIL: Verification failed for inner data {inner_path}")
+                    print(f"Message: {msg}")
+                    sys.exit(1)
+                else:
+                    print(f"Inner verification passed for {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Verification error: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+    else:
+        # --- Scenario A: Simple function call ---
+        print("Detected Scenario A (Simple function call)")
+
+        # write_tiff writes a file to disk. We need to handle the file path.
+        # Let's modify the fname to write to a temp location if needed.
+        modified_args = list(outer_args)
+        original_fname = None
+
+        if len(modified_args) > 0 and isinstance(modified_args[0], str):
+            original_fname = modified_args[0]
+            # Create a temp directory for the output file
+            import tempfile
+            temp_dir = tempfile.mkdtemp(prefix='test_write_tiff_')
+            # Use just the basename in temp dir
+            basename = os.path.basename(original_fname)
+            if not basename:
+                basename = 'test_output'
+            temp_fname = os.path.join(temp_dir, basename)
+            modified_args[0] = temp_fname
+            print(f"Redirecting output from '{original_fname}' to '{temp_fname}'")
+        elif 'fname' in outer_kwargs and isinstance(outer_kwargs['fname'], str):
+            original_fname = outer_kwargs['fname']
+            import tempfile
+            temp_dir = tempfile.mkdtemp(prefix='test_write_tiff_')
+            basename = os.path.basename(original_fname)
+            if not basename:
+                basename = 'test_output'
+            temp_fname = os.path.join(temp_dir, basename)
+            outer_kwargs = dict(outer_kwargs)
+            outer_kwargs['fname'] = temp_fname
+            print(f"Redirecting output from '{original_fname}' to '{temp_fname}'")
+
+        expected = outer_output
+
+        try:
+            result = write_tiff(*modified_args, **outer_kwargs)
+            print(f"write_tiff executed successfully. Result: {result}")
+        except Exception as e:
+            print(f"FAIL: Could not execute write_tiff: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        # Verify the result (likely None for a file-writing function)
+        try:
+            passed, msg = recursive_check(expected, result)
+            if not passed:
+                print(f"FAIL: Verification failed")
+                print(f"Message: {msg}")
+                sys.exit(1)
+            else:
+                print("Result verification passed")
+        except Exception as e:
+            print(f"FAIL: Verification error: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        # Additionally verify the file was actually written
+        if len(modified_args) > 0 and isinstance(modified_args[0], str):
+            check_fname = modified_args[0]
+            # write_tiff may append .tiff extension
+            possible_paths = [check_fname]
+            if not (check_fname.endswith('.tif') or check_fname.endswith('.tiff')):
+                possible_paths.append(check_fname + '.tiff')
+
+            file_found = False
+            for fp in possible_paths:
+                if os.path.exists(fp):
+                    file_size = os.path.getsize(fp)
+                    print(f"Verified output file exists: {fp} (size: {file_size} bytes)")
+                    file_found = True
+                    # Clean up temp file
+                    try:
+                        os.remove(fp)
+                    except:
+                        pass
+                    break
+
+            if not file_found:
+                print(f"WARNING: Output file not found at expected paths: {possible_paths}")
+                # This might not be a failure if the function returned None as expected
+
+        # Clean up temp directory
+        try:
+            if 'temp_dir' in dir() and os.path.exists(temp_dir):
+                import shutil
+                shutil.rmtree(temp_dir, ignore_errors=True)
+        except:
+            pass
+
+    print("TEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

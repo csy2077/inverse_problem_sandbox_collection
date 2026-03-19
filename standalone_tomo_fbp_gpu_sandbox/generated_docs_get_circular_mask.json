@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Generates a boolean mask of a circular area within a specified grid.",
+    "function_docstring": "Generates a circular boolean mask on a grid defined by the number of rows and columns.\n\nArgs:\n    nrow (int): The number of rows in the grid.\n    ncol (int): The number of columns in the grid.\n    radius (float, optional): The radius of the circle. Defaults to half of the smaller dimension of the grid if not provided.\n    center (tuple of float, optional): The center of the circle in (column, row) format. Defaults to the center of the grid if not provided.\n\nReturns:\n    np.ndarray: A boolean mask of shape (ncol, nrow) where points inside the circle are True, and outside are False.",
+    "usage_example": "import numpy as np\nfrom agent_get_circular_mask import get_circular_mask\n\n# Generate a 10x10 circular mask with center at (5, 5) and radius of 3\nmask = get_circular_mask(nrow=10, ncol=10, radius=3, center=(5, 5))\nprint(mask)"
+}

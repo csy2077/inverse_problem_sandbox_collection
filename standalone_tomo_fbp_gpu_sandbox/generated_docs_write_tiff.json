@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Saves a NumPy array as a TIFF file, with an option to append the '.tiff' extension if not present.",
+    "function_docstring": "Writes a NumPy array to a TIFF file on disk.\n\nArgs:\n    fname (str): The target file name for the TIFF file. If the name does not end with '.tif' or '.tiff', '.tiff' will be appended.\n    img (ndarray): A NumPy array representing the image data to be saved. This array can have any shape and data type that is supported by the TIFF format.\n    overwrite (bool, optional): A flag indicating whether the file should be overwritten if it already exists. Defaults to True.\n\nReturns:\n    None: This function does not return a value but writes the file directly to disk.",
+    "usage_example": "import numpy as np\nfrom my_module import write_tiff\n\n# Example usage\nimage_data = np.random.rand(256, 256)  # Replace this with actual image data\ntarget_file = 'output_image'\nwrite_tiff(target_file, image_data)"
+}

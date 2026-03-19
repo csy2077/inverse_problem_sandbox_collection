@@ -1,0 +1,72 @@
+All related pkl files found in std_data dir: ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl']
+All data paths: ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl']
+
+Inspecting file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+File header (hex): 80037d710028580900000066756e635f6e616d657101580b0000007265636f6e
+File header (repr): b'\x80\x03}q\x00(X\t\x00\x00\x00func_nameq\x01X\x0b\x00\x00\x00recon'
+Detected: Pickle protocol 3
+
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+File size: 4165925 bytes
+Found __main__ class references: set()
+  find_class called: module=dill._dill, name=_get_attr
+  find_class called: module=dill._dill, name=_import_module
+  find_class called: module=numpy, name=ndarray
+  find_class called: module=numpy, name=dtype
+  find_class called: module=dill._dill, name=_create_type
+  find_class called: module=dill._dill, name=_load_type
+  find_class called: module=scipy.sparse.linalg.interface, name=LinearOperator
+  find_class called: module=dill._dill, name=_create_function
+  find_class called: module=dill._dill, name=_create_code
+  find_class called: module=__builtin__, name=__main__
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 348, in try_load_data
+    data = DebugUnpickler(buf).load()
+  File "test_recon_slice.py", line 346, in find_class
+    return super().find_class(module, name)
+AttributeError: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+First pickle opcodes: [('PROTO', '3'), ('EMPTY_DICT', 'None'), ('BINPUT', '0'), ('MARK', 'None'), ('BINUNICODE', 'func_name'), ('BINPUT', '1'), ('BINUNICODE', 'recon_slice'), ('BINPUT', '2'), ('BINUNICODE', 'args'), ('BINPUT', '3'), ('GLOBAL', 'dill._dill _get_attr'), ('BINPUT', '4'), ('GLOBAL', 'dill._dill _import_module'), ('BINPUT', '5'), ('BINUNICODE', 'numpy.core._multiarray_umath'), ('BINPUT', '6'), ('TUPLE1', 'None'), ('BINPUT', '7'), ('REDUCE', 'None'), ('BINPUT', '8')]
+Aggressive approach also failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 520, in main
+    outer_data = _DillMainModuleUnpickler(buf).load()
+  File "/fs-computility-new/UPDZ02_sunhe/shared/NeuTomPy-toolbox/env/lib/python3.6/site-packages/dill/_dill.py", line 525, in load
+    obj = StockUnpickler.load(self)
+  File "test_recon_slice.py", line 102, in find_class
+    return super().find_class(module, name)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/NeuTomPy-toolbox/env/lib/python3.6/site-packages/dill/_dill.py", line 515, in find_class
+    return StockUnpickler.find_class(self, module, name)
+AttributeError: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+Module import approach also failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 563, in main
+    outer_data = _DillMainModuleUnpickler(buf).load()
+  File "/fs-computility-new/UPDZ02_sunhe/shared/NeuTomPy-toolbox/env/lib/python3.6/site-packages/dill/_dill.py", line 525, in load
+    obj = StockUnpickler.load(self)
+  File "test_recon_slice.py", line 102, in find_class
+    return super().find_class(module, name)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/NeuTomPy-toolbox/env/lib/python3.6/site-packages/dill/_dill.py", line 515, in find_class
+    return StockUnpickler.find_class(self, module, name)
+AttributeError: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+Nuclear approach failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 627, in main
+    outer_data = NuclearUnpickler(buf).load()
+  File "test_recon_slice.py", line 624, in find_class
+    return super().find_class(module, name)
+AttributeError: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+FAIL: Could not load outer data file after all attempts.
+Last error: All load attempts failed:
+_DillMainModuleUnpickler failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+_MainModuleUnpickler failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+dill.loads failed: Ran out of input
+pickle.loads failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+_MainModuleUnpickler enc=latin1: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+_DillMainModuleUnpickler enc=latin1: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+_MainModuleUnpickler enc=bytes: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+_DillMainModuleUnpickler enc=bytes: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+_MainModuleUnpickler enc=ASCII: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+_DillMainModuleUnpickler enc=ASCII: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+After adding to __main__: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+DebugUnpickler failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+dill.load with __main__ setup: Ran out of input

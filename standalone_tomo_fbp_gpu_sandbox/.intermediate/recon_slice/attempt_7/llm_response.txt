@@ -1,0 +1,456 @@
+
+
+```python
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+
+# Ensure the current directory is in the path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Add run_code directory to path
+run_code_dir = '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code'
+if os.path.isdir(run_code_dir):
+    sys.path.insert(0, run_code_dir)
+
+# Pre-import astra and any modules that might be needed for unpickling
+try:
+    import astra
+except ImportError:
+    pass
+
+try:
+    import torch
+except ImportError:
+    pass
+
+
+def load_pkl_with_astra_fix(filepath):
+    """Load pkl file, handling astra ProjectionMatrix deserialization issues."""
+    if not os.path.exists(filepath):
+        return None, [f"File does not exist: {filepath}"]
+    
+    file_size = os.path.getsize(filepath)
+    if file_size == 0:
+        return None, [f"File is empty: {filepath}"]
+    
+    print(f"  Loading: {filepath} ({file_size} bytes)")
+    
+    # Strategy 1: Direct dill load
+    try:
+        with open(filepath, 'rb') as f:
+            data = dill.load(f)
+        print("  Success with dill.load")
+        return data, []
+    except Exception as e:
+        err1 = str(e)
+        print(f"  dill.load failed: {err1}")
+    
+    # Strategy 2: dill.loads on raw bytes
+    try:
+        with open(filepath, 'rb') as f:
+            raw = f.read()
+        data = dill.loads(raw)
+        print("  Success with dill.loads")
+        return data, []
+    except Exception as e:
+        err2 = str(e)
+        print(f"  dill.loads failed: {err2}")
+    
+    # Strategy 3: pickle
+    import pickle
+    try:
+        with open(filepath, 'rb') as f:
+            data = pickle.load(f)
+        print("  Success with pickle.load")
+        return data, []
+    except Exception as e:
+        err3 = str(e)
+        print(f"  pickle.load failed: {err3}")
+    
+    # Strategy 4: Try with custom unpickler that handles missing classes
+    try:
+        import io
+        with open(filepath, 'rb') as f:
+            raw = f.read()
+        
+        class FlexibleUnpickler(pickle.Unpickler):
+            def find_class(self, module, name):
+                try:
+                    return super().find_class(module, name)
+                except (ImportError, AttributeError):
+                    print(f"  Warning: Could not find {module}.{name}, creating stub")
+                    # Return a generic class
+                    class Stub:
+                        def __init__(self, *args, **kwargs):
+                            pass
+                        def __call__(self, *args, **kwargs):
+                            pass
+                    Stub.__name__ = name
+                    Stub.__qualname__ = name
+                    return Stub
+        
+        data = FlexibleUnpickler(io.BytesIO(raw)).load()
+        print("  Success with FlexibleUnpickler")
+        return data, []
+    except Exception as e:
+        err4 = str(e)
+        print(f"  FlexibleUnpickler failed: {err4}")
+    
+    return None, [err1, err2, err3, err4]
+
+
+def main():
+    std_data_dir = '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data'
+    
+    # The data path we know about
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl']
+    
+    # List all files for debugging
+    if os.path.isdir(std_data_dir):
+        all_files = sorted(os.listdir(std_data_dir))
+        print(f"Files in std_data_dir:")
+        for fname in all_files:
+            fpath = os.path.join(std_data_dir, fname)
+            fsize = os.path.getsize(fpath) if os.path.isfile(fpath) else 'DIR'
+            print(f"  {fname}: {fsize} bytes")
+    
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+    
+    # Also scan the directory for related files
+    if os.path.isdir(std_data_dir):
+        for fname in sorted(os.listdir(std_data_dir)):
+            if not fname.endswith('.pkl'):
+                continue
+            fpath = os.path.join(std_data_dir, fname)
+            if 'recon_slice' in fname:
+                if 'parent_function' in fname or 'parent_' in fname:
+                    inner_paths.append(fpath)
+                elif outer_path is None:
+                    outer_path = fpath
+    
+    # Use the known path if nothing found
+    if outer_path is None:
+        outer_path = data_paths[0]
+    
+    print(f"\nOuter path: {outer_path}")
+    print(f"Inner paths: {inner_paths}")
+    
+    # The previous error showed data_recon_slice.pkl failed to load with dill
+    # but data_reconstruct.pkl loaded fine. The issue is likely that pmat (an astra
+    # ProjectionMatrix object) can't be deserialized.
+    #
+    # Key insight: the file IS a valid pickle (starts with \x80\x03), but dill fails
+    # to deserialize some object inside it. We need to figure out what's going wrong.
+    
+    # Let's try to understand the error better by catching the full traceback
+    print(f"\nAttempting to load outer data...")
+    
+    # First, let's try importing everything that might be needed
+    modules_to_try = [
+        'astra', 'astra.projector', 'astra.algorithm', 'astra.data2d', 'astra.data3d',
+        'astra.matrix', 'astra.creators', 'astra.functions',
+    ]
+    for mod in modules_to_try:
+        try:
+            __import__(mod)
+        except ImportError:
+            pass
+    
+    outer_data = None
+    
+    # Try loading with detailed error
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print("  Loaded outer data successfully")
+    except Exception as e:
+        print(f"  Failed to load outer data: {e}")
+        traceback.print_exc()
+        
+        # The pmat object might be an astra-based projection matrix that can't deserialize.
+        # Let's try to load with a custom approach: load the reconstruct data instead
+        # and extract what we need from there.
+        
+        # Alternative: Try to manually reconstruct the test by loading data_reconstruct.pkl
+        # which contains the higher-level function that calls recon_slice
+        print("\n  Trying alternative approach: loading data_reconstruct.pkl for test data...")
+        
+        reconstruct_path = os.path.join(std_data_dir, 'data_reconstruct.pkl')
+        if os.path.exists(reconstruct_path):
+            try:
+                with open(reconstruct_path, 'rb') as f:
+                    recon_data = dill.load(f)
+                print(f"  Loaded data_reconstruct.pkl successfully")
+                print(f"  Keys: {list(recon_data.keys()) if isinstance(recon_data, dict) else type(recon_data)}")
+                if isinstance(recon_data, dict):
+                    print(f"  func_name: {recon_data.get('func_name', 'N/A')}")
+                    args = recon_data.get('args', ())
+                    kwargs = recon_data.get('kwargs', {})
+                    for i, a in enumerate(args):
+                        if hasattr(a, 'shape'):
+                            print(f"  arg[{i}]: {type(a).__name__} shape={a.shape}")
+                        elif hasattr(a, '__class__'):
+                            print(f"  arg[{i}]: {a.__class__.__name__}")
+                            if hasattr(a, '__dict__'):
+                                print(f"    attrs: {list(a.__dict__.keys())[:20]}")
+                        else:
+                            print(f"  arg[{i}]: {type(a).__name__} = {str(a)[:100]}")
+            except Exception as e2:
+                print(f"  Failed to load data_reconstruct.pkl: {e2}")
+        
+        # Alternative: try loading with a patched environment
+        # The issue might be that the pmat object is a custom class from a local module
+        # Let's try importing the gen_data module first to register classes
+        print("\n  Trying to patch environment and reload...")
+        
+        # Look for any .py files that define ProjectionMatrix or similar
+        for d in [run_code_dir, os.path.dirname(run_code_dir)]:
+            if not os.path.isdir(d):
+                continue
+            for fname in os.listdir(d):
+                if fname.endswith('.py'):
+                    fpath = os.path.join(d, fname)
+                    try:
+                        with open(fpath, 'r') as f:
+                            content = f.read()
+                        if 'ProjectionMatrix' in content or 'pmat' in content or 'reconstruct' in content:
+                            print(f"  Found relevant module: {fpath}")
+                            # Don't exec, just note it
+                    except:
+                        pass
+        
+        # Try one more time with recurse
+        try:
+            dill.settings['recurse'] = True
+            with open(outer_path, 'rb') as f:
+                outer_data = dill.load(f)
+            print("  Success with dill recurse=True")
+        except Exception as e3:
+            print(f"  Still failed with recurse: {e3}")
+            dill.settings['recurse'] = False
+    
+    if outer_data is None:
+        # Last resort: manually parse the pickle to understand what object is failing
+        print("\n  Analyzing pickle structure...")
+        import pickletools
+        import io
+        try:
+            with open(outer_path, 'rb') as f:
+                raw = f.read()
+            buf = io.StringIO()
+            pickletools.dis(io.BytesIO(raw), output=buf)
+            disasm = buf.getvalue()
+            # Print first 200 lines
+            lines = disasm.split('\n')
+            for line in lines[:200]:
+                print(f"    {line}")
+            
+            # Look for GLOBAL/INST opcodes to find what classes are referenced
+            print("\n  Referenced classes/globals:")
+            for line in lines:
+                if 'GLOBAL' in line or 'INST' in line or 'STACK_GLOBAL' in line:
+                    print(f"    {line.strip()}")
+        except Exception as e:
+            print(f"  pickletools analysis failed: {e}")
+        
+        # Try loading with a custom unpickler that replaces problematic objects
+        print("\n  Trying custom unpickler approach...")
+        import pickle as _pickle
+        
+        class AstraFixUnpickler(_pickle.Unpickler):
+            def find_class(self, module, name):
+                # Try normal resolution first
+                try:
+                    return super().find_class(module, name)
+                except (ImportError, AttributeError) as e:
+                    print(f"    Cannot find {module}.{name}: {e}")
+                    # Create a proxy class that stores initialization data
+                    class ProxyObj:
+                        _proxy_module = module
+                        _proxy_name = name
+                        def __init__(self, *args, **kwargs):
+                            self._proxy_args = args
+                            self._proxy_kwargs = kwargs
+                        def __setstate__(self, state):
+                            self.__dict__.update(state if isinstance(state, dict) else {'_state': state})
+                        def __repr__(self):
+                            return f"<Proxy {module}.{name}>"
+                        def reconstruct(self, *args, **kwargs):
+                            raise RuntimeError(f"Proxy object {module}.{name} cannot reconstruct")
+                    ProxyObj.__name__ = name
+                    ProxyObj.__qualname__ = name
+                    return ProxyObj
+        
+        try:
+            with open(outer_path, 'rb') as f:
+                outer_data = AstraFixUnpickler(f).load()
+            print(f"  Loaded with AstraFixUnpickler")
+            if isinstance(outer_data, dict):
+                print(f"  Keys: {list(outer_data.keys())}")
+        except Exception as e:
+            print(f"  AstraFixUnpickler failed: {e}")
+            traceback.print_exc()
+    
+    if outer_data is None:
+        print("\nFAIL: Could not load data_recon_slice.pkl with any method.")
+        sys.exit(1)
+    
+    # We have outer_data loaded
+    if not isinstance(outer_data, dict):
+        print(f"FAIL: outer_data is {type(outer_data)}, expected dict")
+        sys.exit(1)
+    
+    print(f"\nOuter data keys: {list(outer_data.keys())}")
+    print(f"func_name: {outer_data.get('func_name', 'N/A')}")
+    
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+    
+    print(f"Outer args count: {len(outer_args)}")
+    for i, a in enumerate(outer_args):
+        if hasattr(a, 'shape'):
+            print(f"  arg[{i}]: {type(a).__name__} shape={a.shape} dtype={getattr(a, 'dtype', 'N/A')}")
+        elif isinstance(a, str):
+            print(f"  arg[{i}]: str = '{a}'")
+        else:
+            print(f"  arg[{i}]: {type(a).__name__}")
+            if hasattr(a, '__dict__'):
+                print(f"    class: {a.__class__.__name__}, attrs: {list(a.__dict__.keys())[:15]}")
+                # Check if this is a proxy
+                if hasattr(a, '_proxy_module'):
+                    print(f"    PROXY for {a._proxy_module}.{a._proxy_name}")
+    
+    print(f"Outer kwargs: {list(outer_kwargs.keys())}")
+    for k, v in outer_kwargs.items():
+        if hasattr(v, 'shape'):
+            print(f"  {k}: {type(v).__name__} shape={v.shape}")
+        else:
+            print(f"  {k}: {type(v).__name__} = {str(v)[:100]}")
+    
+    if expected_output is not None:
+        if hasattr(expected_output, 'shape'):
+            print(f"Expected output: {type(expected_output).__name__} shape={expected_output.shape} dtype={expected_output.dtype}")
+        else:
+            print(f"Expected output: {type(expected_output).__name__}")
+    
+    # Check if pmat is a proxy (meaning astra couldn't be loaded properly)
+    pmat_arg = outer_args[2] if len(outer_args) > 2 else None
+    if pmat_arg is not None and hasattr(pmat_arg, '_proxy_module'):
+        print(f"\nWARNING: pmat is a proxy object. Need real astra ProjectionMatrix.")
+        print("Attempting to reconstruct pmat from data_create_astra_proj_matrix.pkl...")
+        
+        # Try to load the create_astra_proj_matrix data to get or recreate pmat
+        pmat_path = os.path.join(std_data_dir, 'data_create_astra_proj_matrix.pkl')
+        if os.path.exists(pmat_path):
+            try:
+                with open(pmat_path, 'rb') as f:
+                    pmat_data = dill.load(f)
+                print(f"  Loaded pmat data, keys: {list(pmat_data.keys()) if isinstance(pmat_data, dict) else type(pmat_data)}")
+                if isinstance(pmat_data, dict):
+                    pmat_output = pmat_data.get('output', None)
+                    if pmat_output is not None:
+                        print(f"  pmat output type: {type(pmat_output).__name__}")
+                        if hasattr(pmat_output, 'reconstruct'):
+                            print("  pmat has reconstruct method! Using it.")
+                            outer_args = list(outer_args)
+                            outer_args[2] = pmat_output
+                            outer_args = tuple(outer_args)
+                        else:
+                            print(f"  pmat output attrs: {dir(pmat_output)[:20]}")
+            except Exception as e:
+                print(f"  Failed to load pmat data: {e}")
+                traceback.print_exc()
+    
+    # Now import and run
+    from agent_recon_slice import recon_slice
+    from verification_utils import recursive_check
+    
+    if not inner_paths:
+        # Scenario A: Simple function call
+        print("\n=== Scenario A: Simple function call ===")
+        try:
+            result = recon_slice(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: recon_slice raised exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        print(f"Result type: {type(result)}")
+        if hasattr(result, 'shape'):
+            print(f"Result shape: {result.shape}, dtype: {result.dtype}")
+        if hasattr(expected_output, 'shape'):
+            print(f"Expected shape: {expected_output.shape}, dtype: {expected_output.dtype}")
+        
+        try:
+            passed, msg = recursive_check(expected_output, result)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        if not passed:
+            print(f"FAIL: Verification failed.")
+            print(f"Message: {msg}")
+            sys.exit(1)
+        else:
+            print("PASS: Output verified successfully.")
+    else:
+        # Scenario B: Factory/Closure
+        print("\n=== Scenario B: Factory/Closure pattern ===")
+        try:
+            agent_operator = recon_slice(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: recon_slice (outer) raised exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable, got {type(agent_operator)}")
+            sys.exit(1)
+        
+        for inner_path in inner_paths:
+            print(f"\nProcessing inner: {os.path.basename(inner_path)}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data: {e}")
+                sys.exit(1)
+            
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+            
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: agent_operator raised exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            if not passed:
+                print(f"FAIL: Verification failed for {os.path.basename(inner_path)}")
+                print(f"Message: {msg}")
+                sys.exit(1)
+            print(f"PASS: {os.path.basename(inner_path)}")
+    
+    print("\nTEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
+```

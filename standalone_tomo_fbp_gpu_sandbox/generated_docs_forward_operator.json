@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Applies the forward projection operator (Radon transform) to compute the predicted sinogram from a given image or volume using a projection matrix.",
+    "function_docstring": "def forward_operator(x, pmat):\n    \"\"\"\n    Apply the forward projection operator (Radon transform).\n    \n    This function computes the predicted sinogram from a given image or volume using a specified projection matrix.\n    \n    Args:\n        x: A 2D array representing the input image or volume.\n        pmat: An OpTomo object representing the ASTRA projection matrix operator. This object must have a method `FP` that performs the forward projection.\n    \n    Returns:\n        A 2D array representing the predicted sinogram, which is the forward projection of the input image or volume.\n    \"\"\"\n    y_pred = pmat.FP(x)\n    return y_pred",
+    "usage_example": "import astra\n\n# Example usage of forward_operator\nimage = np.random.rand(128, 128)  # Example 2D image\npmat = astra.OpTomo()  # Example projection matrix operator with FP method\n\nsinogram = forward_operator(image, pmat)\nprint(sinogram)"
+}

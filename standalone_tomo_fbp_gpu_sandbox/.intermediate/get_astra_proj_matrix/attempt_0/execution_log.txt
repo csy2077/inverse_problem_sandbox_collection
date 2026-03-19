@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "test_get_astra_proj_matrix.py", line 10, in <module>
+    from agent_get_astra_proj_matrix import get_astra_proj_matrix
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/agent_get_astra_proj_matrix.py", line 10, in <module>
+    class OpTomo(scipy.sparse.linalg.LinearOperator):
+NameError: name 'scipy' is not defined

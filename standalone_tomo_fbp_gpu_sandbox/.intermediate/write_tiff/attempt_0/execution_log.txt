@@ -1,0 +1,9 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_write_tiff.pkl
+Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+Detected Scenario A (Simple function call)
+Redirecting output from '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/output_fbp_gpu/recon_result.tiff' to '/tmp/test_write_tiff_82bmyjbb/recon_result.tiff'
+File saved: /tmp/test_write_tiff_82bmyjbb/recon_result.tiff
+write_tiff executed successfully. Result: None
+Result verification passed
+Verified output file exists: /tmp/test_write_tiff_82bmyjbb/recon_result.tiff (size: 3415424 bytes)
+TEST PASSED

@@ -1,0 +1,11 @@
+All related pkl files found in std_data dir: ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl']
+All data paths: ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl']
+
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+File size: 4165925 bytes
+FAIL: Could not load outer data file: All load attempts failed:
+dill.load failed: Ran out of input
+pickle.load failed: No module named '__builtin__'
+dill.loads failed: Ran out of input
+pickle.loads failed: No module named '__builtin__'
+np.load failed: Failed to interpret file '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_gpu_sandbox/run_code/std_data/data_recon_slice.pkl' as a pickle
