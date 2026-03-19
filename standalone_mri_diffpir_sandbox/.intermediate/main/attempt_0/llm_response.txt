@@ -1,0 +1,153 @@
+
+
+Looking at the data paths, I only have `data_main.pkl` — this is **Scenario A** (simple function, no inner/factory pattern).
+
+The `main()` function takes no arguments and returns `None` (it's a procedural script that runs inference, saves results, logs metrics, etc.). The test needs to call `main()` and compare its output against the stored expected output.
+
+```python
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Ensure the current directory is in path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from agent_main import main
+from verification_utils import recursive_check
+
+
+def load_data(path):
+    """Load a pickle data file using dill."""
+    with open(path, 'rb') as f:
+        data = dill.load(f)
+    return data
+
+
+def test_main():
+    """Test the main function against stored standard data."""
+    
+    # --- Data paths ---
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_diffpir_sandbox/run_code/std_data/data_main.pkl'
+    ]
+    
+    # --- Determine scenario ---
+    outer_path = None
+    inner_paths = []
+    
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+    
+    assert outer_path is not None, f"Could not find outer data file (data_main.pkl) in: {data_paths}"
+    
+    # --- Phase 1: Load outer data ---
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        outer_data = load_data(outer_path)
+    except Exception as e:
+        print(f"FAILED to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+    
+    print(f"Outer data loaded. func_name={outer_data.get('func_name', 'N/A')}")
+    print(f"  args count: {len(outer_args)}")
+    print(f"  kwargs keys: {list(outer_kwargs.keys()) if outer_kwargs else '(none)'}")
+    print(f"  expected output type: {type(expected_output)}")
+    
+    # --- Phase 2: Execute main ---
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("Detected Scenario B (Factory/Closure pattern)")
+        print(f"Running main(*args, **kwargs) to get operator...")
+        try:
+            agent_operator = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAILED to execute main(): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        # Verify operator is callable
+        if not callable(agent_operator):
+            print(f"WARNING: agent_operator is not callable (type={type(agent_operator)}), "
+                  f"proceeding with inner data comparison anyway.")
+        
+        for inner_path in sorted(inner_paths):
+            print(f"\nLoading inner data from: {inner_path}")
+            try:
+                inner_data = load_data(inner_path)
+            except Exception as e:
+                print(f"FAILED to load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+            
+            print(f"Executing operator with inner args...")
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAILED to execute operator: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            print("Comparing inner results...")
+            try:
+                passed, msg = recursive_check(inner_expected, result)
+            except Exception as e:
+                print(f"FAILED during comparison: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+            
+            if not passed:
+                print(f"TEST FAILED for {os.path.basename(inner_path)}: {msg}")
+                sys.exit(1)
+            else:
+                print(f"TEST PASSED for {os.path.basename(inner_path)}")
+    else:
+        # Scenario A: Simple function call
+        print("Detected Scenario A (Simple function call)")
+        print(f"Running main(*args, **kwargs)...")
+        try:
+            result = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAILED to execute main(): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        print(f"Result type: {type(result)}")
+        print(f"Expected type: {type(expected_output)}")
+        
+        # --- Phase 3: Comparison ---
+        print("Comparing results...")
+        try:
+            passed, msg = recursive_check(expected_output, result)
+        except Exception as e:
+            print(f"FAILED during comparison: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        if not passed:
+            print(f"TEST FAILED: {msg}")
+            sys.exit(1)
+        else:
+            print("TEST PASSED")
+    
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    test_main()
+```

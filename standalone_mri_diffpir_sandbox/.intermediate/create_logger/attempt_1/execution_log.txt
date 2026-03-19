@@ -1,0 +1,9 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_diffpir_sandbox/run_code/std_data/data_create_logger.pkl
+  func_name: create_logger
+  Ensured logging_dir exists: outputs/standalone_mri_diffpir/DiffPIR/default
+  create_logger returned: <class 'logging.Logger'>
+Scenario A detected: Simple function call.
+  Log level correct: 20
+  Handlers: ['FileHandler', 'StreamHandler']
+  Logger structural verification passed.
+TEST PASSED
