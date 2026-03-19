@@ -1,0 +1,127 @@
+[
+    {
+        "function_name": "load_config",
+        "inputs": {
+            "config_path": {
+                "type": "str",
+                "value_sample": "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnSAL_DC1_sandbox/data_standalone/standalone_unmixing_SUnSAL_DC1.json"
+            }
+        },
+        "output": {
+            "type": "dict",
+            "value_sample": "{'EPS': 1e-10, 'seed': 0, 'SNR': 30, 'dataset': 'DC1', 'data_dir': 'data_standalone', 'figs_dir': 'exp_standalone_unmixing_SUnSAL_DC1', 'l2_normalization': False, 'projection': False, 'force_align': False, 'model': {'AL_iters': 1000, 'lambd': 0.001, 'verbose': True, 'positivity': True, 'addone': False, 'tol': 0.0001, 'x0': 0}}"
+        }
+    },
+    {
+        "function_name": "save_estimates",
+        "inputs": {
+            "Ehat": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    224,
+                    5
+                ],
+                "dtype": "float64"
+            },
+            "Ahat": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    240,
+                    5625
+                ],
+                "dtype": "float64"
+            },
+            "H": {
+                "type": "int",
+                "value_sample": "75"
+            },
+            "W": {
+                "type": "int",
+                "value_sample": "75"
+            },
+            "output_dir": {
+                "type": "str",
+                "value_sample": "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnSAL_DC1_sandbox/exp_standalone_unmixing_SUnSAL_DC1"
+            }
+        },
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    },
+    {
+        "function_name": "compute_metric",
+        "inputs": {
+            "metric": {
+                "type": "CustomObject",
+                "class_name": "SRE",
+                "public_methods": [],
+                "attributes": [
+                    "name"
+                ]
+            },
+            "X_gt": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    5,
+                    5625
+                ],
+                "dtype": "float64"
+            },
+            "X_hat": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    5,
+                    5625
+                ],
+                "dtype": "float64"
+            },
+            "labels": {
+                "type": "list",
+                "length": 5,
+                "elements": [
+                    {
+                        "type": "str",
+                        "value_sample": "#0"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#1"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#2"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#3"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#4"
+                    }
+                ]
+            },
+            "detail": {
+                "type": "bool",
+                "value_sample": "False"
+            },
+            "on_endmembers": {
+                "type": "bool",
+                "value_sample": "False"
+            }
+        },
+        "output": {
+            "type": "dict",
+            "value_sample": "{'Overall': 8.7172}"
+        }
+    },
+    {
+        "function_name": "main",
+        "inputs": {},
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    }
+]

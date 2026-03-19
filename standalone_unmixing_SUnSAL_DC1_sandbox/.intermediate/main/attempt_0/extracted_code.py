@@ -1,0 +1,152 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+
+# Imports from the agent module and verification utilities
+from agent_main import main
+from verification_utils import recursive_check
+
+
+def load_pkl(path):
+    """Load a pickle file using dill."""
+    with open(path, 'rb') as f:
+        data = dill.load(f)
+    return data
+
+
+def main_test():
+    """Main test logic."""
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnSAL_DC1_sandbox/run_code/std_data/data_main.pkl'
+    ]
+
+    # Separate outer (main) and inner (parent_function) paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    assert outer_path is not None, f"Could not find outer data file (data_main.pkl) in {data_paths}"
+
+    # Phase 1: Load outer data and run main
+    print(f"[INFO] Loading outer data from: {outer_path}")
+    try:
+        outer_data = load_pkl(outer_path)
+    except Exception as e:
+        print(f"[FAIL] Failed to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+
+    print(f"[INFO] Outer data loaded. func_name={outer_data.get('func_name', 'N/A')}")
+    print(f"[INFO] Number of args: {len(outer_args)}, Number of kwargs: {len(outer_kwargs)}")
+
+    # Check if this is Scenario B (factory/closure pattern) or Scenario A (simple function)
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print(f"[INFO] Scenario B detected: {len(inner_paths)} inner data file(s) found.")
+
+        # Run main to get the operator/closure
+        print("[INFO] Phase 1: Reconstructing operator via main(*args, **kwargs)...")
+        try:
+            agent_operator = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"[FAIL] Failed to execute main(*args, **kwargs): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        # Verify the operator is callable
+        if not callable(agent_operator):
+            print(f"[FAIL] Expected callable operator from main(), got {type(agent_operator)}")
+            sys.exit(1)
+
+        print(f"[INFO] Operator obtained: {type(agent_operator)}")
+
+        # Phase 2: Execute inner data through the operator
+        all_passed = True
+        for idx, inner_path in enumerate(inner_paths):
+            print(f"\n[INFO] Processing inner data file {idx + 1}/{len(inner_paths)}: {inner_path}")
+            try:
+                inner_data = load_pkl(inner_path)
+            except Exception as e:
+                print(f"[FAIL] Failed to load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+
+            print(f"[INFO] Inner data: func_name={inner_data.get('func_name', 'N/A')}, "
+                  f"args={len(inner_args)}, kwargs={len(inner_kwargs)}")
+
+            try:
+                actual_result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"[FAIL] Failed to execute operator(*inner_args, **inner_kwargs): {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # Compare results
+            try:
+                passed, msg = recursive_check(inner_expected, actual_result)
+            except Exception as e:
+                print(f"[FAIL] recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"[FAIL] Inner test {idx + 1} failed: {msg}")
+                all_passed = False
+            else:
+                print(f"[PASS] Inner test {idx + 1} passed.")
+
+        if not all_passed:
+            print("\n[FAIL] One or more inner tests failed.")
+            sys.exit(1)
+        else:
+            print("\nTEST PASSED")
+            sys.exit(0)
+
+    else:
+        # Scenario A: Simple function call
+        print("[INFO] Scenario A detected: No inner data files. Simple function test.")
+
+        print("[INFO] Executing main(*args, **kwargs)...")
+        try:
+            actual_result = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"[FAIL] Failed to execute main(*args, **kwargs): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        print(f"[INFO] Result type: {type(actual_result)}")
+
+        # Compare results
+        try:
+            passed, msg = recursive_check(expected_output, actual_result)
+        except Exception as e:
+            print(f"[FAIL] recursive_check raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"[FAIL] Test failed: {msg}")
+            sys.exit(1)
+        else:
+            print("TEST PASSED")
+            sys.exit(0)
+
+
+if __name__ == "__main__":
+    main_test()

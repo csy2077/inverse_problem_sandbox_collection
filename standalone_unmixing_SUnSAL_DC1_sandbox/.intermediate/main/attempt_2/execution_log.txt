@@ -1,0 +1,7 @@
+[INFO] Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnSAL_DC1_sandbox/run_code/std_data/data_main.pkl
+[INFO] Outer data loaded. func_name=main
+[INFO] Number of args: 0, Number of kwargs: 0
+[INFO] Scenario A detected: No inner data files. Simple function test.
+[INFO] Executing main(*args, **kwargs)...
+[INFO] Result type: <class 'NoneType'>
+TEST PASSED

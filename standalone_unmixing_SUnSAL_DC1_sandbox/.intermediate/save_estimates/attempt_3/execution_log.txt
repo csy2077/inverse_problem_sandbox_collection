@@ -1,0 +1,6 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnSAL_DC1_sandbox/run_code/std_data/data_save_estimates.pkl
+Detected Scenario A (Simple function).
+Function executed successfully.
+Verified: estimates.mat created at /tmp/test_save_estimates_kum3e3qb/estimates.mat
+Verified: .mat file contains 'E' and 'A' keys.
+TEST PASSED

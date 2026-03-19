@@ -1,0 +1,7 @@
+{
+  "load_config": "PASS",
+  "compute_metric": "PASS",
+  "SVD_projection": "SKIPPED_NO_DATA",
+  "save_estimates": "PASS",
+  "main": "PASS"
+}
