@@ -1,0 +1,5 @@
+{
+    "function_explanation": "The function 'forward_operator' performs a linear mixing model operation by multiplying a matrix with a vector.",
+    "function_docstring": "def forward_operator(x: torch.Tensor, D: torch.Tensor) -> torch.Tensor:\n    \"\"\"\n    Applies a linear mixing model by multiplying a matrix with a vector.\n\n    Args:\n        x (torch.Tensor): A tensor representing the input vector with shape (N,), where N is the number of elements in the vector.\n        D (torch.Tensor): A tensor representing the mixing matrix with shape (M, N), where M is the number of output elements and N matches the size of the input vector.\n\n    Returns:\n        torch.Tensor: A tensor representing the result of the matrix-vector multiplication with shape (M,), where M is the number of rows in the matrix D.\n    \"\"\"\n    return D @ x",
+    "usage_example": "import torch\n\n# Define the input vector and mixing matrix\nx = torch.tensor([1.0, 2.0, 3.0])\nD = torch.tensor([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]])\n\n# Apply the forward operator\nresult = forward_operator(x, D)\nprint(result)  # Output: tensor([1.4, 3.2])"
+}

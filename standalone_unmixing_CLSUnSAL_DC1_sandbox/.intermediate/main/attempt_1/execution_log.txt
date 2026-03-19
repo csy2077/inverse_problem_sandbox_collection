@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/test_main.py", line 11, in <module>
+    import agent_main as _agent_module_preload
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/agent_main.py", line 12, in <module>
+    DATA_DIR = os.path.join(SCRIPT_DIR, "data_standalone")
+NameError: name 'SCRIPT_DIR' is not defined

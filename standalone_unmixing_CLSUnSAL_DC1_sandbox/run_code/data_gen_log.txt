@@ -1,0 +1,52 @@
+  [Metadata] Recorded schema for: set_seeds
+13-Mar-26 14:43:26 - __main__ - [INFO] - Semi-Supervised Unmixing - [START]...
+13-Mar-26 14:43:26 - __main__ - [DEBUG] - Path to be opened: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/data_standalone/DC1.mat
+13-Mar-26 14:43:26 - __main__ - [DEBUG] - Data keys: dict_keys(['__header__', '__version__', '__globals__', 'Y', 'E', 'A', 'H', 'W', 'p', 'L', 'D', 'M', 'index'])
+13-Mar-26 14:43:26 - __main__ - [INFO] - HSI => DC1
+------------------------------
+224 bands,
+75 lines, 75 samples (5625 pixels),
+5 endmembers (['#0', '#1', '#2', '#3', '#4']),
+240 atoms
+GlobalMinValue: 0.022721152752637863, GlobalMaxValue: 0.9662235379219055
+
+13-Mar-26 14:43:26 - __main__ - [DEBUG] - Y shape => (224, 5625)
+13-Mar-26 14:43:26 - __main__ - [INFO] - Desired SNR => 30
+13-Mar-26 14:43:26 - __main__ - [DEBUG] - Sigmas after normalization: 0.0668153104781061
+13-Mar-26 14:43:26 - __main__ - [DEBUG] - Sigma mean based on SNR: 0.36161190322550674
+13-Mar-26 14:43:26 - __main__ - [DEBUG] - Final sigmas value: 0.02416121158659109
+13-Mar-26 14:43:26 - __main__ - [DEBUG] - Norm D => 5.099e-01
+13-Mar-26 14:43:26 - __main__ - [DEBUG] - Lambda initial value => 3.846e-02
+13-Mar-26 14:43:26 - __main__ - [DEBUG] - Mu initial value => 1.000e-01
+13-Mar-26 14:43:26 - __main__ - [DEBUG] - Tolerance => 1.162e-01
+13-Mar-26 14:43:26 - __main__ - [INFO] - k = 1, res_p = 1.798e+03, res_d = 4.611e+00, mu = 1.000e-01
+13-Mar-26 14:43:27 - __main__ - [INFO] - k = 11, res_p = 1.126e+01, res_d = 3.235e-01, mu = 2.000e-01
+13-Mar-26 14:43:28 - __main__ - [INFO] - k = 21, res_p = 3.199e+00, res_d = 4.043e-01, mu = 4.000e-01
+13-Mar-26 14:43:29 - __main__ - [INFO] - k = 31, res_p = 1.377e+00, res_d = 1.593e-01, mu = 4.000e-01
+13-Mar-26 14:43:30 - __main__ - [INFO] - k = 41, res_p = 9.637e-01, res_d = 8.834e-02, mu = 4.000e-01
+13-Mar-26 14:43:31 - __main__ - [INFO] - k = 51, res_p = 1.878e+00, res_d = 5.231e-01, mu = 8.000e-01
+13-Mar-26 14:43:32 - __main__ - [INFO] - k = 61, res_p = 8.550e-01, res_d = 2.246e-01, mu = 8.000e-01
+13-Mar-26 14:43:33 - __main__ - [INFO] - k = 71, res_p = 5.193e-01, res_d = 1.336e-01, mu = 8.000e-01
+13-Mar-26 14:43:33 - __main__ - [INFO] - k = 81, res_p = 3.560e-01, res_d = 8.845e-02, mu = 8.000e-01
+13-Mar-26 14:43:34 - __main__ - [INFO] - k = 91, res_p = 2.606e-01, res_d = 6.261e-02, mu = 8.000e-01
+13-Mar-26 14:43:35 - __main__ - [INFO] - k = 101, res_p = 1.987e-01, res_d = 4.589e-02, mu = 8.000e-01
+13-Mar-26 14:43:36 - __main__ - [INFO] - k = 111, res_p = 1.553e-01, res_d = 3.465e-02, mu = 8.000e-01
+13-Mar-26 14:43:37 - __main__ - [INFO] - k = 121, res_p = 1.240e-01, res_d = 2.694e-02, mu = 8.000e-01
+13-Mar-26 14:43:38 - __main__ - [INFO] - k = 131, res_p = 1.010e-01, res_d = 2.130e-02, mu = 8.000e-01
+13-Mar-26 14:43:38 - __main__ - [INFO] - CLSUnSAL took 11.53s
+13-Mar-26 14:43:38 - __main__ - [INFO] - Saved estimates to /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/exp_standalone_unmixing_CLSUnSAL_DC1/estimates.mat
+13-Mar-26 14:43:38 - __main__ - [INFO] - SRE => {'Overall': 8.5585}
+  [Metadata] Recorded schema for: compute_metric
+13-Mar-26 14:43:38 - __main__ - [INFO] - aRMSE => {'Overall': 8.935, '#0': 11.6293, '#1': 11.7005, '#2': 6.2413, '#3': 7.5369, '#4': 5.5926}
+13-Mar-26 14:43:38 - __main__ - [INFO] - Saved metrics to /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/exp_standalone_unmixing_CLSUnSAL_DC1/metrics.json
+13-Mar-26 14:43:39 - __main__ - [INFO] - Semi-Supervised Unmixing - [END]
+13-Mar-26 14:43:39 - __main__ - [INFO] - ============================================================
+13-Mar-26 14:43:39 - __main__ - [INFO] - RESULTS SUMMARY
+13-Mar-26 14:43:39 - __main__ - [INFO] - ============================================================
+13-Mar-26 14:43:39 - __main__ - [INFO] - Dataset: DC1
+13-Mar-26 14:43:39 - __main__ - [INFO] - Model: CLSUnSAL
+13-Mar-26 14:43:39 - __main__ - [INFO] - SNR: 30 dB
+13-Mar-26 14:43:39 - __main__ - [INFO] - SRE: 8.5585 dB
+13-Mar-26 14:43:39 - __main__ - [INFO] - aRMSE: 8.9350 %
+13-Mar-26 14:43:39 - __main__ - [INFO] - ============================================================
+  [Metadata] Recorded schema for: main

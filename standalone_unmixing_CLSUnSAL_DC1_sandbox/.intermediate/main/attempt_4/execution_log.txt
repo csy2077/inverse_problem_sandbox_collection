@@ -1,0 +1,44 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/run_code/std_data/data_main.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Outer args count: 0, kwargs keys: []
+Final config keys: ['EPS', 'SNR', 'dataset', 'l2_normalization', 'projection', 'force_align', 'model']
+Config: {'EPS': 1e-10, 'SNR': 30, 'dataset': 'DC1', 'l2_normalization': False, 'projection': False, 'force_align': True, 'model': {'AL_iters': 1000, 'lambd': 0.01, 'verbose': True, 'tol': 0.0001, 'mu': 0.1, 'x0': 0}}
+Successfully imported 'main' from agent_main.
+Detected Scenario A: Simple Function
+Calling main(*outer_args, **outer_kwargs)...
+INFO:_patched_agent_main:Semi-Supervised Unmixing - [START]...
+INFO:_patched_agent_main:HSI => DC1
+------------------------------
+224 bands,
+75 lines, 75 samples (5625 pixels),
+5 endmembers (['#0', '#1', '#2', '#3', '#4']),
+240 atoms
+GlobalMinValue: 0.022721152752637863, GlobalMaxValue: 0.9662235379219055
+
+INFO:_patched_agent_main:Desired SNR => 30
+INFO:_patched_agent_main:k = 1, res_p = 1.798e+03, res_d = 4.611e+00, mu = 1.000e-01
+INFO:_patched_agent_main:k = 11, res_p = 1.125e+01, res_d = 3.250e-01, mu = 2.000e-01
+INFO:_patched_agent_main:k = 21, res_p = 3.191e+00, res_d = 4.065e-01, mu = 4.000e-01
+INFO:_patched_agent_main:k = 31, res_p = 1.369e+00, res_d = 1.593e-01, mu = 4.000e-01
+INFO:_patched_agent_main:k = 41, res_p = 9.556e-01, res_d = 8.806e-02, mu = 4.000e-01
+INFO:_patched_agent_main:k = 51, res_p = 1.876e+00, res_d = 5.240e-01, mu = 8.000e-01
+INFO:_patched_agent_main:k = 61, res_p = 8.557e-01, res_d = 2.234e-01, mu = 8.000e-01
+INFO:_patched_agent_main:k = 71, res_p = 5.205e-01, res_d = 1.326e-01, mu = 8.000e-01
+INFO:_patched_agent_main:k = 81, res_p = 3.570e-01, res_d = 8.796e-02, mu = 8.000e-01
+INFO:_patched_agent_main:k = 91, res_p = 2.615e-01, res_d = 6.275e-02, mu = 8.000e-01
+INFO:_patched_agent_main:k = 101, res_p = 1.991e-01, res_d = 4.597e-02, mu = 8.000e-01
+INFO:_patched_agent_main:k = 111, res_p = 1.552e-01, res_d = 3.481e-02, mu = 8.000e-01
+INFO:_patched_agent_main:k = 121, res_p = 1.236e-01, res_d = 2.696e-02, mu = 8.000e-01
+INFO:_patched_agent_main:k = 131, res_p = 1.003e-01, res_d = 2.132e-02, mu = 8.000e-01
+INFO:_patched_agent_main:CLSUnSAL took 11.26s
+INFO:_patched_agent_main:Saved estimates to /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/exp_standalone_unmixing_CLSUnSAL_DC1/estimates.mat
+ERROR during main execution: 
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/test_main.py", line 301, in main
+    result = target_main(*outer_args, **outer_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/_patched_agent_main.py", line 649, in main
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/_patched_agent_main.py", line 387, in fit_transform
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/_patched_agent_main.py", line 404, in fit
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/_patched_agent_main.py", line 322, in __call__
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/_patched_agent_main.py", line 305, in _check_input
+AssertionError

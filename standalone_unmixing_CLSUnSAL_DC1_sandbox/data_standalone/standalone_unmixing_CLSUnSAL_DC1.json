@@ -1,0 +1,19 @@
+{
+    "seed": 0,
+    "SNR": 30,
+    "projection": false,
+    "l2_normalization": false,
+    "force_align": false,
+    "dataset": "DC1",
+    "data_file": "DC1.mat",
+    "EPS": 1e-10,
+    "model": {
+        "name": "CLSUnSAL",
+        "lambd": 0.01,
+        "AL_iters": 1000,
+        "tol": 1e-4,
+        "mu": 0.1,
+        "verbose": true,
+        "x0": 0
+    }
+}

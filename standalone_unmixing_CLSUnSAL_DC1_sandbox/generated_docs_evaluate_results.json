@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Evaluates results by computing metrics, saving outputs, and generating plots based on provided data and results.",
+    "function_docstring": "Evaluate results, compute metrics, save outputs and plots.\n\nArgs:\n    data (dict): A dictionary containing the data required for evaluation, including 'hsi', 'cfg', 'H', 'W', 'p', and 'Y'.\n    result (dict): A dictionary containing the results to be evaluated, specifically 'A_hat'.\n    output_dir (str): The directory path where the output files and plots will be saved.\n\nReturns:\n    dict: A dictionary containing the computed metrics, including 'SRE' and 'aRMSE'.",
+    "usage_example": "data = {\n    'hsi': hsi_object,\n    'cfg': {'force_align': True, 'dataset': 'example_dataset', 'SNR': 30},\n    'H': 100,\n    'W': 100,\n    'p': 10,\n    'Y': np.random.rand(100, 10)\n}\nresult = {'A_hat': np.random.rand(100, 10)}\noutput_dir = '/path/to/output'\n\nmetrics = evaluate_results(data, result, output_dir)\nprint(metrics)"
+}

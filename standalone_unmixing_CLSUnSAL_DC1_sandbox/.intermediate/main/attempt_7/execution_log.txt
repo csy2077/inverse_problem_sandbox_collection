@@ -1,0 +1,53 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/run_code/std_data/data_main.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Outer args count: 0, kwargs keys: []
+Final config keys: ['EPS', 'SNR', 'dataset', 'l2_normalization', 'projection', 'force_align', 'model']
+Config: {'EPS': 1e-10, 'SNR': 30, 'dataset': 'DC1', 'l2_normalization': False, 'projection': False, 'force_align': True, 'model': {'AL_iters': 1000, 'lambd': 0.01, 'verbose': True, 'tol': 0.0001, 'mu': 0.1, 'x0': 0}}
+Successfully imported 'main' from agent_main.
+Detected Scenario A: Simple Function
+Calling main(*outer_args, **outer_kwargs)...
+INFO:_patched_agent_main:Semi-Supervised Unmixing - [START]...
+INFO:_patched_agent_main:HSI => DC1
+------------------------------
+224 bands,
+75 lines, 75 samples (5625 pixels),
+5 endmembers (['#0', '#1', '#2', '#3', '#4']),
+240 atoms
+GlobalMinValue: 0.022721152752637863, GlobalMaxValue: 0.9662235379219055
+
+INFO:_patched_agent_main:Desired SNR => 30
+INFO:_patched_agent_main:k = 1, res_p = 1.798e+03, res_d = 4.625e+00, mu = 1.000e-01
+INFO:_patched_agent_main:k = 11, res_p = 1.128e+01, res_d = 3.238e-01, mu = 2.000e-01
+INFO:_patched_agent_main:k = 21, res_p = 3.196e+00, res_d = 4.045e-01, mu = 4.000e-01
+INFO:_patched_agent_main:k = 31, res_p = 1.375e+00, res_d = 1.583e-01, mu = 4.000e-01
+INFO:_patched_agent_main:k = 41, res_p = 9.614e-01, res_d = 8.719e-02, mu = 4.000e-01
+INFO:_patched_agent_main:k = 51, res_p = 1.890e+00, res_d = 5.269e-01, mu = 8.000e-01
+INFO:_patched_agent_main:k = 61, res_p = 8.613e-01, res_d = 2.268e-01, mu = 8.000e-01
+INFO:_patched_agent_main:k = 71, res_p = 5.213e-01, res_d = 1.347e-01, mu = 8.000e-01
+INFO:_patched_agent_main:k = 81, res_p = 3.564e-01, res_d = 8.867e-02, mu = 8.000e-01
+INFO:_patched_agent_main:k = 91, res_p = 2.608e-01, res_d = 6.228e-02, mu = 8.000e-01
+INFO:_patched_agent_main:k = 101, res_p = 1.987e-01, res_d = 4.551e-02, mu = 8.000e-01
+INFO:_patched_agent_main:k = 111, res_p = 1.554e-01, res_d = 3.442e-02, mu = 8.000e-01
+INFO:_patched_agent_main:k = 121, res_p = 1.238e-01, res_d = 2.687e-02, mu = 8.000e-01
+INFO:_patched_agent_main:k = 131, res_p = 1.006e-01, res_d = 2.139e-02, mu = 8.000e-01
+INFO:_patched_agent_main:CLSUnSAL took 11.09s
+INFO:_patched_agent_main:Saved estimates to /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/exp_standalone_unmixing_CLSUnSAL_DC1/estimates.mat
+INFO:_patched_agent_main:SRE => {'Overall': 9.3665}
+INFO:_patched_agent_main:aRMSE => {'Overall': 8.1414, '#0': 9.7744, '#1': 10.1938, '#2': 6.2384, '#3': 7.8088, '#4': 5.6628}
+INFO:_patched_agent_main:Saved metrics to /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/exp_standalone_unmixing_CLSUnSAL_DC1/metrics.json
+INFO:_patched_agent_main:Semi-Supervised Unmixing - [END]
+INFO:_patched_agent_main:============================================================
+INFO:_patched_agent_main:RESULTS SUMMARY
+INFO:_patched_agent_main:============================================================
+INFO:_patched_agent_main:Dataset: DC1
+INFO:_patched_agent_main:Model: CLSUnSAL
+INFO:_patched_agent_main:SNR: 30 dB
+INFO:_patched_agent_main:SRE: 9.3665 dB
+INFO:_patched_agent_main:aRMSE: 8.1414 %
+INFO:_patched_agent_main:============================================================
+Result type: <class 'NoneType'>
+Comparing results...
+Expected type: <class 'NoneType'>, Result type: <class 'NoneType'>
+TEST PASSED
+
+All tests passed successfully.

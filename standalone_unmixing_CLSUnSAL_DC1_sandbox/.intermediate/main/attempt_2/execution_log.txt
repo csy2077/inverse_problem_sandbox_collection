@@ -1,0 +1,13 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/run_code/std_data/data_main.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Outer args count: 0, kwargs keys: []
+Successfully imported 'main' from agent_main.
+Detected Scenario A: Simple Function
+Calling main(*outer_args, **outer_kwargs)...
+INFO:_patched_agent_main:Semi-Supervised Unmixing - [START]...
+ERROR during main execution: 'SNR'
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/test_main.py", line 211, in main
+    result = target_main(*outer_args, **outer_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CLSUnSAL_DC1_sandbox/_patched_agent_main.py", line 584, in main
+KeyError: 'SNR'
