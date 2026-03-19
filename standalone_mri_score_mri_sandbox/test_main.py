@@ -1,0 +1,252 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_score_mri_sandbox/run_code/std_data/data_main.pkl'
+    ]
+
+    # Classify paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("ERROR: No outer data file found.")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+    except Exception as e:
+        print(f"ERROR: Failed to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+
+    print(f"Outer data func_name: {outer_data.get('func_name', 'unknown')}")
+    print(f"Outer args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+    print(f"Expected output type: {type(expected_output)}, value: {expected_output}")
+
+    # The main() function is a script-like entry point that:
+    # 1. Loads data from LMDB
+    # 2. Loads a pretrained DhariwalUNet model
+    # 3. Runs ScoreMRI inference (2000 steps)
+    # 4. Evaluates metrics
+    # 5. Returns None
+    #
+    # We need to import agent_main which requires DhariwalUNet to be defined.
+    # The agent_main.py references DhariwalUNet in _model_dict at module level.
+    # We need to find and provide the real DhariwalUNet or handle the import chain.
+
+    # First, let's try to find DhariwalUNet from the environment
+    # It might be available from a package already installed
+    try:
+        # Try importing from common locations
+        from torch_utils import persistence
+    except ImportError:
+        pass
+
+    # Try to find DhariwalUNet from the project structure
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Search for files that might contain DhariwalUNet
+    dhariwal_found = False
+    search_dirs = [script_dir, os.path.join(script_dir, '..')]
+    
+    for search_dir in search_dirs:
+        for root, dirs, files in os.walk(search_dir):
+            for fname in files:
+                if fname.endswith('.py') and fname != 'test_main.py' and fname != 'agent_main.py':
+                    fpath = os.path.join(root, fname)
+                    try:
+                        with open(fpath, 'r') as f:
+                            content = f.read()
+                        if 'class DhariwalUNet' in content:
+                            print(f"Found DhariwalUNet in: {fpath}")
+                            # Add its directory to path
+                            dir_of_file = os.path.dirname(fpath)
+                            if dir_of_file not in sys.path:
+                                sys.path.insert(0, dir_of_file)
+                            # Try to extract module name and import
+                            mod_name = fname[:-3]
+                            try:
+                                mod = __import__(mod_name)
+                                if hasattr(mod, 'DhariwalUNet'):
+                                    DhariwalUNet = mod.DhariwalUNet
+                                    dhariwal_found = True
+                                    print(f"Successfully imported DhariwalUNet from {mod_name}")
+                                    break
+                            except Exception as ex:
+                                print(f"Could not import {mod_name}: {ex}")
+                    except:
+                        pass
+            if dhariwal_found:
+                break
+        if dhariwal_found:
+            break
+
+    if not dhariwal_found:
+        # Try importing from known package patterns
+        try_imports = [
+            ('networks', 'DhariwalUNet'),
+            ('model', 'DhariwalUNet'),
+            ('models', 'DhariwalUNet'),
+            ('unet', 'DhariwalUNet'),
+            ('network', 'DhariwalUNet'),
+            ('training.networks', 'DhariwalUNet'),
+        ]
+        for mod_name, cls_name in try_imports:
+            try:
+                mod = __import__(mod_name, fromlist=[cls_name])
+                if hasattr(mod, cls_name):
+                    DhariwalUNet = getattr(mod, cls_name)
+                    dhariwal_found = True
+                    print(f"Successfully imported DhariwalUNet from {mod_name}")
+                    break
+            except:
+                pass
+
+    if not dhariwal_found:
+        print("WARNING: Could not find real DhariwalUNet, will attempt to load agent_main anyway")
+
+    # Now load agent_main
+    import types
+    import builtins
+
+    module_path = os.path.join(script_dir, "agent_main.py")
+
+    with open(module_path, 'r') as f:
+        source = f.read()
+
+    # Create module
+    mod = types.ModuleType('agent_main')
+    mod.__file__ = module_path
+    mod.__name__ = 'agent_main'
+    mod.__dict__['__builtins__'] = builtins.__dict__
+
+    # Inject DhariwalUNet if found
+    if dhariwal_found:
+        mod.__dict__['DhariwalUNet'] = DhariwalUNet
+
+    try:
+        code = compile(source, module_path, 'exec')
+        exec(code, mod.__dict__)
+        sys.modules['agent_main'] = mod
+        target_main = mod.main
+        print("Successfully loaded agent_main module")
+    except Exception as e:
+        print(f"ERROR: Failed to load agent_main: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Scenario A: Simple function call (main returns None)
+    if len(inner_paths) == 0:
+        print("Scenario A detected: Simple function call")
+        print("Running main(*args, **kwargs)...")
+        try:
+            actual_result = target_main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"ERROR: Failed to run main(): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        print(f"Actual result type: {type(actual_result)}, value: {actual_result}")
+
+        try:
+            passed, msg = recursive_check(expected_output, actual_result)
+        except Exception as e:
+            print(f"ERROR: recursive_check failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if passed:
+            print("TEST PASSED")
+            sys.exit(0)
+        else:
+            print(f"TEST FAILED: {msg}")
+            sys.exit(1)
+    else:
+        # Scenario B: Factory/Closure pattern
+        print("Scenario B detected: Factory/Closure pattern")
+        print("Running main(*args, **kwargs) to get operator...")
+        try:
+            agent_operator = target_main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"ERROR: Failed to run main(): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"ERROR: Expected callable operator from main(), got {type(agent_operator)}")
+            sys.exit(1)
+
+        all_passed = True
+        for inner_path in inner_paths:
+            print(f"\nLoading inner data from: {inner_path}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"ERROR: Failed to load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+
+            print(f"Inner data func_name: {inner_data.get('func_name', 'unknown')}")
+
+            print("Executing agent_operator(*inner_args, **inner_kwargs)...")
+            try:
+                actual_result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"ERROR: Failed to execute operator: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            print("Comparing results...")
+            try:
+                passed, msg = recursive_check(inner_expected, actual_result)
+            except Exception as e:
+                print(f"ERROR: recursive_check failed: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAILED for {os.path.basename(inner_path)}: {msg}")
+                all_passed = False
+            else:
+                print(f"PASSED for {os.path.basename(inner_path)}")
+
+        if all_passed:
+            print("\nTEST PASSED")
+            sys.exit(0)
+        else:
+            print("\nTEST FAILED")
+            sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

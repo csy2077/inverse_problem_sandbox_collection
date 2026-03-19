@@ -1,0 +1,13 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_score_mri_sandbox/run_code/std_data/data_create_logger.pkl
+  func_name: create_logger
+  Ensured logging_dir exists: outputs/standalone_mri_score_mri/ScoreMRI/default
+  create_logger executed successfully, returned: <class 'logging.Logger'>
+Scenario A detected: comparing direct output.
+  main_process=True
+  Expected logger level: 0
+  Actual logger level: 20
+  Expected handler types: []
+  Actual handler types: ['StreamHandler', 'FileHandler']
+  Logger level 20 (INFO) is correct for main_process=True
+  Logger semantic comparison passed.
+TEST PASSED
