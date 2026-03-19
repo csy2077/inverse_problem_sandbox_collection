@@ -1,0 +1,15 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_repressilator_sandbox/run_code/std_data/data_plot_series.pkl
+Outer data loaded. func_name=plot_series
+  args count: 2, kwargs keys: ['filename']
+Scenario A detected: Simple function call.
+FAIL: Error running plot_series: name 'odeint' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_repressilator_sandbox/test_plot_series.py", line 122, in main
+    result = plot_series(*outer_args, **outer_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_repressilator_sandbox/agent_plot_series.py", line 31, in plot_series
+    predicted_values.append(problem.evaluate(params))
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_repressilator_sandbox/gen_std_data.py", line 314, in evaluate
+    y = np.asarray(self._model.simulate(parameters, self._times))
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_repressilator_sandbox/gen_std_data.py", line 293, in simulate
+    y = odeint(self._rhs, self._y0, times, (alpha_0, alpha, beta, n))
+NameError: name 'odeint' is not defined

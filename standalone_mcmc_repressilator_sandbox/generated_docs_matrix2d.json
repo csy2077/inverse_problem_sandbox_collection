@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Converts an input array into a 2D matrix with immutable elements.",
+    "function_docstring": "Converts the input array into a 2D matrix with immutable elements.\n\nArgs:\n    x (array-like): An array-like object that can be converted into a 2D matrix. If the input is a 1D array, it will be reshaped into a column vector.\n\nReturns:\n    numpy.ndarray: A 2D numpy array with immutable elements. If the input is a 1D array, the output will be a column vector.",
+    "usage_example": "import numpy as np\n\n# Example usage of matrix2d\ninput_array = [1, 2, 3]\nresult = matrix2d(input_array)\nprint(result)\n# Output:\n# array([[1.],\n#        [2.],\n#        [3.]])"
+}

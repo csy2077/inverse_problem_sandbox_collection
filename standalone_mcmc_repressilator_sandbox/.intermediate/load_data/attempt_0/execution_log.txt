@@ -1,0 +1,5 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_repressilator_sandbox/run_code/std_data/data_load_data.pkl
+[INFO] Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+[INFO] Successfully called load_data with outer args/kwargs.
+[INFO] Verification passed for outer data.
+TEST PASSED

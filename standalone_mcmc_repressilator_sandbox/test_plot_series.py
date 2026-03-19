@@ -1,0 +1,269 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+from scipy.integrate import odeint
+import builtins
+
+try:
+    import gen_std_data
+    if not hasattr(gen_std_data, 'odeint'):
+        gen_std_data.odeint = odeint
+except ImportError:
+    pass
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from agent_plot_series import plot_series
+from verification_utils import recursive_check
+
+
+def patch_odeint_globally():
+    from scipy.integrate import odeint as _odeint
+    for mod_name, mod in list(sys.modules.items()):
+        if mod is None:
+            continue
+        if hasattr(mod, '_rhs') or hasattr(mod, 'simulate') or mod_name in ('gen_std_data', '__main__'):
+            try:
+                if not hasattr(mod, 'odeint'):
+                    setattr(mod, 'odeint', _odeint)
+            except:
+                pass
+    if not hasattr(builtins, 'odeint'):
+        builtins.odeint = _odeint
+
+
+def verify_matplotlib_results(result, expected):
+    """Custom verification for matplotlib Figure/Axes objects."""
+    if not isinstance(result, tuple) or len(result) != 2:
+        return False, f"Expected tuple of length 2, got {type(result)}"
+
+    fig_result, axes_result = result
+
+    if not isinstance(fig_result, plt.Figure):
+        return False, f"First element should be Figure, got {type(fig_result)}"
+
+    if isinstance(expected, tuple) and len(expected) == 2:
+        fig_expected, axes_expected = expected
+
+        # Check figure size
+        result_size = fig_result.get_size_inches()
+        expected_size = fig_expected.get_size_inches()
+        if not np.allclose(result_size, expected_size, atol=1e-3):
+            return False, f"Figure sizes differ. Expected {expected_size}, got {result_size}"
+
+        # Check axes count
+        result_axes_list = fig_result.get_axes()
+        expected_axes_list = fig_expected.get_axes()
+        if len(result_axes_list) != len(expected_axes_list):
+            return False, f"Number of axes differ. Expected {len(expected_axes_list)}, got {len(result_axes_list)}"
+
+        # Check each axis
+        for i, (ax_r, ax_e) in enumerate(zip(result_axes_list, expected_axes_list)):
+            r_lines = ax_r.get_lines()
+            e_lines = ax_e.get_lines()
+            if len(r_lines) != len(e_lines):
+                return False, f"Axis {i} line count differs. Expected {len(e_lines)}, got {len(r_lines)}"
+
+            for j, (line_r, line_e) in enumerate(zip(r_lines, e_lines)):
+                xdata_r = np.array(line_r.get_xdata(), dtype=float)
+                xdata_e = np.array(line_e.get_xdata(), dtype=float)
+                ydata_r = np.array(line_r.get_ydata(), dtype=float)
+                ydata_e = np.array(line_e.get_ydata(), dtype=float)
+
+                if xdata_r.shape != xdata_e.shape:
+                    return False, f"Axis {i}, Line {j} x-data shape differs."
+                if ydata_r.shape != ydata_e.shape:
+                    return False, f"Axis {i}, Line {j} y-data shape differs."
+
+                if not np.allclose(xdata_r, xdata_e, atol=1e-5, equal_nan=True):
+                    return False, f"Axis {i}, Line {j} x-data values differ."
+                if not np.allclose(ydata_r, ydata_e, atol=1e-5, equal_nan=True):
+                    return False, f"Axis {i}, Line {j} y-data values differ."
+
+            # Check labels
+            r_xlabel = ax_r.get_xlabel()
+            e_xlabel = ax_e.get_xlabel()
+            if r_xlabel != e_xlabel:
+                return False, f"Axis {i} xlabel differs. Expected '{e_xlabel}', got '{r_xlabel}'"
+
+            r_ylabel = ax_r.get_ylabel()
+            e_ylabel = ax_e.get_ylabel()
+            if r_ylabel != e_ylabel:
+                return False, f"Axis {i} ylabel differs. Expected '{e_ylabel}', got '{r_ylabel}'"
+
+    return True, "Matplotlib structural verification passed."
+
+
+def main():
+    patch_odeint_globally()
+
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_repressilator_sandbox/run_code/std_data/data_plot_series.pkl'
+    ]
+
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file found.")
+        sys.exit(1)
+
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+    except Exception as e:
+        print(f"FAIL: Could not load outer data file: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    patch_odeint_globally()
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    print(f"Outer data loaded. func_name={outer_data.get('func_name', 'N/A')}")
+    print(f"  args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+
+    # Patch the problem object's model if needed
+    try:
+        problem = outer_args[1] if len(outer_args) > 1 else outer_kwargs.get('problem', None)
+        if problem is not None:
+            if hasattr(problem, '_model'):
+                model = problem._model
+                model_module = type(model).__module__
+                if model_module in sys.modules:
+                    mod = sys.modules[model_module]
+                    if not hasattr(mod, 'odeint'):
+                        from scipy.integrate import odeint as _odeint
+                        setattr(mod, 'odeint', _odeint)
+                if hasattr(model, 'simulate'):
+                    sim_func = model.simulate
+                    if hasattr(sim_func, '__func__'):
+                        sim_func = sim_func.__func__
+                    if hasattr(sim_func, '__globals__'):
+                        if 'odeint' not in sim_func.__globals__:
+                            from scipy.integrate import odeint as _odeint
+                            sim_func.__globals__['odeint'] = _odeint
+    except Exception as e:
+        print(f"Warning: Could not patch problem object: {e}")
+
+    patch_odeint_globally()
+
+    if len(inner_paths) > 0:
+        # Scenario B
+        print("Scenario B detected: Factory/Closure pattern.")
+        try:
+            agent_operator = plot_series(*outer_args, **outer_kwargs)
+            plt.close('all')
+        except Exception as e:
+            print(f"FAIL: Error running plot_series to create operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable operator, got {type(agent_operator)}")
+            sys.exit(1)
+
+        for inner_path in inner_paths:
+            print(f"\nLoading inner data from: {inner_path}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data file: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+                plt.close('all')
+            except Exception as e:
+                print(f"FAIL: Error executing operator: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"Warning: recursive_check raised exception: {e}")
+                passed, msg = verify_matplotlib_results(result, expected)
+
+            if not passed:
+                print(f"FAIL: Verification failed: {msg}")
+                sys.exit(1)
+            else:
+                print(f"PASS: Inner data verified.")
+
+    else:
+        # Scenario A
+        print("Scenario A detected: Simple function call.")
+
+        try:
+            result = plot_series(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: Error running plot_series: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        print(f"Result type: {type(result)}")
+        print(f"Expected type: {type(expected)}")
+
+        # For matplotlib objects, recursive_check will fail on Figure comparison
+        # Go directly to structural verification
+        try:
+            passed = False
+            msg = ""
+
+            # First try recursive_check
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                passed = False
+                msg = str(e)
+
+            if not passed:
+                # Fall back to matplotlib structural verification
+                print(f"recursive_check did not pass (msg: {msg}), trying structural verification...")
+                passed, msg = verify_matplotlib_results(result, expected)
+                print(f"Structural verification: passed={passed}, msg={msg}")
+
+        except SystemExit:
+            raise
+        except Exception as e:
+            print(f"FAIL: Verification failed with exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: Verification failed. Message: {msg}")
+            sys.exit(1)
+
+        plt.close('all')
+
+    print("\nTEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,11 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_repressilator_sandbox/run_code/std_data/data_plot_series.pkl
+Outer data loaded. func_name=plot_series
+  args count: 2, kwargs keys: ['filename']
+Scenario A detected: Simple function call.
+Saved: repressilator_series.png
+Result type: <class 'tuple'>
+Expected type: <class 'tuple'>
+recursive_check did not pass (msg: Value mismatch at output[0]: expected Figure(800x519.615), got Figure(800x519.615)), trying structural verification...
+Structural verification: passed=True, msg=Matplotlib structural verification passed.
+
+TEST PASSED

@@ -1,0 +1,269 @@
+
+
+```python
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+# Fix missing imports that pickled objects may need
+from scipy.integrate import odeint
+import builtins
+
+# Inject odeint into the gen_std_data module's namespace if it exists
+try:
+    import gen_std_data
+    if not hasattr(gen_std_data, 'odeint'):
+        gen_std_data.odeint = odeint
+except ImportError:
+    pass
+
+# Also try to inject into global/builtins as fallback
+try:
+    # Patch the module where the unpickled objects live
+    import types
+    # We need to ensure odeint is available in whatever namespace the pickled lambdas/functions reference
+except:
+    pass
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from agent_plot_series import plot_series
+from verification_utils import recursive_check
+
+
+def patch_odeint_globally():
+    """Ensure odeint is available in all relevant module namespaces."""
+    from scipy.integrate import odeint as _odeint
+    
+    # Patch into all loaded modules that might need it
+    for mod_name, mod in list(sys.modules.items()):
+        if mod is None:
+            continue
+        if hasattr(mod, '_rhs') or hasattr(mod, 'simulate') or mod_name in ('gen_std_data', '__main__'):
+            try:
+                if not hasattr(mod, 'odeint'):
+                    setattr(mod, 'odeint', _odeint)
+            except:
+                pass
+    
+    # Also inject into builtins as last resort
+    if not hasattr(builtins, 'odeint'):
+        builtins.odeint = _odeint
+
+
+def main():
+    # Patch odeint before loading any pickled data
+    patch_odeint_globally()
+    
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_repressilator_sandbox/run_code/std_data/data_plot_series.pkl'
+    ]
+
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file found.")
+        sys.exit(1)
+
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+    except Exception as e:
+        print(f"FAIL: Could not load outer data file: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Re-patch after loading (dill may have loaded new modules)
+    patch_odeint_globally()
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    print(f"Outer data loaded. func_name={outer_data.get('func_name', 'N/A')}")
+    print(f"  args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+
+    # Patch the problem object's model if needed
+    try:
+        problem = outer_args[1] if len(outer_args) > 1 else outer_kwargs.get('problem', None)
+        if problem is not None:
+            # Try to find and patch the model's simulate method module
+            if hasattr(problem, '_model'):
+                model = problem._model
+                model_module = type(model).__module__
+                if model_module in sys.modules:
+                    mod = sys.modules[model_module]
+                    if not hasattr(mod, 'odeint'):
+                        from scipy.integrate import odeint as _odeint
+                        setattr(mod, 'odeint', _odeint)
+                # Also patch the simulate method's globals if possible
+                if hasattr(model, 'simulate'):
+                    sim_func = model.simulate
+                    if hasattr(sim_func, '__func__'):
+                        sim_func = sim_func.__func__
+                    if hasattr(sim_func, '__globals__'):
+                        if 'odeint' not in sim_func.__globals__:
+                            from scipy.integrate import odeint as _odeint
+                            sim_func.__globals__['odeint'] = _odeint
+    except Exception as e:
+        print(f"Warning: Could not patch problem object: {e}")
+
+    # Re-patch one more time
+    patch_odeint_globally()
+
+    if len(inner_paths) > 0:
+        # Scenario B
+        print("Scenario B detected: Factory/Closure pattern.")
+        try:
+            agent_operator = plot_series(*outer_args, **outer_kwargs)
+            plt.close('all')
+        except Exception as e:
+            print(f"FAIL: Error running plot_series to create operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable operator, got {type(agent_operator)}")
+            sys.exit(1)
+
+        for inner_path in inner_paths:
+            print(f"\nLoading inner data from: {inner_path}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data file: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+                plt.close('all')
+            except Exception as e:
+                print(f"FAIL: Error executing operator: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"FAIL: Error during recursive_check: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Verification failed: {msg}")
+                sys.exit(1)
+            else:
+                print(f"PASS: Inner data verified.")
+
+    else:
+        # Scenario A
+        print("Scenario A detected: Simple function call.")
+
+        try:
+            result = plot_series(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: Error running plot_series: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        print(f"Result type: {type(result)}")
+        print(f"Expected type: {type(expected)}")
+
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"Warning: recursive_check raised exception: {e}")
+            print("Attempting structural verification for matplotlib objects...")
+
+            try:
+                if not isinstance(result, tuple) or len(result) != 2:
+                    print(f"FAIL: Expected tuple of length 2, got {type(result)}")
+                    sys.exit(1)
+
+                fig_result, axes_result = result
+
+                if not isinstance(fig_result, plt.Figure):
+                    print(f"FAIL: First element should be Figure, got {type(fig_result)}")
+                    sys.exit(1)
+
+                if isinstance(expected, tuple) and len(expected) == 2:
+                    fig_expected, axes_expected = expected
+
+                    result_size = fig_result.get_size_inches()
+                    expected_size = fig_expected.get_size_inches()
+                    if not np.allclose(result_size, expected_size, atol=1e-5):
+                        print(f"FAIL: Figure sizes differ. Expected {expected_size}, got {result_size}")
+                        sys.exit(1)
+
+                    result_axes_list = fig_result.get_axes()
+                    expected_axes_list = fig_expected.get_axes()
+                    if len(result_axes_list) != len(expected_axes_list):
+                        print(f"FAIL: Number of axes differ.")
+                        sys.exit(1)
+
+                    for i, (ax_r, ax_e) in enumerate(zip(result_axes_list, expected_axes_list)):
+                        r_lines = len(ax_r.get_lines())
+                        e_lines = len(ax_e.get_lines())
+                        if r_lines != e_lines:
+                            print(f"FAIL: Axis {i} line count differs. Expected {e_lines}, got {r_lines}")
+                            sys.exit(1)
+
+                        for j, (line_r, line_e) in enumerate(zip(ax_r.get_lines(), ax_e.get_lines())):
+                            xdata_r = np.array(line_r.get_xdata())
+                            xdata_e = np.array(line_e.get_xdata())
+                            ydata_r = np.array(line_r.get_ydata())
+                            ydata_e = np.array(line_e.get_ydata())
+
+                            if not np.allclose(xdata_r, xdata_e, atol=1e-5, equal_nan=True):
+                                print(f"FAIL: Axis {i}, Line {j} x-data differs.")
+                                sys.exit(1)
+                            if not np.allclose(ydata_r, ydata_e, atol=1e-5, equal_nan=True):
+                                print(f"FAIL: Axis {i}, Line {j} y-data differs.")
+                                sys.exit(1)
+
+                passed = True
+                msg = "Structural verification passed for matplotlib objects."
+                print(msg)
+
+            except SystemExit:
+                raise
+            except Exception as e2:
+                print(f"FAIL: Structural verification also failed: {e2}")
+                traceback.print_exc()
+                sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: Verification failed. Message: {msg}")
+            sys.exit(1)
+
+        plt.close('all')
+
+    print("\nTEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
+```

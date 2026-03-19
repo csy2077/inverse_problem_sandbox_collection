@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Converts an input into a non-writable 1-dimensional NumPy array.",
+    "function_docstring": "\"\"\"\nConverts the input into a non-writable 1-dimensional NumPy array of floats.\n\nArgs:\n    x: Union[scalar, array-like]\n        A scalar or array-like object which will be converted into a 1-dimensional\n        NumPy array. If `x` is a scalar, it will be converted to a 1-element array;\n        if `x` is multi-dimensional, it will be flattened into a 1-dimensional array.\n\nReturns:\n    numpy.ndarray:\n        A non-writable 1-dimensional NumPy array of floats.\n\nRaises:\n    ValueError: If the input cannot be reshaped to a 1-dimensional array.\n\"\"\"",
+    "usage_example": "import numpy as np\n\n# Example usage of the `vector` function\ninput_value = [1, 2, 3]\nresult = vector(input_value)\nprint(result)\n# Output: array([1., 2., 3.], dtype=float32), with `write` flag set to False"
+}
