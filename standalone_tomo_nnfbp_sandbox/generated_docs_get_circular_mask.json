@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Generates a circular mask for a given grid size, with optional radius and center specifications.",
+    "function_docstring": "def get_circular_mask(nrow, ncol, radius=None, center=None):\n    \"\"\"\n    Generates a circular mask for a grid of specified dimensions.\n\n    Args:\n        nrow (int): The number of rows in the grid.\n        ncol (int): The number of columns in the grid.\n        radius (float, optional): The radius of the circle. Defaults to half of the smaller dimension of the grid.\n        center (tuple of float, optional): The (y, x) coordinates of the circle's center. Defaults to the center of the grid.\n\n    Returns:\n        np.ndarray: A boolean array of shape (ncol, nrow) where True values represent the circular mask.\n    \"\"\"",
+    "usage_example": "import numpy as np\n\n# Example usage of get_circular_mask\nnrow, ncol = 100, 100\nradius = 30\ncenter = (50, 50)\nmask = get_circular_mask(nrow, ncol, radius, center)\nprint(mask)"
+}

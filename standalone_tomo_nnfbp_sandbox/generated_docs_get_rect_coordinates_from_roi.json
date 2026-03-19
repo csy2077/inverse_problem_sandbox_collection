@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Extracts rectangle coordinates from a given ROI file.",
+    "function_docstring": "Extracts the minimum and maximum row and column indices of a rectangle from a given ROI file.\n\nArgs:\n    fname (str): The file path to the ROI file.\n\nReturns:\n    tuple: A tuple containing four integers representing the minimum and maximum row indices, and the minimum and maximum column indices of the rectangle.",
+    "usage_example": "from read_roi import read_roi_file\n\n# Example usage\nroi_file_path = 'path/to/roi_file.roi'\nrowmin, rowmax, colmin, colmax = get_rect_coordinates_from_roi(roi_file_path)\nprint(f\"Row min: {rowmin}, Row max: {rowmax}, Col min: {colmin}, Col max: {colmax}\")"
+}

@@ -1,0 +1,272 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import tempfile
+import shutil
+
+# Ensure the current directory is in the path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from agent_write_tiff_stack import write_tiff_stack
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/run_code/std_data/data_write_tiff_stack.pkl'
+    ]
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: Could not find outer data file (data_write_tiff_stack.pkl)")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"Keys in outer_data: {list(outer_data.keys())}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+
+    # write_tiff_stack writes files to disk. The original call used a specific path
+    # that may not exist in this environment. We need to:
+    # 1. Create a temp directory
+    # 2. Replace the folder path in fname with the temp directory
+    # 3. Run the function
+    # 4. Verify the files were written correctly
+
+    # Analyze the arguments
+    # Signature: write_tiff_stack(fname, data, axis=0, start=0, digit=4, dtype=None, overwrite=True)
+    try:
+        # Convert args to a mutable list
+        args_list = list(outer_args)
+        kwargs_dict = dict(outer_kwargs)
+
+        # The first argument is fname
+        if len(args_list) > 0:
+            original_fname = args_list[0]
+        elif 'fname' in kwargs_dict:
+            original_fname = kwargs_dict['fname']
+        else:
+            print("FAIL: Could not determine fname from arguments")
+            sys.exit(1)
+
+        print(f"Original fname: {original_fname}")
+
+        # Create a temporary directory
+        temp_dir = tempfile.mkdtemp(prefix='test_write_tiff_stack_')
+        print(f"Created temp directory: {temp_dir}")
+
+        # Replace the folder in fname with temp_dir
+        original_basename = os.path.basename(original_fname)
+        new_fname = os.path.join(temp_dir, original_basename)
+
+        if len(args_list) > 0:
+            args_list[0] = new_fname
+        else:
+            kwargs_dict['fname'] = new_fname
+
+        print(f"New fname: {new_fname}")
+
+    except Exception as e:
+        print(f"FAIL: Error preparing arguments: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Phase 2: Execute the function
+    if len(inner_paths) > 0:
+        # Scenario B: Factory pattern
+        try:
+            agent_operator = write_tiff_stack(*args_list, **kwargs_dict)
+            print("Phase 1 complete: Got operator from write_tiff_stack")
+        except Exception as e:
+            print(f"FAIL: Error creating operator: {e}")
+            traceback.print_exc()
+            # Clean up
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print("FAIL: Returned operator is not callable")
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            sys.exit(1)
+
+        # Load inner data
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data: {e}")
+                traceback.print_exc()
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Error executing operator: {e}")
+                traceback.print_exc()
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+                if not passed:
+                    print(f"FAIL: {msg}")
+                    shutil.rmtree(temp_dir, ignore_errors=True)
+                    sys.exit(1)
+                else:
+                    print("Inner test passed.")
+            except Exception as e:
+                print(f"FAIL: Error in verification: {e}")
+                traceback.print_exc()
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                sys.exit(1)
+
+    else:
+        # Scenario A: Simple function call
+        try:
+            result = write_tiff_stack(*args_list, **kwargs_dict)
+            print("Function executed successfully.")
+        except Exception as e:
+            print(f"FAIL: Error executing write_tiff_stack: {e}")
+            traceback.print_exc()
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            sys.exit(1)
+
+        # For write_tiff_stack, the function returns None (it writes files to disk)
+        # We need to verify:
+        # 1. The return value matches expected_output
+        # 2. The files were actually written
+
+        try:
+            passed, msg = recursive_check(expected_output, result)
+            if not passed:
+                print(f"FAIL (return value check): {msg}")
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                sys.exit(1)
+            else:
+                print("Return value check passed.")
+        except Exception as e:
+            print(f"FAIL: Error in verification: {e}")
+            traceback.print_exc()
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            sys.exit(1)
+
+        # Additionally verify files were written to disk
+        try:
+            # Get data array to determine expected number of slices
+            if len(outer_args) > 1:
+                data_array = outer_args[1]
+            elif 'data' in outer_kwargs:
+                data_array = outer_kwargs['data']
+            else:
+                data_array = None
+
+            if data_array is not None:
+                # Determine axis
+                axis = 0
+                if len(outer_args) > 2:
+                    axis = outer_args[2]
+                elif 'axis' in outer_kwargs:
+                    axis = outer_kwargs['axis']
+
+                if axis != 0:
+                    effective_data = np.swapaxes(data_array, 0, axis)
+                else:
+                    effective_data = data_array
+
+                nslice = effective_data.shape[0]
+
+                # Determine start and digit
+                start = 0
+                if len(outer_args) > 3:
+                    start = outer_args[3]
+                elif 'start' in outer_kwargs:
+                    start = outer_kwargs['start']
+
+                digit = 4
+                if len(outer_args) > 4:
+                    digit = outer_args[4]
+                elif 'digit' in outer_kwargs:
+                    digit = outer_kwargs['digit']
+
+                # Determine dtype
+                dtype = None
+                if len(outer_args) > 5:
+                    dtype = outer_args[5]
+                elif 'dtype' in outer_kwargs:
+                    dtype = outer_kwargs['dtype']
+                if dtype is None:
+                    dtype = data_array.dtype
+
+                # Check each output file exists and has correct content
+                files_found = 0
+                for iz in range(nslice):
+                    outfile = new_fname + '_' + str(iz + start).zfill(digit) + '.tiff'
+                    if os.path.exists(outfile):
+                        files_found += 1
+                        # Optionally verify content
+                        import tifffile
+                        loaded_slice = tifffile.imread(outfile)
+                        expected_slice = effective_data[iz].astype(dtype)
+                        if not np.allclose(loaded_slice, expected_slice, equal_nan=True):
+                            print(f"FAIL: Content mismatch for slice {iz}")
+                            print(f"  Expected shape: {expected_slice.shape}, dtype: {expected_slice.dtype}")
+                            print(f"  Got shape: {loaded_slice.shape}, dtype: {loaded_slice.dtype}")
+                            shutil.rmtree(temp_dir, ignore_errors=True)
+                            sys.exit(1)
+                    else:
+                        print(f"FAIL: Expected output file not found: {outfile}")
+                        shutil.rmtree(temp_dir, ignore_errors=True)
+                        sys.exit(1)
+
+                print(f"File verification passed: {files_found}/{nslice} slices written and verified.")
+            else:
+                print("Warning: Could not extract data array for file verification.")
+
+        except Exception as e:
+            print(f"FAIL: Error during file verification: {e}")
+            traceback.print_exc()
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            sys.exit(1)
+
+    # Clean up temp directory
+    try:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        print("Cleaned up temp directory.")
+    except Exception:
+        pass
+
+    print("TEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

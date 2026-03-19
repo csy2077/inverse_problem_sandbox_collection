@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Evaluate reconstruction quality using SSIM, NRMSE, and CNR metrics based on provided data and results dictionaries.",
+    "function_docstring": "def evaluate_results(data, results):\n    \"\"\"\n    Evaluate reconstruction quality using SSIM, NRMSE, and CNR metrics.\n\n    Args:\n        data (dict): A dictionary containing the configuration and data necessary for evaluation, including keys like 'config', 'sino_2d', 'angles', and 'pixel_size'.\n        results (dict): A dictionary containing the reconstruction results, specifically the 'rec_nnfbp' key which holds the reconstructed images.\n\n    Returns:\n        None: The function performs evaluation and prints the results, but does not return any value.\n    \"\"\"",
+    "usage_example": "data = {\n    'config': {\n        'nnfbp_rec_folder': '/path/to/folder',\n        'roi_signal': '/path/to/signal.roi',\n        'roi_background': '/path/to/background.roi'\n    },\n    'sino_2d': np.random.rand(180, 256),\n    'angles': np.linspace(0, np.pi, 180),\n    'pixel_size': 1.0\n}\n\nresults = {\n    'rec_nnfbp': np.random.rand(1, 256, 256)\n}\n\nevaluate_results(data, results)"
+}

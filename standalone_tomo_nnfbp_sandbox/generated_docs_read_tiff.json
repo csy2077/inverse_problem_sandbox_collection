@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Reads a TIFF image from a file and returns it as a numpy array.",
+    "function_docstring": "\"\"\"\nReads a TIFF image file and returns it as a numpy array.\n\nArgs:\n    fname (str): The file path to the TIFF image file to be read.\n\nReturns:\n    numpy.ndarray: The image data read from the TIFF file as a numpy array.\n\"\"\"",
+    "usage_example": "import tifffile\nfrom agent_read_tiff import read_tiff\n\n# Example usage\nimage_path = '/path/to/image.tiff'\nimage_data = read_tiff(image_path)\nprint(type(image_data))  # Should output: <class 'numpy.ndarray'>"
+}

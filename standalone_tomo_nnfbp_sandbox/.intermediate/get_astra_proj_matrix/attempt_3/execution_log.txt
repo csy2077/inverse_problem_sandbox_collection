@@ -1,0 +1,27 @@
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/run_code/std_data/data_get_astra_proj_matrix.pkl (size: 16954 bytes)
+WARNING: Could not load outer data file: Could not load file with any method: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/run_code/std_data/data_get_astra_proj_matrix.pkl
+Traceback (most recent call last):
+  File "test_get_astra_proj_matrix.py", line 174, in main
+    outer_data = try_load_pickle(outer_path)
+  File "test_get_astra_proj_matrix.py", line 95, in try_load_pickle
+    raise ValueError(f"Could not load file with any method: {filepath}")
+ValueError: Could not load file with any method: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/run_code/std_data/data_get_astra_proj_matrix.pkl
+Outer data file could not be loaded. Reconstructing from known function signature.
+Using default test parameters for get_astra_proj_matrix.
+Outer args count: 3, kwargs keys: []
+Successfully created operator: <class 'agent_get_astra_proj_matrix.OpTomo'>
+Operator shape: (46080, 65536)
+Operator vshape: (256, 256)
+Operator sshape: (180, 256)
+
+Scenario A detected: No inner data files.
+No expected output available. Performing structural validation of operator.
+Testing FP with volume shape (256, 256)...
+FP output shape: (180, 256), max: 129.0000
+Testing BP with sinogram shape (180, 256)...
+BP output shape: (256, 256), max: 23026.4512
+Testing matvec...
+Testing transpose...
+
+All structural validations passed.
+TEST PASSED

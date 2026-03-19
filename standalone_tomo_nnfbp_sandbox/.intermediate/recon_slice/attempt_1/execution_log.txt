@@ -1,0 +1,31 @@
+File: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/run_code/std_data/data_recon_slice.pkl, size: 4165925 bytes
+
+Files in std_data directory:
+  data_CNR.pkl (3415708 bytes)
+  data_NRMSE.pkl (6830652 bytes)
+  data_SSIM.pkl (6830651 bytes)
+  data_customFBP.pkl (7180 bytes)
+  data_get_astra_proj_matrix.pkl (16954 bytes)
+  data_get_circular_mask.pkl (854111 bytes)
+  data_get_rect_coordinates_from_roi.pkl (225 bytes)
+  data_main.pkl (77 bytes)
+  data_mkdir_p.pkl (193 bytes)
+  data_nnfbp_prepare_training_data.pkl (4809212 bytes)
+  data_nnfbp_reconstruct.pkl (1394034 bytes)
+  data_nnfbp_train.pkl (310 bytes)
+  data_read_tiff.pkl (4158426 bytes)
+  data_recon_slice.pkl (4165925 bytes)
+  data_recon_stack.pkl (20797926 bytes)
+  data_reconstruct.pkl (7582635 bytes)
+  data_sigmoid.pkl (13660778 bytes)
+  data_write_tiff_stack.pkl (17075969 bytes)
+
+Using outer_path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/run_code/std_data/data_recon_slice.pkl
+Inner paths: []
+FAIL: Could not load outer data file: Could not load data from /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/run_code/std_data/data_recon_slice.pkl with any method
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 163, in main
+    outer_data = load_data(outer_path)
+  File "test_recon_slice.py", line 74, in load_data
+    raise RuntimeError(f"Could not load data from {filepath} with any method")
+RuntimeError: Could not load data from /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/run_code/std_data/data_recon_slice.pkl with any method

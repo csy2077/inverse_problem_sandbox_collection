@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Creates an OpTomo object representing a projection matrix for tomographic reconstruction using ASTRA toolbox.",
+    "function_docstring": "Creates an OpTomo object representing a projection matrix for tomographic reconstruction using ASTRA toolbox.\n\nArgs:\n    nd (int): The number of detector elements, defining the size of the volume geometry.\n    angles (array-like): A sequence of angles (in radians) at which projections are taken.\n    method (str): The method used for creating the projector, which can include CUDA or NN-FBP for specific configurations.\n\nReturns:\n    OpTomo: An instance of the OpTomo class, which is a linear operator representing the projection matrix for the specified geometry and method.",
+    "usage_example": "import numpy as np\nfrom agent_get_astra_proj_matrix import get_astra_proj_matrix\n\nnd = 128\nangles = np.linspace(0, np.pi, 180, endpoint=False)\nmethod = 'linear'\n\nprojection_matrix = get_astra_proj_matrix(nd, angles, method)\nprint(projection_matrix.shape)"
+}

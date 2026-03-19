@@ -1,0 +1,201 @@
+--- NN-FBP Reconstruction (Headless) ---
+  [Metadata] Recorded schema for: read_tiff
+Sinogram 2D shape: (1125, 924)
+Creating fake 3D stack with 10 slices...
+Stack shape: (1125, 10, 924)
+Generating HQ training data (FBP)...
+  [Metadata] Recorded schema for: get_astra_proj_matrix
+
+  Reconstructing slice 1/5  [Metadata] Recorded schema for: reconstruct
+  [Metadata] Recorded schema for: recon_slice
+
+  Reconstructing slice 2/5
+  Reconstructing slice 3/5
+  Reconstructing slice 4/5
+  Reconstructing slice 5/5
+  [Metadata] Recorded schema for: recon_stack
+Saving HQ reconstructions to /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/output_nnfbp/hqrecs/...
+> Saving stack of images: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/output_nnfbp/hqrecs/sample_####.tiff
+  [Metadata] Recorded schema for: write_tiff_stack
+Training NN-FBP...
+> Preparing training data...
+  Processing slice 1/5
+  [Metadata] Recorded schema for: mkdir_p
+  [Metadata] Recorded schema for: customFBP
+  [Metadata] Recorded schema for: nnfbp_prepare_training_data
+  Processing slice 2/5
+  Processing slice 3/5
+  Processing slice 4/5
+  Processing slice 5/5
+> Training neural network...
+  [Metadata] Recorded schema for: sigmoid
+  Training iteration 0, validation error: 80.495577
+  Training iteration 1, validation error: 71.951158
+  Training iteration 2, validation error: 44.477877
+  Training iteration 3, validation error: 28.945657
+  Training iteration 4, validation error: 20.539898
+  Training iteration 5, validation error: 13.648714
+  Training iteration 6, validation error: 9.041721
+  Training iteration 7, validation error: 8.144465
+  Training iteration 8, validation error: 8.046777
+  Training iteration 9, validation error: 7.847632
+  Training iteration 10, validation error: 7.233325
+  Training iteration 11, validation error: 7.138459
+  Training iteration 12, validation error: 7.005930
+  Training iteration 13, validation error: 6.212667
+  Training iteration 14, validation error: 5.956275
+  Training iteration 15, validation error: 5.805771
+  Training iteration 16, validation error: 5.720977
+  Training iteration 17, validation error: 5.672381
+  Training iteration 18, validation error: 5.644750
+  Training iteration 19, validation error: 5.628761
+  Training iteration 20, validation error: 5.619345
+  Training iteration 21, validation error: 5.613614
+  Training iteration 22, validation error: 5.609972
+  Training iteration 23, validation error: 5.607532
+  Training iteration 24, validation error: 5.605797
+  Training iteration 25, validation error: 5.604483
+  Training iteration 26, validation error: 5.603421
+  Training iteration 27, validation error: 5.602515
+  Training iteration 28, validation error: 5.601702
+  Training iteration 29, validation error: 5.601634
+  Training iteration 30, validation error: 5.589981
+  Training iteration 31, validation error: 5.581933
+  Training iteration 32, validation error: 5.575517
+  Training iteration 33, validation error: 5.569120
+  Training iteration 34, validation error: 5.558463
+  Training iteration 35, validation error: 5.545833
+  Training iteration 36, validation error: 5.535842
+  Training iteration 37, validation error: 5.526950
+  Training iteration 38, validation error: 5.519611
+  Training iteration 39, validation error: 5.514226
+  Training iteration 40, validation error: 5.510241
+  Training iteration 41, validation error: 5.507132
+  Training iteration 42, validation error: 5.504603
+  Training iteration 43, validation error: 5.502488
+  Training iteration 44, validation error: 5.500685
+  Training iteration 45, validation error: 5.499125
+  Training iteration 46, validation error: 5.497761
+  Training iteration 47, validation error: 5.496555
+  Training iteration 48, validation error: 5.495477
+  Training iteration 49, validation error: 5.494505
+  Training iteration 50, validation error: 5.493616
+  Training iteration 51, validation error: 5.492794
+  Training iteration 52, validation error: 5.492022
+  Training iteration 53, validation error: 5.491287
+  Training iteration 54, validation error: 5.490577
+  Training iteration 55, validation error: 5.489882
+  Training iteration 56, validation error: 5.489191
+  Training iteration 57, validation error: 5.488500
+  Training iteration 58, validation error: 5.487800
+  Training iteration 59, validation error: 5.487087
+  Training iteration 60, validation error: 5.486355
+  Training iteration 61, validation error: 5.485597
+  Training iteration 62, validation error: 5.484805
+  Training iteration 63, validation error: 5.483968
+  Training iteration 64, validation error: 5.483074
+  Training iteration 65, validation error: 5.482114
+  Training iteration 66, validation error: 5.481082
+  Training iteration 67, validation error: 5.479977
+  Training iteration 68, validation error: 5.478804
+  Training iteration 69, validation error: 5.477569
+  Training iteration 70, validation error: 5.476284
+  Training iteration 71, validation error: 5.474962
+  Training iteration 72, validation error: 5.473614
+  Training iteration 73, validation error: 5.472254
+  Training iteration 74, validation error: 5.470894
+  Training iteration 75, validation error: 5.469545
+  Training iteration 76, validation error: 5.468215
+  Training iteration 77, validation error: 5.466912
+  Training iteration 78, validation error: 5.465640
+  Training iteration 79, validation error: 5.464403
+  Training iteration 80, validation error: 5.463203
+  Training iteration 81, validation error: 5.462041
+  Training iteration 82, validation error: 5.456948
+  Training iteration 83, validation error: 5.443574
+  Training iteration 84, validation error: 5.438701
+  Training iteration 85, validation error: 5.433487
+  Training iteration 86, validation error: 5.429193
+  Training iteration 87, validation error: 5.424972
+  Training iteration 88, validation error: 5.420711
+  Training iteration 89, validation error: 5.416246
+  Training iteration 90, validation error: 5.411440
+  Training iteration 91, validation error: 5.400721
+  Training iteration 92, validation error: 5.380715
+  Training iteration 93, validation error: 5.369360
+  Training iteration 94, validation error: 5.360749
+  Training iteration 95, validation error: 5.356682
+  Training iteration 96, validation error: 5.354306
+  Training iteration 97, validation error: 5.352713
+  Training iteration 98, validation error: 5.351666
+  Training iteration 99, validation error: 5.350991
+  Training iteration 100, validation error: 5.350528
+  Training iteration 101, validation error: 5.350190
+  Training iteration 102, validation error: 5.349930
+  Training iteration 103, validation error: 5.349721
+  Training iteration 104, validation error: 5.349549
+  Training iteration 105, validation error: 5.349405
+  Training iteration 106, validation error: 5.349283
+  Training iteration 107, validation error: 5.349178
+  Training iteration 108, validation error: 5.349087
+  Training iteration 109, validation error: 5.349009
+  Training iteration 110, validation error: 5.348939
+  Training iteration 111, validation error: 5.348878
+  Training iteration 112, validation error: 5.348823
+  Training iteration 113, validation error: 5.348775
+  Training iteration 114, validation error: 5.348731
+  Training iteration 115, validation error: 5.348691
+  Training iteration 116, validation error: 5.348654
+  Training iteration 117, validation error: 5.348621
+  Training iteration 118, validation error: 5.348590
+  Training iteration 119, validation error: 5.348562
+  Training iteration 120, validation error: 5.348535
+  Training iteration 121, validation error: 5.348510
+  Training iteration 122, validation error: 5.348486
+  Training iteration 123, validation error: 5.348464
+  Training iteration 124, validation error: 5.348443
+  Training iteration 125, validation error: 5.348422
+  Training iteration 126, validation error: 5.348403
+  Training iteration 127, validation error: 5.348384
+  Training iteration 128, validation error: 5.348366
+  Training iteration 129, validation error: 5.348349
+  Training iteration 130, validation error: 5.348332
+  Training iteration 131, validation error: 5.348315
+  Training iteration 132, validation error: 5.348299
+  Training iteration 133, validation error: 5.348283
+  Training iteration 134, validation error: 5.348268
+  Training iteration 135, validation error: 5.348252
+  Training iteration 136, validation error: 5.348237
+  Training iteration 137, validation error: 5.348222
+  Training iteration 138, validation error: 5.348208
+  Training iteration 139, validation error: 5.348193
+  Training iteration 140, validation error: 5.348179
+  Training iteration 141, validation error: 5.348165
+  Training iteration 142, validation error: 5.348151
+  Training iteration 143, validation error: 5.348138
+/fs-computility-new/UPDZ02_sunhe/shared/NeuTomPy-toolbox/env/lib/python3.6/site-packages/numpy/core/_asarray.py:136: VisibleDeprecationWarning: Creating an ndarray from ragged nested sequences (which is a list-or-tuple of lists-or-tuples-or ndarrays with different lengths or shapes) is deprecated. If you meant to do this, you must specify 'dtype=object' when creating the ndarray
+  return array(a, dtype, copy=False, order=order, subok=True)
+  [Metadata] Recorded schema for: nnfbp_train
+Filters saved to: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/output_nnfbp/filters.mat
+Reconstructing with NN-FBP...
+  Reconstructing slice 1/5
+  [Metadata] Recorded schema for: nnfbp_reconstruct
+  Reconstructing slice 2/5
+  Reconstructing slice 3/5
+  Reconstructing slice 4/5
+  Reconstructing slice 5/5
+Saving NN-FBP results to /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/output_nnfbp/recon-nnfbp/...
+> Saving stack of images: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/output_nnfbp/recon-nnfbp/sample_####.tiff
+Done.
+
+--- Evaluation ---
+Generating Reference (Ground Truth) for evaluation...
+  [Metadata] Recorded schema for: get_circular_mask
+  [Metadata] Recorded schema for: SSIM
+  [Metadata] Recorded schema for: NRMSE
+  [Metadata] Recorded schema for: get_rect_coordinates_from_roi
+  [Metadata] Recorded schema for: CNR
+SSIM : 0.8609
+NRMSE: 0.2216
+CNR  : 21.7226
+  [Metadata] Recorded schema for: main

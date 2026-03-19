@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the sigmoid activation function on the given input.",
+    "function_docstring": "\"\"\"\nComputes the sigmoid activation function for the given input tensor.\n\nArgs:\n    x (numpy.ndarray): A tensor or NumPy array of arbitrary shape containing numerical data.\n\nReturns:\n    numpy.ndarray: A tensor of the same shape as `x`, where each element is transformed by the sigmoid function.\n\n\"\"\"",
+    "usage_example": "import numpy as np\n\ninput_data = np.array([1, 2, 3])\nresult = sigmoid(input_data)\nprint(result)  # Expected output is an array with the sigmoid values of the input."
+}

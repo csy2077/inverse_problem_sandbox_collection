@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_nnfbp_sandbox/run_code/std_data/data_get_rect_coordinates_from_roi.pkl
+  func_name: get_rect_coordinates_from_roi
+Detected Scenario A: Simple function call.
+  Successfully executed get_rect_coordinates_from_roi with outer args.
+TEST PASSED
