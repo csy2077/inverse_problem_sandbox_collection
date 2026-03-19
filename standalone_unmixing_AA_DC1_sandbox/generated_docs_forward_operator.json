@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the predicted observation matrix by applying a linear mixing model using endmembers and abundances matrices.",
+    "function_docstring": "def forward_operator(E, A):\n    \"\"\"\n    Computes the predicted observation matrix using a linear mixing model.\n\n    Args:\n        E (torch.Tensor): A tensor of shape (L, p) representing the endmembers.\n        A (torch.Tensor): A tensor of shape (p, N) representing the abundances.\n\n    Returns:\n        torch.Tensor: A tensor of shape (L, N) representing the predicted observation matrix.\n    \"\"\"",
+    "usage_example": "import torch\n\n# Define endmembers and abundances\nE = torch.rand(5, 3)  # Example shape (L, p)\nA = torch.rand(3, 10)  # Example shape (p, N)\n\n# Compute predicted observation\nY_pred = forward_operator(E, A)\nprint(Y_pred.shape)  # Expected shape (5, 10)"
+}

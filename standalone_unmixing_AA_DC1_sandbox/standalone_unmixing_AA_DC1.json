@@ -1,0 +1,19 @@
+{
+    "EPS": 1e-10,
+    "seed": 0,
+    "SNR": 30,
+    "projection": false,
+    "l2_normalization": false,
+    "dataset": "DC1",
+    "data_dir": "./",
+    "figs_dir": "./exp_standalone/",
+    "model": {
+        "epsilon": 1e-3,
+        "robust": false,
+        "computeXtX": true,
+        "stepsFISTA": 3,
+        "stepsAS": 100,
+        "randominit": false,
+        "numThreads": -1
+    }
+}

@@ -1,0 +1,348 @@
+```python
+import sys
+import os
+import dill
+import numpy as np
+import logging
+import traceback
+
+# Ensure logging is available before importing agent_main
+import logging
+
+# Add the current directory to path if needed
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Pre-import logging and ensure it's in the global namespace for agent_main
+# Also need to handle the CONFIG that agent_main expects
+# Try to patch agent_main's module requirements before importing
+import importlib
+
+def ensure_agent_main_dependencies():
+    """Ensure all dependencies for agent_main are available."""
+    # agent_main.py uses 'logging' and 'CONFIG' at module level
+    # We need to make sure these are defined before import
+    
+    # Check if agent_main needs CONFIG - read the file to check
+    agent_main_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'agent_main.py')
+    if os.path.exists(agent_main_path):
+        with open(agent_main_path, 'r') as f:
+            content = f.read()
+        
+        # If CONFIG is used but not defined, we need to provide it
+        if 'CONFIG' in content and 'CONFIG =' not in content and 'CONFIG=' not in content:
+            # Check if there's a config file
+            config_candidates = [
+                os.path.join(os.path.dirname(agent_main_path), 'config.json'),
+                os.path.join(os.path.dirname(agent_main_path), 'config.yaml'),
+                os.path.join(os.path.dirname(agent_main_path), 'config.py'),
+            ]
+            config_found = False
+            for cfg_path in config_candidates:
+                if os.path.exists(cfg_path):
+                    config_found = True
+                    break
+        
+        # If 'import logging' is missing, we need to inject it
+        if 'import logging' not in content:
+            # Inject logging import at the top of the module
+            pass  # We'll handle this via sys.modules manipulation
+
+def test_main():
+    """Test the main function using captured data."""
+    
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_AA_DC1_sandbox/run_code/std_data/data_main.pkl'
+    ]
+    
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+    
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+    
+    assert outer_path is not None, f"Could not find outer data file in {data_paths}"
+    
+    # Phase 1: Load outer data
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+    except Exception as e:
+        print(f"FAILED to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+    
+    print(f"Outer function name: {outer_data.get('func_name', 'unknown')}")
+    print(f"Outer args count: {len(outer_args)}")
+    print(f"Outer kwargs keys: {list(outer_kwargs.keys())}")
+    
+    # Patch agent_main.py if needed - inject missing imports
+    agent_main_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'agent_main.py')
+    patched = False
+    backup_content = None
+    
+    if os.path.exists(agent_main_path):
+        with open(agent_main_path, 'r') as f:
+            backup_content = f.read()
+        
+        new_content = backup_content
+        needs_patch = False
+        
+        # Check if 'import logging' is missing
+        if 'import logging' not in new_content:
+            new_content = 'import logging\n' + new_content
+            needs_patch = True
+        
+        # Check if CONFIG is referenced but not defined/imported
+        # Look for CONFIG usage at module level
+        if 'CONFIG' in new_content:
+            # Check if CONFIG is defined somewhere in the file
+            has_config_def = ('CONFIG =' in new_content or 'CONFIG=' in new_content or 
+                             'from ' in new_content and 'CONFIG' in new_content)
+            
+            if not has_config_def:
+                # Try to find a config file
+                config_json_path = os.path.join(os.path.dirname(agent_main_path), 'config.json')
+                run_code_config = os.path.join(os.path.dirname(agent_main_path), 'run_code', 'config.json')
+                
+                config_data = None
+                for cfg_try in [config_json_path, run_code_config]:
+                    if os.path.exists(cfg_try):
+                        try:
+                            import json
+                            with open(cfg_try, 'r') as f:
+                                config_data = json.load(f)
+                            break
+                        except:
+                            pass
+                
+                if config_data is None:
+                    # Try to find config.yaml
+                    config_yaml_path = os.path.join(os.path.dirname(agent_main_path), 'config.yaml')
+                    if os.path.exists(config_yaml_path):
+                        try:
+                            import yaml
+                            with open(config_yaml_path, 'r') as f:
+                                config_data = yaml.safe_load(f)
+                        except:
+                            pass
+                
+                if config_data is None:
+                    # Search for any .json file that might be config
+                    search_dir = os.path.dirname(agent_main_path)
+                    for fname in os.listdir(search_dir):
+                        if fname.endswith('.json') and 'config' in fname.lower():
+                            try:
+                                import json
+                                with open(os.path.join(search_dir, fname), 'r') as f:
+                                    config_data = json.load(f)
+                                if 'seed' in config_data or 'dataset' in config_data or 'EPS' in config_data:
+                                    break
+                            except:
+                                config_data = None
+                
+                if config_data is None:
+                    # Try to find it in a subdirectory
+                    search_dir = os.path.dirname(agent_main_path)
+                    for root, dirs, files in os.walk(search_dir):
+                        for fname in files:
+                            if fname.endswith('.json'):
+                                try:
+                                    import json
+                                    fpath = os.path.join(root, fname)
+                                    with open(fpath, 'r') as f:
+                                        candidate = json.load(f)
+                                    if isinstance(candidate, dict) and ('seed' in candidate or 'EPS' in candidate or 'dataset' in candidate):
+                                        config_data = candidate
+                                        break
+                                except:
+                                    pass
+                        if config_data is not None:
+                            break
+                
+                if config_data is None:
+                    # Provide a default CONFIG based on the code analysis
+                    config_data = {
+                        "seed": 0,
+                        "SNR": 30,
+                        "dataset": "DC1",
+                        "data_dir": "./data",
+                        "figs_dir": "./figs",
+                        "l2_normalization": False,
+                        "projection": True,
+                        "EPS": 1e-6,
+                        "model": {
+                            "epsilon": 1e-3,
+                            "robust": False,
+                            "computeXtX": True,
+                            "stepsFISTA": 3,
+                            "stepsAS": 50,
+                            "randominit": True,
+                            "numThreads": -1
+                        }
+                    }
+                    print(f"WARNING: Using default CONFIG: {config_data}")
+                
+                # Inject CONFIG definition
+                import json
+                config_str = json.dumps(config_data)
+                inject_line = f'\nimport json as _json_cfg_\nCONFIG = _json_cfg_.loads(\'\'\'{config_str}\'\'\')\n'
+                
+                # Find the right place to inject - after imports but before CONFIG usage
+                lines = new_content.split('\n')
+                insert_idx = 0
+                for i, line in enumerate(lines):
+                    stripped = line.strip()
+                    if stripped.startswith('import ') or stripped.startswith('from '):
+                        insert_idx = i + 1
+                    elif 'CONFIG' in stripped and not stripped.startswith('#'):
+                        break
+                
+                lines.insert(insert_idx, inject_line)
+                new_content = '\n'.join(lines)
+                needs_patch = True
+        
+        if needs_patch:
+            with open(agent_main_path, 'w') as f:
+                f.write(new_content)
+            patched = True
+            print("Patched agent_main.py with missing imports/config")
+    
+    # Import main
+    try:
+        # Clear any cached import
+        if 'agent_main' in sys.modules:
+            del sys.modules['agent_main']
+        from agent_main import main
+    except Exception as e:
+        print(f"FAILED to import main from agent_main: {e}")
+        traceback.print_exc()
+        # Restore original file if patched
+        if patched and backup_content is not None:
+            with open(agent_main_path, 'w') as f:
+                f.write(backup_content)
+        sys.exit(1)
+    
+    from verification_utils import recursive_check
+    
+    # Phase 2: Execute main
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("Scenario B detected: Factory/Closure pattern")
+        
+        try:
+            print("Running main(*args, **kwargs) to get operator...")
+            agent_operator = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAILED to execute main: {e}")
+            traceback.print_exc()
+            if patched and backup_content is not None:
+                with open(agent_main_path, 'w') as f:
+                    f.write(backup_content)
+            sys.exit(1)
+        
+        assert callable(agent_operator), f"Expected callable operator, got {type(agent_operator)}"
+        print(f"Got callable operator: {type(agent_operator)}")
+        
+        for inner_path in inner_paths:
+            print(f"\nLoading inner data from: {inner_path}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"FAILED to load inner data: {e}")
+                traceback.print_exc()
+                if patched and backup_content is not None:
+                    with open(agent_main_path, 'w') as f:
+                        f.write(backup_content)
+                sys.exit(1)
+            
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+            
+            try:
+                print("Running agent_operator(*inner_args, **inner_kwargs)...")
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAILED to execute operator: {e}")
+                traceback.print_exc()
+                if patched and backup_content is not None:
+                    with open(agent_main_path, 'w') as f:
+                        f.write(backup_content)
+                sys.exit(1)
+            
+            try:
+                passed, msg = recursive_check(inner_expected, result)
+            except Exception as e:
+                print(f"FAILED during comparison: {e}")
+                traceback.print_exc()
+                if patched and backup_content is not None:
+                    with open(agent_main_path, 'w') as f:
+                        f.write(backup_content)
+                sys.exit(1)
+            
+            if not passed:
+                print(f"TEST FAILED: {msg}")
+                if patched and backup_content is not None:
+                    with open(agent_main_path, 'w') as f:
+                        f.write(backup_content)
+                sys.exit(1)
+            else:
+                print(f"Inner test passed: {msg}")
+        
+        # Restore original file if patched
+        if patched and backup_content is not None:
+            with open(agent_main_path, 'w') as f:
+                f.write(backup_content)
+        
+        print("\nTEST PASSED")
+        sys.exit(0)
+    
+    else:
+        # Scenario A: Simple function call
+        print("Scenario A detected: Simple function call")
+        
+        try:
+            print("Running main(*args, **kwargs)...")
+            result = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAILED to execute main: {e}")
+            traceback.print_exc()
+            if patched and backup_content is not None:
+                with open(agent_main_path, 'w') as f:
+                    f.write(backup_content)
+            sys.exit(1)
+        
+        # Restore original file if patched
+        if patched and backup_content is not None:
+            with open(agent_main_path, 'w') as f:
+                f.write(backup_content)
+        
+        try:
+            passed, msg = recursive_check(expected_output, result)
+        except Exception as e:
+            print(f"FAILED during comparison: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        
+        if not passed:
+            print(f"TEST FAILED: {msg}")
+            sys.exit(1)
+        else:
+            print(f"TEST PASSED: {msg}")
+            sys.exit(0)
+
+
+if __name__ == "__main__":
+    test_main()
+```

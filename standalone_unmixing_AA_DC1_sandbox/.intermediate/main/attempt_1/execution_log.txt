@@ -1,0 +1,12 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_AA_DC1_sandbox/run_code/std_data/data_main.pkl
+Outer function name: main
+Outer args count: 0
+Outer kwargs keys: []
+Patched agent_main.py with missing imports/config
+FAILED to import main from agent_main: name 'CONFIG' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_AA_DC1_sandbox/test_main.py", line 224, in test_main
+    from agent_main import main
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_AA_DC1_sandbox/agent_main.py", line 23, in <module>
+    EPS = CONFIG["EPS"]
+NameError: name 'CONFIG' is not defined
