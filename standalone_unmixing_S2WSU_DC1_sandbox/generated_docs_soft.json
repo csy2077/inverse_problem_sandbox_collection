@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Applies a soft thresholding operation to an input array.",
+    "function_docstring": "def soft(b: np.ndarray, t: float) -> np.ndarray:\n    \"\"\"\n    Applies a soft thresholding operation to the input array `b` using threshold `t`.\n\n    Args:\n        b (np.ndarray): An array of any shape containing numerical values to be thresholded.\n        t (float): A threshold value used to determine the soft thresholding effect.\n\n    Returns:\n        np.ndarray: An array of the same shape as `b`, where each element has been\n        modified by the soft thresholding operation.\n    \"\"\"",
+    "usage_example": "import numpy as np\n\n# Example usage of the soft function\nb = np.array([1.0, 2.0, 3.0, 4.0])\nt = 1.5\nresult = soft(b, t)\nprint(result)  # Output will be an array with soft thresholding applied"
+}

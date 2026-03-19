@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Applies a forward operator using a spectral dictionary and abundance vectors.",
+    "function_docstring": "```python\ndef forward_operator(x, D):\n    \"\"\"\n    Apply the forward operator to compute the predicted output using a spectral dictionary.\n\n    Args:\n        x (torch.Tensor): A tensor representing the abundance vectors with shape (..., N), where N is the number of spectral components.\n        D (torch.Tensor): A tensor representing the spectral dictionary with shape (M, N), where M is the number of spectral measurements.\n\n    Returns:\n        torch.Tensor: The result of the matrix multiplication D @ x, representing the predicted spectral measurements with shape (..., M).\n    \"\"\"\n```",
+    "usage_example": "```python\nimport torch\n\n# Example tensors\nx = torch.rand(10, 5)  # Abundance vectors\nD = torch.rand(8, 5)  # Spectral dictionary\n\n# Apply forward operator\nresult = forward_operator(x, D)\nprint(result)\n```"
+}

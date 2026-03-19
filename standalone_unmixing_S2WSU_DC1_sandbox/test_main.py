@@ -1,0 +1,461 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import logging
+import types
+import importlib
+import importlib.util
+import json
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+agent_main_path = os.path.join(script_dir, 'agent_main.py')
+
+from verification_utils import recursive_check
+
+
+def find_config(script_dir):
+    """Find and load CONFIG from various sources."""
+    CONFIG = None
+
+    # Try config.py
+    config_py_path = os.path.join(script_dir, 'config.py')
+    if os.path.exists(config_py_path):
+        try:
+            spec = importlib.util.spec_from_file_location("config_module", config_py_path)
+            config_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(config_module)
+            if hasattr(config_module, 'CONFIG'):
+                CONFIG = config_module.CONFIG
+                return CONFIG
+        except Exception as e:
+            print(f"Warning: could not load config.py: {e}")
+
+    # Try config.json
+    config_path = os.path.join(script_dir, 'config.json')
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r') as f:
+                CONFIG = json.load(f)
+            return CONFIG
+        except Exception as e:
+            print(f"Warning: could not load config.json: {e}")
+
+    # Try config.yaml
+    config_yaml_path = os.path.join(script_dir, 'config.yaml')
+    if os.path.exists(config_yaml_path):
+        try:
+            import yaml
+            with open(config_yaml_path, 'r') as f:
+                CONFIG = yaml.safe_load(f)
+            return CONFIG
+        except Exception as e:
+            print(f"Warning: could not load config.yaml: {e}")
+
+    # Search for any config-like file
+    for fname in sorted(os.listdir(script_dir)):
+        if 'config' in fname.lower():
+            full = os.path.join(script_dir, fname)
+            if fname.endswith('.json'):
+                try:
+                    with open(full, 'r') as f:
+                        CONFIG = json.load(f)
+                    if CONFIG is not None:
+                        return CONFIG
+                except:
+                    pass
+            elif fname.endswith(('.yaml', '.yml')):
+                try:
+                    import yaml
+                    with open(full, 'r') as f:
+                        CONFIG = yaml.safe_load(f)
+                    if CONFIG is not None:
+                        return CONFIG
+                except:
+                    pass
+            elif fname.endswith('.py'):
+                try:
+                    spec = importlib.util.spec_from_file_location("config_module2", full)
+                    cm = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(cm)
+                    if hasattr(cm, 'CONFIG'):
+                        CONFIG = cm.CONFIG
+                        return CONFIG
+                except:
+                    pass
+
+    # Also search in run_code subdirectory
+    run_code_dir = os.path.join(script_dir, 'run_code')
+    if os.path.isdir(run_code_dir):
+        result = find_config(run_code_dir)
+        if result is not None:
+            return result
+
+    return CONFIG
+
+
+def find_data_dir(script_dir, dataset_name):
+    """Find the directory containing the .mat data file."""
+    mat_filename = f"{dataset_name}.mat"
+
+    possible_data_dirs = [
+        os.path.join(script_dir, 'data'),
+        os.path.join(script_dir, 'data_standalone'),
+        os.path.join(script_dir, 'run_code', 'data'),
+        os.path.join(os.path.dirname(script_dir), 'data'),
+        os.path.join(os.path.dirname(script_dir), 'data_standalone'),
+    ]
+
+    for dd in possible_data_dirs:
+        mat_path = os.path.join(dd, mat_filename)
+        if os.path.exists(mat_path):
+            return dd
+
+    # Broader search
+    search_bases = [
+        script_dir,
+        os.path.dirname(script_dir),
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox',
+    ]
+    for base in search_bases:
+        if os.path.isdir(base):
+            for root, dirs, files in os.walk(base):
+                if mat_filename in files:
+                    return root
+
+    return None
+
+
+def load_pkl(path):
+    """Load a pickle file using dill."""
+    with open(path, 'rb') as f:
+        data = dill.load(f)
+    return data
+
+
+def test_main():
+    """Test the main function against recorded standard data."""
+
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox/run_code/std_data/data_main.pkl'
+    ]
+
+    # Separate outer (main) and inner (parent_function) paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    assert outer_path is not None, f"Could not find outer data file (data_main.pkl) in {data_paths}"
+
+    # Phase 1: Load outer data
+    try:
+        print(f"Loading outer data from: {outer_path}")
+        outer_data = load_pkl(outer_path)
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output', None)
+        print(f"Outer data loaded successfully. func_name={outer_data.get('func_name', 'N/A')}")
+        print(f"  args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+    except Exception as e:
+        print(f"FAILED to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Find CONFIG
+    CONFIG = find_config(script_dir)
+
+    if CONFIG is None:
+        CONFIG = {
+            "seed": 0,
+            "SNR": 30,
+            "dataset": "DC1",
+            "data_dir": "./data",
+            "figs_dir": "./figs",
+            "l2_normalization": False,
+            "projection": False,
+            "force_align": False,
+            "EPS": 1e-10,
+            "model": {
+                "AL_iters": 5,
+                "lambd": 0.0,
+                "verbose": True,
+                "tol": 1e-4,
+                "x0": 0,
+            }
+        }
+        print("Using fallback CONFIG")
+
+    print(f"CONFIG loaded: {json.dumps(CONFIG, indent=2, default=str)}")
+
+    # Fix data_dir to use absolute path
+    dataset_name = CONFIG.get("dataset", "DC1")
+    found_data_dir = find_data_dir(script_dir, dataset_name)
+
+    if found_data_dir is not None:
+        CONFIG["data_dir"] = found_data_dir
+        print(f"Found data directory: {found_data_dir}")
+    else:
+        print(f"WARNING: Could not find {dataset_name}.mat anywhere. Test may fail.")
+
+    # Fix figs_dir
+    figs_dir = CONFIG.get("figs_dir", "./figs")
+    if not os.path.isabs(figs_dir):
+        figs_dir = os.path.join(script_dir, figs_dir)
+    CONFIG["figs_dir"] = figs_dir
+    os.makedirs(figs_dir, exist_ok=True)
+
+    # Now import agent_main properly
+    # The issue was json.dumps converting Python booleans (True/False) to JSON booleans (true/false)
+    # which then fail when exec'd as Python code.
+    # Solution: inject CONFIG as a Python object, not as a JSON string.
+    try:
+        print("Loading agent_main module...")
+
+        # Read the source
+        with open(agent_main_path, 'r') as f:
+            agent_main_source = f.read()
+
+        # Create module
+        agent_main_mod = types.ModuleType('agent_main')
+        agent_main_mod.__file__ = agent_main_path
+        agent_main_mod.__name__ = 'agent_main'
+
+        # Pre-populate the module namespace with necessary items
+        agent_main_mod.__dict__['__builtins__'] = __builtins__
+
+        # Strip CONFIG definition from source and inject our CONFIG as a Python object
+        # We need to identify and remove CONFIG = ... blocks
+
+        lines = agent_main_source.split('\n')
+        new_lines = []
+        in_config_block = False
+        brace_depth = 0
+
+        for line in lines:
+            stripped = line.strip()
+
+            if not in_config_block:
+                # Detect CONFIG = { ... or CONFIG = json.load(...) etc.
+                if (stripped.startswith('CONFIG') and '=' in stripped
+                        and not stripped.startswith('CONFIG[')
+                        and not stripped.startswith('CONFIG.')):
+                    in_config_block = True
+                    brace_depth = 0
+                    for ch in stripped:
+                        if ch == '{':
+                            brace_depth += 1
+                        elif ch == '}':
+                            brace_depth -= 1
+                    if brace_depth <= 0:
+                        in_config_block = False
+                    continue
+                else:
+                    new_lines.append(line)
+            else:
+                for ch in stripped:
+                    if ch == '{':
+                        brace_depth += 1
+                    elif ch == '}':
+                        brace_depth -= 1
+                if brace_depth <= 0:
+                    in_config_block = False
+                continue
+
+        cleaned_source = '\n'.join(new_lines)
+
+        # Inject CONFIG directly into the module's namespace as a Python object
+        agent_main_mod.__dict__['CONFIG'] = CONFIG
+
+        # Also inject logging module
+        agent_main_mod.__dict__['logging'] = logging
+
+        sys.modules['agent_main'] = agent_main_mod
+
+        code = compile(cleaned_source, agent_main_path, 'exec')
+        exec(code, agent_main_mod.__dict__)
+
+        main = agent_main_mod.main
+        print("agent_main loaded successfully")
+
+    except Exception as e:
+        print(f"Failed to load agent_main with source patching: {e}")
+        traceback.print_exc()
+
+        # Try alternative: directly import after injecting CONFIG into builtins
+        try:
+            print("Trying alternative: builtins injection approach...")
+            import builtins
+            builtins.CONFIG = CONFIG
+
+            # Remove cached module if any
+            if 'agent_main' in sys.modules:
+                del sys.modules['agent_main']
+
+            # Try direct import
+            from agent_main import main
+            print("Direct import succeeded after builtins injection")
+
+        except Exception as e2:
+            print(f"Alternative also failed: {e2}")
+            traceback.print_exc()
+
+            # Try yet another approach: modify source with repr() instead of json.dumps()
+            try:
+                print("Trying repr()-based CONFIG injection...")
+
+                with open(agent_main_path, 'r') as f:
+                    agent_main_source = f.read()
+
+                agent_main_mod3 = types.ModuleType('agent_main')
+                agent_main_mod3.__file__ = agent_main_path
+                agent_main_mod3.__name__ = 'agent_main'
+
+                # Use repr() to generate valid Python literal
+                config_repr = repr(CONFIG)
+
+                # Build patched source: CONFIG = <repr>, then the rest without CONFIG def
+                lines = agent_main_source.split('\n')
+                new_lines = []
+                in_config_block = False
+                brace_depth = 0
+
+                for line in lines:
+                    stripped = line.strip()
+                    if not in_config_block:
+                        if (stripped.startswith('CONFIG') and '=' in stripped
+                                and not stripped.startswith('CONFIG[')
+                                and not stripped.startswith('CONFIG.')):
+                            in_config_block = True
+                            brace_depth = 0
+                            for ch in stripped:
+                                if ch == '{':
+                                    brace_depth += 1
+                                elif ch == '}':
+                                    brace_depth -= 1
+                            if brace_depth <= 0:
+                                in_config_block = False
+                            continue
+                        else:
+                            new_lines.append(line)
+                    else:
+                        for ch in stripped:
+                            if ch == '{':
+                                brace_depth += 1
+                            elif ch == '}':
+                                brace_depth -= 1
+                        if brace_depth <= 0:
+                            in_config_block = False
+                        continue
+
+                # Find insertion point - after imports, before first use
+                insert_idx = 0
+                for i, line in enumerate(new_lines):
+                    stripped = line.strip()
+                    if stripped.startswith('import ') or stripped.startswith('from '):
+                        insert_idx = i + 1
+
+                new_lines.insert(insert_idx, f"CONFIG = {config_repr}")
+
+                patched_source = '\n'.join(new_lines)
+
+                sys.modules['agent_main'] = agent_main_mod3
+
+                code = compile(patched_source, agent_main_path, 'exec')
+                exec(code, agent_main_mod3.__dict__)
+
+                main = agent_main_mod3.main
+                print("repr()-based loading succeeded")
+
+            except Exception as e3:
+                print(f"All loading approaches failed: {e3}")
+                traceback.print_exc()
+                sys.exit(1)
+
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("Scenario B detected: Factory/Closure pattern")
+
+        try:
+            print("Running main(*args, **kwargs) to get operator...")
+            agent_operator = main(*outer_args, **outer_kwargs)
+            print(f"Operator obtained: {type(agent_operator)}")
+            assert callable(agent_operator), f"Expected callable operator, got {type(agent_operator)}"
+        except Exception as e:
+            print(f"FAILED to create operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        for inner_path in inner_paths:
+            try:
+                print(f"Loading inner data from: {inner_path}")
+                inner_data = load_pkl(inner_path)
+                inner_args = inner_data.get('args', ())
+                inner_kwargs = inner_data.get('kwargs', {})
+                expected = inner_data.get('output', None)
+                print(f"Inner data loaded. func_name={inner_data.get('func_name', 'N/A')}")
+            except Exception as e:
+                print(f"FAILED to load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                print("Executing operator with inner args...")
+                result = agent_operator(*inner_args, **inner_kwargs)
+                print(f"Execution complete. Result type: {type(result)}")
+            except Exception as e:
+                print(f"FAILED to execute operator: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+                if not passed:
+                    print(f"TEST FAILED: {msg}")
+                    sys.exit(1)
+                else:
+                    print("TEST PASSED")
+                    sys.exit(0)
+            except Exception as e:
+                print(f"FAILED during comparison: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+    else:
+        # Scenario A: Simple function call
+        print("Scenario A detected: Simple function call")
+
+        try:
+            print("Running main(*args, **kwargs)...")
+            result = main(*outer_args, **outer_kwargs)
+            print(f"Execution complete. Result type: {type(result)}")
+        except Exception as e:
+            print(f"FAILED to execute main: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        try:
+            passed, msg = recursive_check(expected, result)
+            if not passed:
+                print(f"TEST FAILED: {msg}")
+                sys.exit(1)
+            else:
+                print("TEST PASSED")
+                sys.exit(0)
+        except Exception as e:
+            print(f"FAILED during comparison: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+
+if __name__ == "__main__":
+    test_main()

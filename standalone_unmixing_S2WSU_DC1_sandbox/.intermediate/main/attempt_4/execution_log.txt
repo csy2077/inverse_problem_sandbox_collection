@@ -1,0 +1,29 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox/run_code/std_data/data_main.pkl
+Outer data loaded successfully. func_name=main
+  args count: 0, kwargs keys: []
+Using fallback CONFIG
+CONFIG loaded: {
+  "seed": 0,
+  "SNR": 30,
+  "dataset": "DC1",
+  "data_dir": "./data",
+  "figs_dir": "./figs",
+  "l2_normalization": false,
+  "projection": false,
+  "force_align": false,
+  "EPS": 1e-10,
+  "model": {
+    "AL_iters": 5,
+    "lambd": 0.0,
+    "verbose": true,
+    "tol": 0.0001,
+    "x0": 0
+  }
+}
+Found data directory: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox/data_standalone
+Loading agent_main module...
+agent_main loaded successfully
+Scenario A detected: Simple function call
+Running main(*args, **kwargs)...
+Execution complete. Result type: <class 'NoneType'>
+TEST PASSED

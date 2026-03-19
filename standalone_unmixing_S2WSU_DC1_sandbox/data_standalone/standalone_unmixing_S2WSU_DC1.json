@@ -1,0 +1,18 @@
+{
+    "EPS": 1e-10,
+    "seed": 0,
+    "SNR": 30,
+    "dataset": "DC1",
+    "data_dir": "data_standalone",
+    "figs_dir": "exp_standalone_unmixing_S2WSU_DC1",
+    "l2_normalization": false,
+    "projection": false,
+    "force_align": false,
+    "model": {
+        "AL_iters": 5,
+        "lambd": 0.001,
+        "verbose": true,
+        "tol": 0.0001,
+        "x0": 0
+    }
+}

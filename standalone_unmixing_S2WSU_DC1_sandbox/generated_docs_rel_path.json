@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Converts a relative file path to an absolute path based on the script's directory.",
+    "function_docstring": "def rel_path(*args):\n    \"\"\"\n    Convert relative path to absolute path based on script location.\n\n    Args:\n        *args: A variable number of string arguments representing parts of a file path.\n\n    Returns:\n        str: The absolute path constructed by joining the script's directory with the provided path components.\n    \"\"\"",
+    "usage_example": "import os\n\n# Assuming the script is located at '/home/user/project'\nabsolute_path = rel_path('data', 'file.txt')\nprint(absolute_path)  # Output: '/home/user/project/data/file.txt'"
+}

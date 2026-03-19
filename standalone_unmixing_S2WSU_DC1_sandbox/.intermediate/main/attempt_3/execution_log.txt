@@ -1,0 +1,28 @@
+Found data directory: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox/data_standalone
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox/run_code/std_data/data_main.pkl
+Outer data loaded successfully. func_name=main
+  args count: 0, kwargs keys: []
+Failed to load agent_main: name 'false' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox/test_main.py", line 276, in test_main
+    exec(code, agent_main_mod.__dict__)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox/agent_main.py", line 2, in <module>
+    import json
+NameError: name 'false' is not defined
+Trying alternative loading approach...
+Alternative loading also failed: name 'false' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox/test_main.py", line 276, in test_main
+    exec(code, agent_main_mod.__dict__)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox/agent_main.py", line 2, in <module>
+    import json
+NameError: name 'false' is not defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox/test_main.py", line 323, in test_main
+    exec(code, agent_main_mod2.__dict__)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_S2WSU_DC1_sandbox/agent_main.py", line 2, in <module>
+    import json
+NameError: name 'false' is not defined
