@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Propagates total fields to sensors using Green's functions and computes the scattered field predictions.",
+    "function_docstring": "Propagate all the total fields to the sensors.\n\nArgs:\n    f (torch.Tensor): A tensor of shape (1, 1, ...) representing the source field.\n    utot_dom_set (torch.Tensor): A tensor of shape (..., N, M) representing the total fields in the domain.\n    sensor_greens_function_set (torch.Tensor): A tensor of shape (..., P, Q) representing the Green's functions for the sensors.\n    dx (float): The spatial step size in the x-direction.\n    dy (float): The spatial step size in the y-direction.\n\nReturns:\n    torch.Tensor: A tensor of shape (M, Q) representing the predicted scattered fields at the sensors.",
+    "usage_example": "import torch\n\n# Example tensors\nf = torch.rand(1, 1, 10)\nutot_dom_set = torch.rand(5, 5, 10)\nsensor_greens_function_set = torch.rand(5, 5, 8)\ndx = 0.1\ndy = 0.1\n\n# Call the function\nuscat_pred_set = full_propagate_to_sensor(f, utot_dom_set, sensor_greens_function_set, dx, dy)\n\n# uscat_pred_set now contains the predicted scattered fields"
+}

@@ -1,0 +1,13 @@
+Outer path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pigdm_sandbox/run_code/std_data/data_main.pkl
+Inner paths: []
+Loading data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pigdm_sandbox/run_code/std_data/data_main.pkl
+  Keys: ['func_name', 'args', 'kwargs', 'output']
+Outer args count: 0
+Outer kwargs keys: none
+ERROR: Failed to import main from agent_main: name 'DhariwalUNet' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pigdm_sandbox/test_main.py", line 60, in main_test
+    from agent_main import main
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pigdm_sandbox/agent_main.py", line 194, in <module>
+    'DhariwalUNet': DhariwalUNet,
+NameError: name 'DhariwalUNet' is not defined

@@ -1,0 +1,6 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pigdm_sandbox/run_code/std_data/data_open_url.pkl
+  func_name: open_url
+Detected Scenario A: Simple function call
+  Successfully called open_url()
+  Verification passed.
+TEST PASSED

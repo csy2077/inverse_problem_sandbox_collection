@@ -1,0 +1,5 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pigdm_sandbox/run_code/std_data/data_create_logger.pkl
+[INFO] Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+[INFO] Ensured logging directory exists: exps/inference/inv-scatter-linear/PiGDM/default
+[INFO] create_logger returned: <class 'logging.Logger'>
+FAIL: Logger level mismatch: expected 0, got 20

@@ -1,0 +1,13 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pigdm_sandbox/run_code/std_data/data_weight_init.pkl
+  func_name: weight_init
+Detected Scenario A: Simple function call.
+  Result type: <class 'torch.Tensor'>
+  Result shape: torch.Size([1]), dtype: torch.float32
+  Direct comparison note: Value mismatch at output: max difference 0.0281950943171978 > tol
+  Performing structural validation (shape, dtype, value range)...
+/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pigdm_sandbox/test_weight_init.py:182: UserWarning: std(): degrees of freedom is <= 0. Correction should be strictly less than the reduction factor (input numel divided by output numel). (Triggered internally at /pytorch/aten/src/ATen/native/ReduceOps.cpp:1857.)
+  expected_std = expected.std().item()
+/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pigdm_sandbox/test_weight_init.py:183: UserWarning: std(): degrees of freedom is <= 0. Correction should be strictly less than the reduction factor (input numel divided by output numel). (Triggered internally at /pytorch/aten/src/ATen/native/ReduceOps.cpp:1857.)
+  result_std = result.std().item()
+  Structural validation passed (shape, dtype, value range match).
+TEST PASSED

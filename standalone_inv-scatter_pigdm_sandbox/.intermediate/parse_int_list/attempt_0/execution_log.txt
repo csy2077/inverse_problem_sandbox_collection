@@ -1,0 +1,6 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pigdm_sandbox/run_code/std_data/data_parse_int_list.pkl
+  func_name: parse_int_list
+  parse_int_list executed successfully.
+Scenario A detected: Simple function call.
+  Verification passed.
+TEST PASSED

@@ -1,0 +1,167 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_construct_parameters import construct_parameters
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_pigdm_sandbox/run_code/std_data/data_construct_parameters.pkl'
+    ]
+
+    # Separate outer (standard) and inner (parent_function) paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("ERROR: No outer data file found for construct_parameters.")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"[INFO] Loaded outer data from: {outer_path}")
+        print(f"[INFO] Keys in outer_data: {list(outer_data.keys())}")
+    except Exception as e:
+        print(f"ERROR loading outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+
+    # Move any CUDA tensors in args/kwargs to available device for reproducibility
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    # Check if 'device' is in kwargs and adjust if needed
+    if 'device' in outer_kwargs:
+        if not torch.cuda.is_available() and outer_kwargs['device'] == 'cuda':
+            print("[WARN] CUDA not available, switching device to 'cpu'")
+            outer_kwargs['device'] = 'cpu'
+    else:
+        # Check positional args - device is the 9th parameter (index 8)
+        # construct_parameters(Lx, Ly, Nx, Ny, wave, numRec, numTrans, sensorRadius, device)
+        args_list = list(outer_args)
+        if len(args_list) >= 9:
+            if not torch.cuda.is_available() and args_list[8] == 'cuda':
+                print("[WARN] CUDA not available, switching device to 'cpu'")
+                args_list[8] = 'cpu'
+            outer_args = tuple(args_list)
+
+    # Phase 1: Execute the function
+    try:
+        print(f"[INFO] Running construct_parameters with args={outer_args}, kwargs={outer_kwargs}")
+        agent_result = construct_parameters(*outer_args, **outer_kwargs)
+        print(f"[INFO] construct_parameters returned type: {type(agent_result)}")
+    except Exception as e:
+        print(f"ERROR executing construct_parameters: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Phase 2: Determine scenario
+    if inner_paths:
+        # Scenario B: Factory/Closure pattern
+        print("[INFO] Scenario B detected: Factory/Closure pattern")
+        
+        # Verify the result is callable
+        if not callable(agent_result):
+            print(f"ERROR: Expected callable from construct_parameters, got {type(agent_result)}")
+            sys.exit(1)
+
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"[INFO] Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"ERROR loading inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output')
+
+            try:
+                result = agent_result(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"ERROR executing agent_result (inner call): {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # Compare
+            try:
+                passed, msg = recursive_check(expected, result)
+                if not passed:
+                    print(f"TEST FAILED (inner execution): {msg}")
+                    sys.exit(1)
+                else:
+                    print(f"[INFO] Inner test passed for: {inner_path}")
+            except Exception as e:
+                print(f"ERROR during comparison: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+    else:
+        # Scenario A: Simple function - the result from Phase 1 is the result
+        print("[INFO] Scenario A detected: Simple function")
+        
+        result = agent_result
+        expected = outer_data.get('output')
+
+        # If device mismatch, move expected to same device as result for comparison
+        def move_to_device(obj, target_device):
+            if isinstance(obj, torch.Tensor):
+                return obj.to(target_device)
+            elif isinstance(obj, (list, tuple)):
+                moved = [move_to_device(x, target_device) for x in obj]
+                return type(obj)(moved)
+            elif isinstance(obj, dict):
+                return {k: move_to_device(v, target_device) for k, v in obj.items()}
+            return obj
+
+        # Determine the device of results
+        def get_device(obj):
+            if isinstance(obj, torch.Tensor):
+                return obj.device
+            elif isinstance(obj, (list, tuple)) and len(obj) > 0:
+                return get_device(obj[0])
+            return None
+
+        result_device = get_device(result)
+        if result_device is not None:
+            try:
+                expected = move_to_device(expected, result_device)
+            except Exception as e:
+                print(f"[WARN] Could not move expected to device {result_device}: {e}")
+
+        # Compare
+        try:
+            passed, msg = recursive_check(expected, result)
+            if not passed:
+                print(f"TEST FAILED: {msg}")
+                sys.exit(1)
+        except Exception as e:
+            print(f"ERROR during comparison: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+    print("TEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
