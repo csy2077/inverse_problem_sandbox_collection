@@ -1,0 +1,11 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_mcgdiff_sandbox/run_code/std_data/data_generate_em_functions.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Outer args count: 1
+Outer kwargs keys: none
+Executing generate_em_functions with outer data...
+Function executed successfully.
+
+Scenario A detected: Simple function, comparing output directly.
+VERIFICATION PASSED
+
+TEST PASSED

@@ -1,0 +1,136 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_generate_em_functions import generate_em_functions
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_mcgdiff_sandbox/run_code/std_data/data_generate_em_functions.pkl'
+    ]
+
+    # Classify paths into outer (standard) and inner (parent_function) paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("ERROR: No outer data file found (standard_data or data_generate_em_functions.pkl).")
+        sys.exit(1)
+
+    # Phase 1: Load outer data and reconstruct operator
+    try:
+        print(f"Loading outer data from: {outer_path}")
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Outer data keys: {list(outer_data.keys())}")
+    except Exception as e:
+        print(f"ERROR: Failed to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    print(f"Outer args count: {len(outer_args)}")
+    print(f"Outer kwargs keys: {list(outer_kwargs.keys()) if outer_kwargs else 'none'}")
+
+    # Execute the function
+    try:
+        print("Executing generate_em_functions with outer data...")
+        agent_result = generate_em_functions(*outer_args, **outer_kwargs)
+        print("Function executed successfully.")
+    except Exception as e:
+        print(f"ERROR: Failed to execute generate_em_functions: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Phase 2: Determine scenario and verify
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print(f"\nScenario B detected: {len(inner_paths)} inner data file(s) found.")
+
+        # Verify the result is callable
+        if not callable(agent_result):
+            print(f"ERROR: Expected callable from generate_em_functions, got {type(agent_result)}")
+            sys.exit(1)
+
+        all_passed = True
+        for inner_path in inner_paths:
+            try:
+                print(f"\nLoading inner data from: {inner_path}")
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Inner data keys: {list(inner_data.keys())}")
+            except Exception as e:
+                print(f"ERROR: Failed to load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                print("Executing agent_operator with inner data...")
+                result = agent_result(*inner_args, **inner_kwargs)
+                print("Inner execution successful.")
+            except Exception as e:
+                print(f"ERROR: Failed to execute agent_operator: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+                if not passed:
+                    print(f"VERIFICATION FAILED for {os.path.basename(inner_path)}: {msg}")
+                    all_passed = False
+                else:
+                    print(f"VERIFICATION PASSED for {os.path.basename(inner_path)}")
+            except Exception as e:
+                print(f"ERROR: Verification raised exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+        if all_passed:
+            print("\nTEST PASSED")
+            sys.exit(0)
+        else:
+            print("\nTEST FAILED")
+            sys.exit(1)
+
+    else:
+        # Scenario A: Simple function
+        print("\nScenario A detected: Simple function, comparing output directly.")
+        result = agent_result
+        expected = outer_output
+
+        try:
+            passed, msg = recursive_check(expected, result)
+            if not passed:
+                print(f"VERIFICATION FAILED: {msg}")
+                sys.exit(1)
+            else:
+                print("VERIFICATION PASSED")
+                print("\nTEST PASSED")
+                sys.exit(0)
+        except Exception as e:
+            print(f"ERROR: Verification raised exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

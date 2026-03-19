@@ -1,0 +1,8 @@
+Loaded outer data: func_name=create_logger
+  args types: ['str']
+  kwargs keys: []
+  agent_operator type: Logger
+FAIL: Verification failed.
+  Message: Logger name mismatch: expected=__main__, got=agent_create_logger; Logger level mismatch: expected=0, got=20
+  Expected type: Logger
+  Result type: Logger

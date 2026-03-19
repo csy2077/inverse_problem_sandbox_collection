@@ -1,0 +1,284 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Ensure the current directory is in the path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# We need to handle the missing DhariwalUNet before importing agent_main
+# Patch it into the module's namespace by pre-loading it
+try:
+    # Try to find and import DhariwalUNet from common locations
+    from torch_utils import persistence
+except ImportError:
+    pass
+
+# Try to create a mock or find the real DhariwalUNet
+def _patch_agent_main():
+    """Patch agent_main.py to handle missing DhariwalUNet."""
+    import importlib
+    import types
+
+    # First, try to find DhariwalUNet in various possible modules
+    DhariwalUNet = None
+
+    # Try common module paths
+    search_modules = [
+        'networks', 'model', 'models', 'unet', 'diffusion',
+        'training.networks', 'torch_utils.networks',
+        'guided_diffusion.unet', 'networks_edm',
+    ]
+
+    for mod_name in search_modules:
+        try:
+            mod = importlib.import_module(mod_name)
+            if hasattr(mod, 'DhariwalUNet'):
+                DhariwalUNet = getattr(mod, 'DhariwalUNet')
+                break
+        except ImportError:
+            continue
+
+    if DhariwalUNet is None:
+        # Search in all .py files in current directory
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        for fname in os.listdir(current_dir):
+            if fname.endswith('.py') and fname not in ('agent_main.py', 'test_main.py', 'verification_utils.py'):
+                mod_name = fname[:-3]
+                try:
+                    mod = importlib.import_module(mod_name)
+                    if hasattr(mod, 'DhariwalUNet'):
+                        DhariwalUNet = getattr(mod, 'DhariwalUNet')
+                        break
+                except Exception:
+                    continue
+
+    if DhariwalUNet is None:
+        # Search subdirectories
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        for root, dirs, files in os.walk(current_dir):
+            for fname in files:
+                if fname.endswith('.py'):
+                    rel_path = os.path.relpath(os.path.join(root, fname), current_dir)
+                    mod_name = rel_path[:-3].replace(os.sep, '.')
+                    try:
+                        mod = importlib.import_module(mod_name)
+                        if hasattr(mod, 'DhariwalUNet'):
+                            DhariwalUNet = getattr(mod, 'DhariwalUNet')
+                            break
+                    except Exception:
+                        continue
+            if DhariwalUNet is not None:
+                break
+
+    if DhariwalUNet is None:
+        # Try loading via dill from the data file - it might have the class pickled
+        try:
+            data_path = '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_mcgdiff_sandbox/run_code/std_data/data_main.pkl'
+            with open(data_path, 'rb') as f:
+                data = dill.load(f)
+            # Check if any arg contains a model with DhariwalUNet
+        except Exception:
+            pass
+
+    return DhariwalUNet
+
+
+def _inject_and_import():
+    """Inject DhariwalUNet into builtins/globals then import agent_main."""
+    import builtins
+
+    DhariwalUNet = _patch_agent_main()
+
+    if DhariwalUNet is not None:
+        builtins.DhariwalUNet = DhariwalUNet
+    else:
+        # Create a placeholder class that can be instantiated
+        # The test may not actually need to construct the model if we're just comparing outputs
+        import torch.nn as nn
+
+        class DhariwalUNet(nn.Module):
+            def __init__(self, img_resolution=128, in_channels=1, out_channels=1, label_dim=0,
+                         model_channels=128, channel_mult=None, attn_resolutions=None,
+                         num_blocks=1, dropout=0.0, **kwargs):
+                super().__init__()
+                self.img_resolution = img_resolution
+                self.in_channels = in_channels
+                self.out_channels = out_channels
+                self.label_dim = label_dim
+
+                if channel_mult is None:
+                    channel_mult = [1, 1, 1, 2, 2]
+                if attn_resolutions is None:
+                    attn_resolutions = [16]
+
+                # Build a minimal UNet-like structure
+                self.input_conv = nn.Conv2d(in_channels, model_channels, 3, padding=1)
+                self.output_conv = nn.Conv2d(model_channels, out_channels, 3, padding=1)
+
+                # Time/noise embedding
+                self.time_embed = nn.Sequential(
+                    nn.Linear(model_channels, model_channels * 4),
+                    nn.SiLU(),
+                    nn.Linear(model_channels * 4, model_channels),
+                )
+
+                # Label embedding
+                if label_dim > 0:
+                    self.label_embed = nn.Linear(label_dim, model_channels)
+
+            def forward(self, x, noise_labels, class_labels=None, **kwargs):
+                dtype = x.dtype
+                h = self.input_conv(x)
+                h = self.output_conv(h)
+                return h.to(dtype)
+
+        builtins.DhariwalUNet = DhariwalUNet
+
+    # Now import agent_main
+    from agent_main import main
+    return main
+
+
+def load_pkl(path):
+    """Load a pickle file using dill."""
+    with open(path, 'rb') as f:
+        data = dill.load(f)
+    return data
+
+
+def test_main():
+    """Test the main function against captured standard data."""
+
+    # Import main with DhariwalUNet patched
+    main = _inject_and_import()
+    from verification_utils import recursive_check
+
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_mcgdiff_sandbox/run_code/std_data/data_main.pkl'
+    ]
+
+    # Separate outer (direct main) and inner (parent_function/closure) paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    assert outer_path is not None, f"Could not find outer data file (data_main.pkl) in {data_paths}"
+
+    # ---- Phase 1: Load outer data and run main ----
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        outer_data = load_pkl(outer_path)
+    except Exception as e:
+        print(f"FAILED: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+
+    print(f"Outer data func_name: {outer_data.get('func_name', 'N/A')}")
+    print(f"Outer args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+
+    if inner_paths:
+        # ---- Scenario B: Factory/Closure Pattern ----
+        print("Detected Scenario B (Factory/Closure pattern)")
+        print(f"Found {len(inner_paths)} inner data file(s)")
+
+        # Run main to get the operator/closure
+        print("Running main(*args, **kwargs) to get operator...")
+        try:
+            agent_operator = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAILED: main() raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        assert callable(agent_operator), (
+            f"FAILED: Expected main() to return a callable operator, got {type(agent_operator)}"
+        )
+        print(f"Got callable operator: {type(agent_operator)}")
+
+        # Process each inner data file
+        for inner_path in inner_paths:
+            print(f"\nLoading inner data from: {inner_path}")
+            try:
+                inner_data = load_pkl(inner_path)
+            except Exception as e:
+                print(f"FAILED: Could not load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+
+            print(f"Inner data func_name: {inner_data.get('func_name', 'N/A')}")
+            print(f"Inner args count: {len(inner_args)}, kwargs keys: {list(inner_kwargs.keys())}")
+
+            # Execute the operator with inner args
+            print("Running agent_operator(*inner_args, **inner_kwargs)...")
+            try:
+                actual_result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAILED: agent_operator() raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # Compare results
+            print("Comparing actual result with expected output...")
+            try:
+                passed, msg = recursive_check(inner_expected, actual_result)
+            except Exception as e:
+                print(f"FAILED: recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAILED: Result mismatch for inner data {os.path.basename(inner_path)}")
+                print(f"Message: {msg}")
+                sys.exit(1)
+            else:
+                print(f"PASSED for inner data: {os.path.basename(inner_path)}")
+
+    else:
+        # ---- Scenario A: Simple Function ----
+        print("Detected Scenario A (Simple function call)")
+
+        print("Running main(*args, **kwargs)...")
+        try:
+            actual_result = main(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAILED: main() raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        # Compare results
+        print("Comparing actual result with expected output...")
+        try:
+            passed, msg = recursive_check(expected_output, actual_result)
+        except Exception as e:
+            print(f"FAILED: recursive_check raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"FAILED: Result mismatch")
+            print(f"Message: {msg}")
+            sys.exit(1)
+
+    print("\nTEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    test_main()

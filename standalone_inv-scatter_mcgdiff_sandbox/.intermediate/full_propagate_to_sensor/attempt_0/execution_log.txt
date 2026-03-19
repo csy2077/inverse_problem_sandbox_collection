@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_mcgdiff_sandbox/run_code/std_data/data_full_propagate_to_sensor.pkl
+  Keys: ['func_name', 'args', 'kwargs', 'output']
+Detected Scenario A: Simple function call
+full_propagate_to_sensor returned: <class 'torch.Tensor'>
+TEST PASSED

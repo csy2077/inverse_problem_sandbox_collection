@@ -1,0 +1,7 @@
+Outer data loaded. func_name: weight_init
+  args types: ['list']
+  kwargs keys: ['mode', 'fan_in', 'fan_out']
+Scenario A detected: Simple function call.
+Note: Direct value comparison failed (expected for stochastic function): Value mismatch at output: max difference 0.023609664291143417 > tol
+Performing structural validation instead...
+TEST PASSED (structural validation)

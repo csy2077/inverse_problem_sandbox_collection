@@ -1,0 +1,5 @@
+Loaded outer data: func_name=create_logger
+  args types: ['str']
+  kwargs keys: []
+  agent_operator type: Logger
+TEST PASSED
