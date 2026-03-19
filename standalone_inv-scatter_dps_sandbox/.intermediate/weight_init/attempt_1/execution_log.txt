@@ -1,0 +1,10 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_dps_sandbox/run_code/std_data/data_weight_init.pkl
+Outer args: ([1],)
+Outer kwargs: {'mode': 'kaiming_uniform', 'fan_in': 1152, 'fan_out': 9}
+
+=== Scenario A: Simple Function ===
+Note: weight_init uses random operations (torch.rand/randn)
+Skipping exact value comparison for stochastic function
+Shape match: torch.Size([1])
+Dtype match: torch.float32
+TEST PASSED (stochastic function - shape/dtype verified)

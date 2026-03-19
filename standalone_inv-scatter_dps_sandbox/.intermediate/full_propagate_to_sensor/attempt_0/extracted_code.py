@@ -1,0 +1,172 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_full_propagate_to_sensor import full_propagate_to_sensor
+
+# Import verification utility
+from verification_utils import recursive_check
+
+
+def main():
+    """
+    Robust Unit Test for full_propagate_to_sensor.
+    Handles both Scenario A (simple function) and Scenario B (factory/closure pattern).
+    """
+    
+    # Data paths provided
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_dps_sandbox/run_code/std_data/data_full_propagate_to_sensor.pkl'
+    ]
+    
+    print("=" * 80)
+    print("UNIT TEST: full_propagate_to_sensor")
+    print("=" * 80)
+    
+    # Step 1: Analyze data paths to determine test scenario
+    outer_path = None
+    inner_paths = []
+    
+    for path in data_paths:
+        if not os.path.exists(path):
+            print(f"ERROR: Data file not found: {path}")
+            sys.exit(1)
+        
+        filename = os.path.basename(path)
+        
+        # Check if this is the outer data (exact match pattern)
+        if filename == 'data_full_propagate_to_sensor.pkl':
+            outer_path = path
+        # Check if this is inner data (contains parent_function pattern)
+        elif 'parent_function' in filename and 'full_propagate_to_sensor' in filename:
+            inner_paths.append(path)
+    
+    if outer_path is None:
+        print("ERROR: Could not find outer data file (data_full_propagate_to_sensor.pkl)")
+        sys.exit(1)
+    
+    # Determine scenario
+    is_factory_pattern = len(inner_paths) > 0
+    
+    if is_factory_pattern:
+        print(f"SCENARIO B: Factory/Closure Pattern Detected")
+        print(f"  - Outer data: {os.path.basename(outer_path)}")
+        print(f"  - Inner data files: {len(inner_paths)}")
+    else:
+        print(f"SCENARIO A: Simple Function")
+        print(f"  - Data file: {os.path.basename(outer_path)}")
+    
+    print("-" * 80)
+    
+    try:
+        # Phase 1: Load outer data and create operator/get result
+        print("\n[Phase 1] Loading outer data and executing function...")
+        
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output')
+        
+        print(f"  Outer args count: {len(outer_args)}")
+        print(f"  Outer kwargs keys: {list(outer_kwargs.keys())}")
+        
+        # Execute the function with outer data
+        agent_result = full_propagate_to_sensor(*outer_args, **outer_kwargs)
+        
+        print(f"  Result type: {type(agent_result)}")
+        
+        # Phase 2: Handle based on scenario
+        if is_factory_pattern:
+            print("\n[Phase 2] Factory Pattern - Verifying operator is callable...")
+            
+            if not callable(agent_result):
+                print(f"ERROR: Expected callable operator, got {type(agent_result)}")
+                sys.exit(1)
+            
+            print("  ✓ Operator is callable")
+            
+            # Process each inner data file
+            all_passed = True
+            
+            for idx, inner_path in enumerate(inner_paths, 1):
+                print(f"\n[Phase 2.{idx}] Processing inner data: {os.path.basename(inner_path)}")
+                
+                try:
+                    with open(inner_path, 'rb') as f:
+                        inner_data = dill.load(f)
+                    
+                    inner_args = inner_data.get('args', ())
+                    inner_kwargs = inner_data.get('kwargs', {})
+                    expected_output = inner_data.get('output')
+                    
+                    print(f"  Inner args count: {len(inner_args)}")
+                    print(f"  Inner kwargs keys: {list(inner_kwargs.keys())}")
+                    
+                    # Execute the operator with inner data
+                    actual_result = agent_result(*inner_args, **inner_kwargs)
+                    
+                    # Verify result
+                    print(f"\n[Verification {idx}] Comparing results...")
+                    passed, msg = recursive_check(expected_output, actual_result)
+                    
+                    if not passed:
+                        print(f"  ✗ FAILED: {msg}")
+                        all_passed = False
+                    else:
+                        print(f"  ✓ PASSED")
+                
+                except Exception as e:
+                    print(f"  ✗ ERROR processing inner data {idx}:")
+                    print(f"    {str(e)}")
+                    traceback.print_exc()
+                    all_passed = False
+            
+            if not all_passed:
+                print("\n" + "=" * 80)
+                print("TEST FAILED: One or more inner executions failed")
+                print("=" * 80)
+                sys.exit(1)
+        
+        else:
+            # Scenario A: Simple function - compare direct result
+            print("\n[Phase 2] Simple Function - Verifying result...")
+            
+            expected_output = outer_output
+            actual_result = agent_result
+            
+            print(f"\n[Verification] Comparing results...")
+            passed, msg = recursive_check(expected_output, actual_result)
+            
+            if not passed:
+                print(f"  ✗ FAILED: {msg}")
+                print("\n" + "=" * 80)
+                print("TEST FAILED")
+                print("=" * 80)
+                sys.exit(1)
+            else:
+                print(f"  ✓ PASSED")
+        
+        # All tests passed
+        print("\n" + "=" * 80)
+        print("TEST PASSED")
+        print("=" * 80)
+        sys.exit(0)
+    
+    except Exception as e:
+        print(f"\n✗ CRITICAL ERROR:")
+        print(f"  {str(e)}")
+        traceback.print_exc()
+        print("\n" + "=" * 80)
+        print("TEST FAILED: Unexpected error")
+        print("=" * 80)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

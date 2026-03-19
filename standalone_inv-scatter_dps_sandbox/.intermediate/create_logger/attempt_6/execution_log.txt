@@ -1,0 +1,8 @@
+[Phase 1] Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_dps_sandbox/run_code/std_data/data_create_logger.pkl
+[Phase 1] Outer args: ('outputs/standalone_inv-scatter_dps/DPS/standalone_inv-scatter_dps',)
+[Phase 1] Outer kwargs: {}
+[Phase 1] Executing create_logger to reconstruct operator...
+[Phase 1] Agent operator created: <class 'logging.Logger'>
+[Phase 2] Scenario A detected: No inner data files, testing direct output
+[Verification] Verifying logger configuration...
+TEST PASSED

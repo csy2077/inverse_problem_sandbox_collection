@@ -1,0 +1,6 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_dps_sandbox/run_code/std_data/data_open_url.pkl
+Executing open_url with outer args/kwargs...
+Detected Scenario A: Simple Function
+Verifying result against expected output...
+TEST FAILED:
+Value mismatch at output: expected <_io.BufferedReader name='weights/inv-scatter-5m.pt'>, got <_io.BufferedReader name='weights/inv-scatter-5m.pt'>

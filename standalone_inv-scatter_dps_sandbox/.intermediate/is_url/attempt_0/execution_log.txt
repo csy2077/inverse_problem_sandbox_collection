@@ -1,0 +1,5 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_dps_sandbox/run_code/std_data/data_is_url.pkl
+Executing is_url with outer args: ('weights/inv-scatter-5m.pt',), kwargs: {}
+Scenario A detected: Simple function execution
+Verifying results...
+TEST PASSED

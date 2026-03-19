@@ -1,0 +1,8 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_dps_sandbox/run_code/std_data/data_construct_parameters.pkl
+[INFO] Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+[INFO] outer_args count: 9
+[INFO] outer_kwargs keys: []
+[INFO] construct_parameters executed successfully.
+[INFO] Scenario A detected: simple function, comparing output directly.
+[INFO] Verification passed for direct output comparison.
+TEST PASSED

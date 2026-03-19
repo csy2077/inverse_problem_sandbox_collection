@@ -1,0 +1,22 @@
+================================================================================
+UNIT TEST: generate_em_functions
+================================================================================
+Detected: SCENARIO A (Simple Function)
+  Data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_dps_sandbox/run_code/std_data/data_generate_em_functions.pkl
+--------------------------------------------------------------------------------
+
+[PHASE 1] Loading outer data and creating operator...
+  Outer args type: <class 'tuple'>
+  Outer kwargs keys: None
+  Executing: generate_em_functions(*outer_args, **outer_kwargs)
+  Result type: <class 'dict'>
+
+[PHASE 2] Simple function - verifying result...
+  Result type: <class 'dict'>
+  Expected type: <class 'dict'>
+  Verifying result against expected output...
+  ✓ Verification passed
+
+================================================================================
+TEST PASSED
+================================================================================

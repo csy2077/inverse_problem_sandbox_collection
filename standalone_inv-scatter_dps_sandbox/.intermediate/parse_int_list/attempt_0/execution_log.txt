@@ -1,0 +1,6 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_dps_sandbox/run_code/std_data/data_parse_int_list.pkl
+Executing parse_int_list with outer args: ('0',), kwargs: {}
+Scenario A detected: Simple function execution
+TEST PASSED
+
+All tests completed successfully
