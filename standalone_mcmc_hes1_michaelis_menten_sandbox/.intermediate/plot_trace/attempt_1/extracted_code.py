@@ -1,0 +1,181 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+from agent_plot_trace import plot_trace
+from verification_utils import recursive_check
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_hes1_michaelis_menten_sandbox/run_code/std_data/data_plot_trace.pkl'
+    ]
+
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file found.")
+        sys.exit(1)
+
+    try:
+        print(f"Loading outer data from: {outer_path}")
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Outer data keys: {list(outer_data.keys())}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    if len(inner_paths) > 0:
+        print("Scenario B detected: Factory/Closure pattern")
+        try:
+            agent_operator = plot_trace(*outer_args, **outer_kwargs)
+            plt.close('all')
+        except Exception as e:
+            print(f"FAIL: Could not create operator from plot_trace: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable operator, got {type(agent_operator)}")
+            sys.exit(1)
+
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+                plt.close('all')
+            except Exception as e:
+                print(f"FAIL: Operator execution failed: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+                if not passed:
+                    print(f"FAIL: Verification failed for {os.path.basename(inner_path)}: {msg}")
+                    sys.exit(1)
+                else:
+                    print(f"PASS: Inner data {os.path.basename(inner_path)} verified successfully.")
+            except Exception as e:
+                print(f"FAIL: Verification exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+    else:
+        # Scenario A: Simple function call
+        # plot_trace returns (fig, axes) - matplotlib objects that can't be directly compared
+        # We need to verify the function runs successfully and produces correct structure
+        print("Scenario A detected: Simple function call")
+        try:
+            print("Running plot_trace with outer args...")
+            result = plot_trace(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: plot_trace execution failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        # The output is (fig, axes) - matplotlib Figure and numpy array of Axes
+        # These are non-serializable visual objects, so we verify structurally
+        try:
+            # Check that result is a tuple of length 2
+            if not isinstance(result, tuple) or len(result) != 2:
+                print(f"FAIL: Expected tuple of length 2, got {type(result)}")
+                sys.exit(1)
+
+            result_fig, result_axes = result
+            expected_fig, expected_axes = expected
+
+            # Verify fig is a matplotlib Figure
+            if not isinstance(result_fig, plt.Figure):
+                print(f"FAIL: Expected matplotlib Figure, got {type(result_fig)}")
+                sys.exit(1)
+
+            # Verify axes shape matches
+            if result_axes.shape != expected_axes.shape:
+                print(f"FAIL: Axes shape mismatch: expected {expected_axes.shape}, got {result_axes.shape}")
+                sys.exit(1)
+
+            # Verify figure size matches
+            expected_size = expected_fig.get_size_inches()
+            result_size = result_fig.get_size_inches()
+            if not np.allclose(expected_size, result_size, atol=1e-5):
+                print(f"FAIL: Figure size mismatch: expected {expected_size}, got {result_size}")
+                sys.exit(1)
+
+            # Verify axes labels match
+            for i in range(result_axes.shape[0]):
+                for j in range(result_axes.shape[1]):
+                    exp_xlabel = expected_axes[i, j].get_xlabel()
+                    res_xlabel = result_axes[i, j].get_xlabel()
+                    if exp_xlabel != res_xlabel:
+                        print(f"FAIL: xlabel mismatch at [{i},{j}]: expected '{exp_xlabel}', got '{res_xlabel}'")
+                        sys.exit(1)
+
+                    exp_ylabel = expected_axes[i, j].get_ylabel()
+                    res_ylabel = result_axes[i, j].get_ylabel()
+                    if exp_ylabel != res_ylabel:
+                        print(f"FAIL: ylabel mismatch at [{i},{j}]: expected '{exp_ylabel}', got '{res_ylabel}'")
+                        sys.exit(1)
+
+            # Verify ylim on trace plots (column 1)
+            for i in range(result_axes.shape[0]):
+                exp_ylim = expected_axes[i, 1].get_ylim()
+                res_ylim = result_axes[i, 1].get_ylim()
+                if not np.allclose(exp_ylim, res_ylim, rtol=1e-5, atol=1e-10):
+                    print(f"FAIL: ylim mismatch at [{i},1]: expected {exp_ylim}, got {res_ylim}")
+                    sys.exit(1)
+
+            # Verify number of children/artists roughly match (same number of plotted elements)
+            for i in range(result_axes.shape[0]):
+                for j in range(result_axes.shape[1]):
+                    exp_n = len(expected_axes[i, j].get_children())
+                    res_n = len(result_axes[i, j].get_children())
+                    if exp_n != res_n:
+                        print(f"FAIL: Number of artists mismatch at [{i},{j}]: expected {exp_n}, got {res_n}")
+                        sys.exit(1)
+
+            print("PASS: Output verified successfully.")
+
+        except Exception as e:
+            print(f"FAIL: Verification exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        finally:
+            plt.close('all')
+
+    print("TEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the mean of variances of samples within each chain, given an array of chains.",
+    "function_docstring": "Calculates the average variance within each chain in a collection of Markov chain samples.\n\nArgs:\n    chains (np.ndarray): A 3-dimensional array (Shape: (C, N, ...)), where 'C' represents the number of chains and 'N' the number of samples per chain. Each subarray corresponds to a single chain, from which the variance is calculated and averaged across all chains.\n\nReturns:\n    float: The average of the within-chain variances, representing the mean variance of samples within each chain.",
+    "usage_example": "import numpy as np\n\n# Simulate some chains data\nchains_data = np.random.rand(5, 10, 3)  # 5 chains, 10 samples each, dimension 3 for each sample\n\n# Compute the within-chain variance mean\nesult = _within(chains_data)\nprint(f\"Average within-chain variance: {result}\")"
+}

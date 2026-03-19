@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Converts an input into a 1-dimensional immutable numpy array of floats.",
+    "function_docstring": "Converts the input into a 1-dimensional immutable numpy array of floats.\n\nArgs:\n    x (Union[scalar, array-like]): The input to be converted. If a scalar is provided, it will be converted into a 1-element array. If an array-like structure is provided, it will be converted into a 1-dimensional array of floats.\n\nReturns:\n    numpy.ndarray: A 1-dimensional immutable numpy array of floats. If the input is not already 1-dimensional, it will be reshaped to a 1-dimensional array.",
+    "usage_example": "import numpy as np\n\n# Example usage of the vector function\nscalar_input = 5\narray_input = [1, 2, 3]\n\n# Convert scalar to vector\nvector_scalar = vector(scalar_input)\nprint(vector_scalar)  # Output: array([5.])\n\n# Convert array to vector\nvector_array = vector(array_input)\nprint(vector_array)  # Output: array([1., 2., 3.])"
+}

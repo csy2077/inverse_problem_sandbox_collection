@@ -1,0 +1,6 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_hes1_michaelis_menten_sandbox/run_code/std_data/data_load_data.pkl
+  func_name: load_data
+Successfully executed load_data with outer args.
+Scenario A detected: Simple function.
+PASS: Verification passed.
+TEST PASSED

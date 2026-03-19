@@ -1,0 +1,5 @@
+{
+    "function_explanation": "The `load_and_preprocess_data` function loads model data from a JSON file and preprocesses it, returning a dictionary with the model and associated configuration.",
+    "function_docstring": "Load model data from a JSON file and preprocess for inference.\n\nArgs:\n    json_path (str): Path to the JSON data file.\n\nReturns:\n    dict: A dictionary containing preprocessed data, including the model (Hes1Model instance), times, values, suggested parameters, and configuration information used for inference.",
+    "usage_example": "import numpy as np\n\n# Example usage of load_and_preprocess_data\njson_path = 'path/to/data.json'\npreprocessed_data = load_and_preprocess_data(json_path)\n\n# Accessing the returned data\nmodel = preprocessed_data['model']\ntimes = preprocessed_data['times']\nvalues = preprocessed_data['values']\nparameters = preprocessed_data['parameters']"
+}

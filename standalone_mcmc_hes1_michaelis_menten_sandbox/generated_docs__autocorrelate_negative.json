@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Finds the first index of a negative value in an autocorrelation sequence.",
+    "function_docstring": "Finds the first index of a negative value in an autocorrelation sequence.\n\nArgs:\n    autocorrelation (array-like): A sequence of autocorrelation values, typically resulting from a correlation operation on a dataset.\n\nReturns:\n    int: The index of the first negative value in the autocorrelation sequence. If no negative value is found, returns the length of the sequence.",
+    "usage_example": "import numpy as np\n\n# Example autocorrelation sequence\nautocorr_sequence = np.array([1.0, 0.5, 0.2, -0.1, -0.5])\n\n# Find the first negative index\nnegative_index = _autocorrelate_negative(autocorr_sequence)\nprint(f\"First negative index: {negative_index}\")"
+}

@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Simulates the Hes1 model to predict concentrations at specified time points using given parameters.",
+    "function_docstring": "Simulates the Hes1 model given parameters and time points.\n\nArgs:\n    x (array-like): A sequence of model parameters, specifically the first four elements [P0, v, k1, h] are used for simulation.\n    model (Hes1Model): An instance of the Hes1Model class, which must have a `simulate` method that takes parameters and time points as input.\n    times (array-like): A sequence of time points at which the Hes1 concentrations are to be predicted.\n\nReturns:\n    ndarray: An array of predicted Hes1 concentrations corresponding to the provided time points.",
+    "usage_example": "import numpy as np\n\n# Assuming Hes1Model is defined elsewhere and has a simulate method\nmodel = Hes1Model()\nparameters = [0.5, 1.0, 0.1, 2.0]  # Example parameters\nsimulation_times = np.linspace(0, 10, 100)  # Example time points\n\npredicted_concentrations = forward_operator(parameters, model, simulation_times)\nprint(predicted_concentrations)"
+}

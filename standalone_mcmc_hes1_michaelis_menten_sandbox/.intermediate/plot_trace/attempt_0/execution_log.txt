@@ -1,0 +1,6 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_hes1_michaelis_menten_sandbox/run_code/std_data/data_plot_trace.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Scenario A detected: Simple function call
+Running plot_trace with outer args...
+Saved: hes1_trace_hmc.png
+FAIL: Verification failed: Value mismatch at output[0]: expected Figure(1200x1000), got Figure(1200x1000)

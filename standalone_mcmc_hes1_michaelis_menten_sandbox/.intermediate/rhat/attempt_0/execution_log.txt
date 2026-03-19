@@ -1,0 +1,8 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_hes1_michaelis_menten_sandbox/run_code/std_data/data_rhat.pkl
+  func_name: rhat
+  args types: ['ndarray']
+  kwargs keys: []
+Detected Scenario A: Simple function call.
+rhat() returned type: ndarray
+TEST PASSED
+TEST PASSED

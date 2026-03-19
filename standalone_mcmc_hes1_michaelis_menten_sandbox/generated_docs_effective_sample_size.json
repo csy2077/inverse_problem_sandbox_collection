@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the effective sample size of a set of MCMC samples for multiple parameters.",
+    "function_docstring": "\"\"\"\nCalculates the effective sample size (ESS) for each parameter in a set of Markov Chain Monte Carlo (MCMC) samples.\n\nThe function computes the ESS for each parameter by estimating the autocorrelation within each parameter's sample chain, helping evaluate the accuracy of MCMC estimates.\n\nArgs:\n    samples (numpy.ndarray): A 2D numpy array with shape (N, P), where N is the number of samples, and P is the number of parameters.\n        Each column should correspond to the samples of a single parameter from MCMC simulations.\n        The array must have at least two samples (N >= 2).\n\nReturns:\n    list of float: A list containing the effective sample size for each parameter.\n\"\"\"",
+    "usage_example": "import numpy as np\nfrom agent_effective_sample_size import effective_sample_size\n\n# Example MCMC samples for 3 parameters\nsamples = np.random.rand(1000, 3)\n\n# Calculate effective sample sizes\ness = effective_sample_size(samples)\n\nprint(\"Effective Sample Sizes for each parameter:\", ess)"
+}

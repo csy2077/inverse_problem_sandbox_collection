@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the between-chain variance for a set of MCMC chains, scaled by the number of samples per chain.",
+    "function_docstring": "Calculates the between-chain variance multiplied by the number of samples per chain for given MCMC chains.\n\nArgs:\n    chains (np.ndarray): A 2D NumPy array of shape (M, N) where M is the number of chains and N is the number of samples per chain. It represents multiple MCMC chains with samples.\n\nReturns:\n    float: A float representing the scaled between-chain variance calculated using the within-chain means and overall variance across chains.",
+    "usage_example": "import numpy as np\n\n# Generate sample input data\nchains = np.random.randn(5, 100)  # 5 chains, each with 100 samples\n\n# Compute the scaled between-chain variance\nresult = _between(chains)\nprint(\"Scaled Between-Chain Variance:\", result)"
+}

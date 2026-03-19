@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the autocorrelation of a given 1D numpy array.",
+    "function_docstring": "```python\ndef autocorrelation(x):\n    \"\"\"\n    Computes the autocorrelation of a given 1D numpy array.\n\n    Args:\n        x (numpy.ndarray): A 1D numpy array representing the input signal.\n\n    Returns:\n        numpy.ndarray: A 1D numpy array containing the autocorrelation of the input signal.\n    \"\"\"\n```",
+    "usage_example": "```python\nimport numpy as np\nfrom agent_autocorrelation import autocorrelation\n\n# Example usage\nsignal = np.array([1, 2, 3, 4, 5])\nresult = autocorrelation(signal)\nprint(result)\n```"
+}
