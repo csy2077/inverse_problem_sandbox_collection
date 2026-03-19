@@ -1,0 +1,77 @@
+[
+    {
+        "function_name": "compute_metric",
+        "inputs": {
+            "metric": {
+                "type": "CustomObject",
+                "class_name": "SRE",
+                "public_methods": [],
+                "attributes": [
+                    "name"
+                ]
+            },
+            "X_gt": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    5,
+                    5625
+                ],
+                "dtype": "float64"
+            },
+            "X_hat": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    5,
+                    5625
+                ],
+                "dtype": "float64"
+            },
+            "labels": {
+                "type": "list",
+                "length": 5,
+                "elements": [
+                    {
+                        "type": "str",
+                        "value_sample": "#0"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#1"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#2"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#3"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#4"
+                    }
+                ]
+            },
+            "detail": {
+                "type": "bool",
+                "value_sample": "False"
+            },
+            "on_endmembers": {
+                "type": "bool",
+                "value_sample": "False"
+            }
+        },
+        "output": {
+            "type": "dict",
+            "value_sample": "{'Overall': 5.0884}"
+        }
+    },
+    {
+        "function_name": "main",
+        "inputs": {},
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    }
+]

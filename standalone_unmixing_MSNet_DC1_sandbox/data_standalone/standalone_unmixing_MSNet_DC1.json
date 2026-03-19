@@ -1,0 +1,25 @@
+{
+    "model": {
+        "epochs": 800,
+        "alpha": 0.1,
+        "beta": 0.03,
+        "drop_out": 0.2,
+        "learning_rate": 0.001,
+        "weight_decay": 1e-4,
+        "step_size": 30,
+        "gamma": 0.6
+    },
+    "noise": {
+        "SNR": 30
+    },
+    "data": {
+        "dataset": "DC1",
+        "data_file": "DC1.mat"
+    },
+    "global": {
+        "seed": 0,
+        "projection": false,
+        "l2_normalization": false,
+        "EPS": 1e-10
+    }
+}
