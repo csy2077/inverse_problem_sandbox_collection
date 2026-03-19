@@ -1,0 +1,143 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+import logging
+
+# Ensure the current directory is in the path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Pre-import logging and inject into agent_main's namespace before importing it
+import agent_main
+if not hasattr(agent_main, 'logging'):
+    agent_main.logging = logging
+
+from verification_utils import recursive_check
+
+
+def main_test():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_EDAA_DC1_sandbox/run_code/std_data/data_main.pkl'
+    ]
+
+    # Classify paths into outer (standard) and inner (parent_function) data
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    assert outer_path is not None, f"No outer data file found in {data_paths}"
+    print(f"[INFO] Outer data path: {outer_path}")
+    print(f"[INFO] Inner data paths: {inner_paths}")
+
+    # Load outer data
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"[INFO] Outer data loaded successfully. Keys: {list(outer_data.keys())}")
+    except Exception as e:
+        print(f"[FAIL] Failed to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+
+    print(f"[INFO] outer_args type: {type(outer_args)}, length: {len(outer_args) if isinstance(outer_args, (list, tuple)) else 'N/A'}")
+    print(f"[INFO] outer_kwargs type: {type(outer_kwargs)}, keys: {list(outer_kwargs.keys()) if isinstance(outer_kwargs, dict) else 'N/A'}")
+    print(f"[INFO] expected_output type: {type(expected_output)}")
+
+    if len(inner_paths) > 0:
+        # --- Scenario B: Factory/Closure Pattern ---
+        print("[INFO] Detected Scenario B: Factory/Closure Pattern")
+
+        # Phase 1: Create operator
+        try:
+            from agent_main import main
+            agent_operator = main(*outer_args, **outer_kwargs)
+            print(f"[INFO] Operator created successfully. Type: {type(agent_operator)}")
+        except Exception as e:
+            print(f"[FAIL] Failed to create operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        assert callable(agent_operator), f"Expected callable operator, got {type(agent_operator)}"
+
+        # Phase 2: Execute with inner data
+        for inner_path in inner_paths:
+            print(f"[INFO] Loading inner data from: {inner_path}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"[INFO] Inner data loaded. Keys: {list(inner_data.keys())}")
+            except Exception as e:
+                print(f"[FAIL] Failed to load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+                print(f"[INFO] Operator executed successfully. Result type: {type(result)}")
+            except Exception as e:
+                print(f"[FAIL] Failed to execute operator: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # Comparison
+            try:
+                passed, msg = recursive_check(inner_expected, result)
+                if passed:
+                    print(f"[PASS] Inner data check passed for {os.path.basename(inner_path)}")
+                else:
+                    print(f"[FAIL] Inner data check failed for {os.path.basename(inner_path)}: {msg}")
+                    sys.exit(1)
+            except Exception as e:
+                print(f"[FAIL] Verification error: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+    else:
+        # --- Scenario A: Simple Function ---
+        print("[INFO] Detected Scenario A: Simple Function")
+
+        # Phase 1: Run function
+        try:
+            from agent_main import main
+            result = main(*outer_args, **outer_kwargs)
+            print(f"[INFO] Function executed successfully. Result type: {type(result)}")
+        except Exception as e:
+            print(f"[FAIL] Failed to execute main: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        # Phase 2: Compare
+        try:
+            passed, msg = recursive_check(expected_output, result)
+            if passed:
+                print("[PASS] Output check passed.")
+            else:
+                print(f"[FAIL] Output check failed: {msg}")
+                sys.exit(1)
+        except Exception as e:
+            print(f"[FAIL] Verification error: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+    print("TEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main_test()

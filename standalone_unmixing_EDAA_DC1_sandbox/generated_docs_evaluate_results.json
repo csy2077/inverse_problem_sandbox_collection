@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Evaluates inversion results against ground truth and saves computed metrics and plots.",
+    "function_docstring": "Evaluate the inversion results against ground truth and save outputs.\n\nArgs:\n    inversion_result (dict): A dictionary containing estimated endmembers 'E_hat' and abundances 'A_hat'.\n    data_dict (dict): A dictionary containing ground truth data and metadata, including 'E_gt', 'A_gt', 'H', 'W', 'hsi', and 'labels'.\n    output_dir (Path): The directory path where the output files will be saved.\n\nReturns:\n    dict: A dictionary containing all computed metrics, including 'SRE', 'aRMSE', 'SAD', and 'eRMSE'.",
+    "usage_example": "from pathlib import Path\n\n# Example usage\ninversion_result = {\n    'E_hat': np.random.rand(10, 5),\n    'A_hat': np.random.rand(5, 100)\n}\ndata_dict = {\n    'E_gt': np.random.rand(10, 5),\n    'A_gt': np.random.rand(5, 100),\n    'H': 10,\n    'W': 10,\n    'hsi': CustomHSIObject(),\n    'labels': ['Label1', 'Label2', 'Label3', 'Label4', 'Label5']\n}\noutput_dir = Path('/path/to/output')\n\nmetrics = evaluate_results(inversion_result, data_dict, output_dir)\nprint(metrics)"
+}

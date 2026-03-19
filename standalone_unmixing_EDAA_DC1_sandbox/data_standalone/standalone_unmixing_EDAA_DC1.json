@@ -1,0 +1,24 @@
+{
+    "seed": 0,
+    "SNR": 30,
+    "projection": false,
+    "l2_normalization": false,
+    "force_align": false,
+    "EDAA": {
+        "T": 10,
+        "K1": 5,
+        "K2": 5,
+        "M": 5,
+        "normalize": true
+    },
+    "original_EDAA": {
+        "T": 100,
+        "K1": 5,
+        "K2": 5,
+        "M": 50
+    },
+    "data": {
+        "dataset": "DC1"
+    },
+    "EPS": 1e-10
+}
