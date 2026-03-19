@@ -1,0 +1,186 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_weight_init import weight_init
+from verification_utils import recursive_check
+
+
+def main():
+    # Define data paths
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_lgd_sandbox/run_code/std_data/data_weight_init.pkl'
+    ]
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file found for weight_init.")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"  func_name: {outer_data.get('func_name', 'N/A')}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    # Phase 1: Execute the function
+    try:
+        agent_result = weight_init(*outer_args, **outer_kwargs)
+        print(f"weight_init executed successfully. Result type: {type(agent_result)}")
+    except Exception as e:
+        print(f"FAIL: weight_init raised an exception: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Determine scenario
+    if inner_paths:
+        # Scenario B: Factory/Closure pattern
+        print("Scenario B detected: Factory/Closure pattern")
+
+        # Verify agent_result is callable
+        if not callable(agent_result):
+            print(f"FAIL: Expected callable from weight_init, got {type(agent_result)}")
+            sys.exit(1)
+
+        all_passed = True
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data from {inner_path}: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                actual_result = agent_result(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Executing agent_operator raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, actual_result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Verification failed for inner data {inner_path}")
+                print(f"  Message: {msg}")
+                all_passed = False
+            else:
+                print(f"  Inner test passed for: {os.path.basename(inner_path)}")
+
+        if not all_passed:
+            sys.exit(1)
+        print("TEST PASSED")
+        sys.exit(0)
+
+    else:
+        # Scenario A: Simple function call
+        print("Scenario A detected: Simple function call")
+
+        # Note: weight_init uses random operations (torch.rand, torch.randn),
+        # so exact comparison of tensor values will not match.
+        # We verify structural properties instead: shape, dtype, and statistical bounds.
+
+        expected = outer_output
+        result = agent_result
+
+        # First try recursive_check (it may handle tolerances or structural checks)
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            # Since the function is stochastic, exact match is not expected.
+            # Perform structural validation instead.
+            print(f"  Note: Exact value match not expected (stochastic function). Performing structural checks.")
+
+            structural_passed = True
+            fail_messages = []
+
+            # Check types match
+            if type(expected) != type(result):
+                structural_passed = False
+                fail_messages.append(f"Type mismatch: expected {type(expected)}, got {type(result)}")
+
+            # If both are tensors, check shape and dtype
+            if isinstance(expected, torch.Tensor) and isinstance(result, torch.Tensor):
+                if expected.shape != result.shape:
+                    structural_passed = False
+                    fail_messages.append(f"Shape mismatch: expected {expected.shape}, got {result.shape}")
+                if expected.dtype != result.dtype:
+                    structural_passed = False
+                    fail_messages.append(f"Dtype mismatch: expected {expected.dtype}, got {result.dtype}")
+
+                # Verify the result is finite
+                if not torch.isfinite(result).all():
+                    structural_passed = False
+                    fail_messages.append("Result contains non-finite values")
+
+                # Verify approximate statistical properties based on mode
+                mode = outer_args[1] if len(outer_args) > 1 else outer_kwargs.get('mode', '')
+                fan_in = outer_args[2] if len(outer_args) > 2 else outer_kwargs.get('fan_in', 1)
+                fan_out = outer_args[3] if len(outer_args) > 3 else outer_kwargs.get('fan_out', 1)
+
+                if mode == 'xavier_uniform':
+                    bound = np.sqrt(6 / (fan_in + fan_out))
+                    if result.abs().max().item() > bound * 1.01:
+                        structural_passed = False
+                        fail_messages.append(f"Xavier uniform: values exceed bound {bound}")
+                elif mode == 'kaiming_uniform':
+                    bound = np.sqrt(3 / fan_in)
+                    if result.abs().max().item() > bound * 1.01:
+                        structural_passed = False
+                        fail_messages.append(f"Kaiming uniform: values exceed bound {bound}")
+
+            if structural_passed:
+                print("  Structural checks passed (stochastic function, exact values differ as expected).")
+                print("TEST PASSED")
+                sys.exit(0)
+            else:
+                for fm in fail_messages:
+                    print(f"  FAIL: {fm}")
+                print(f"  Original recursive_check message: {msg}")
+                sys.exit(1)
+        else:
+            print("TEST PASSED")
+            sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

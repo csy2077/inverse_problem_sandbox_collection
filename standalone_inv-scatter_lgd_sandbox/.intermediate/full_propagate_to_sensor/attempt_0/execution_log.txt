@@ -1,0 +1,7 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_lgd_sandbox/run_code/std_data/data_full_propagate_to_sensor.pkl
+[INFO] Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+[INFO] func_name: full_propagate_to_sensor
+[INFO] Running full_propagate_to_sensor with outer args...
+[INFO] Function returned type: <class 'torch.Tensor'>
+[INFO] Scenario A detected. Comparing direct output.
+TEST PASSED

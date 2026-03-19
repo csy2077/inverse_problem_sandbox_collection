@@ -1,0 +1,7 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_lgd_sandbox/run_code/std_data/data_weight_init.pkl
+  func_name: weight_init
+weight_init executed successfully. Result type: <class 'torch.Tensor'>
+Scenario A detected: Simple function call
+  Note: Exact value match not expected (stochastic function). Performing structural checks.
+  Structural checks passed (stochastic function, exact values differ as expected).
+TEST PASSED

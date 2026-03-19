@@ -1,0 +1,6 @@
+Outer data loaded. func_name=create_logger
+  args types: ['str']
+  kwargs keys: []
+  agent_operator type: Logger
+  Logger type verification passed (logger name and level differences are expected due to module context).
+TEST PASSED

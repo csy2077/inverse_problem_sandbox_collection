@@ -1,0 +1,5 @@
+Outer data loaded. func_name=create_logger
+  args types: ['str']
+  kwargs keys: []
+  agent_operator type: Logger
+FAIL: Logger name mismatch: expected=__main__, got=agent_create_logger; Logger level mismatch: expected=0, got=20

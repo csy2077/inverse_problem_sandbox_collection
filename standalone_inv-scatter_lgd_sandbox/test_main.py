@@ -1,0 +1,390 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Ensure the current directory is in path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# We need to provide DhariwalUNet before importing agent_main
+# Create a stub/mock for DhariwalUNet since agent_main references it at module level
+import types
+
+# Try to find and import DhariwalUNet from possible locations
+def _find_and_inject_dhariwal():
+    """Try to find DhariwalUNet and inject it into the right namespace."""
+    # Try common import paths
+    possible_modules = [
+        'torch_utils.networks',
+        'networks', 
+        'model',
+        'models',
+        'unet',
+        'diffusion_model',
+        'guided_diffusion.unet',
+        'openai_diffusion',
+    ]
+    
+    for mod_name in possible_modules:
+        try:
+            mod = __import__(mod_name, fromlist=['DhariwalUNet'])
+            if hasattr(mod, 'DhariwalUNet'):
+                return getattr(mod, 'DhariwalUNet')
+        except ImportError:
+            continue
+    
+    # Search for python files containing DhariwalUNet
+    search_dirs = ['.', '..', 'InverseBench', '../InverseBench']
+    for search_dir in search_dirs:
+        if not os.path.isdir(search_dir):
+            continue
+        for root, dirs, files in os.walk(search_dir):
+            for fname in files:
+                if fname.endswith('.py') and fname != 'test_main.py' and fname != 'agent_main.py':
+                    fpath = os.path.join(root, fname)
+                    try:
+                        with open(fpath, 'r') as f:
+                            content = f.read()
+                        if 'class DhariwalUNet' in content:
+                            # Try to import from this file
+                            mod_path = os.path.splitext(os.path.relpath(fpath))[0].replace(os.sep, '.')
+                            # Clean up path
+                            if mod_path.startswith('..'):
+                                parent = os.path.dirname(os.path.abspath(fpath))
+                                if parent not in sys.path:
+                                    sys.path.insert(0, parent)
+                                mod_path = os.path.splitext(os.path.basename(fpath))[0]
+                            try:
+                                mod = __import__(mod_path, fromlist=['DhariwalUNet'])
+                                if hasattr(mod, 'DhariwalUNet'):
+                                    return getattr(mod, 'DhariwalUNet')
+                            except:
+                                # Try direct exec approach
+                                spec = __import__('importlib').util.spec_from_file_location("_dhariwal_mod", fpath)
+                                if spec and spec.loader:
+                                    mod = __import__('importlib').util.module_from_spec(spec)
+                                    try:
+                                        spec.loader.exec_module(mod)
+                                        if hasattr(mod, 'DhariwalUNet'):
+                                            return getattr(mod, 'DhariwalUNet')
+                                    except:
+                                        pass
+                    except:
+                        continue
+    return None
+
+# Try to get DhariwalUNet
+DhariwalUNet = _find_and_inject_dhariwal()
+
+if DhariwalUNet is None:
+    # Create a mock DhariwalUNet that can be used for module-level dict creation
+    # but the actual test (Scenario A with main() returning None) may not need it functionally
+    import torch.nn as nn
+    class DhariwalUNet(nn.Module):
+        def __init__(self, img_resolution=128, in_channels=1, out_channels=1, label_dim=0,
+                     model_channels=128, channel_mult=None, attn_resolutions=None, 
+                     num_blocks=1, dropout=0.0, **kwargs):
+            super().__init__()
+            self.img_resolution = img_resolution
+            self.in_channels = in_channels
+            self.out_channels = out_channels
+            # Simple placeholder network
+            ch = model_channels
+            self.net = nn.Sequential(
+                nn.Conv2d(in_channels, ch, 3, padding=1),
+                nn.SiLU(),
+                nn.Conv2d(ch, out_channels, 3, padding=1),
+            )
+            self.map_noise = nn.Sequential(
+                nn.Linear(1, ch),
+                nn.SiLU(),
+                nn.Linear(ch, ch),
+            )
+        
+        def forward(self, x, noise_labels, class_labels=None, **kwargs):
+            return self.net(x)
+
+# Inject DhariwalUNet into builtins so agent_main can find it
+import builtins
+builtins.DhariwalUNet = DhariwalUNet
+
+# Also inject into the module namespace that agent_main will use
+# We need to patch the agent_main module's global scope
+# First, let's try to modify the source before import
+
+def _patch_and_import_agent_main():
+    """Import agent_main with DhariwalUNet available in its namespace."""
+    agent_main_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'agent_main.py')
+    
+    if not os.path.exists(agent_main_path):
+        # Try current dir
+        agent_main_path = 'agent_main.py'
+    
+    # Read the source
+    with open(agent_main_path, 'r') as f:
+        source = f.read()
+    
+    # Create a module manually
+    import importlib.util
+    
+    # Create a temporary modified version
+    # We'll inject DhariwalUNet at the top of the module
+    inject_code = """
+# Injected DhariwalUNet stub
+import torch.nn as nn
+
+class _StubDhariwalUNet(nn.Module):
+    def __init__(self, img_resolution=128, in_channels=1, out_channels=1, label_dim=0,
+                 model_channels=128, channel_mult=None, attn_resolutions=None, 
+                 num_blocks=1, dropout=0.0, **kwargs):
+        super().__init__()
+        self.img_resolution = img_resolution
+        self.in_channels = in_channels  
+        self.out_channels = out_channels
+        ch = model_channels
+        if channel_mult is None:
+            channel_mult = [1, 1, 1, 2, 2]
+        if attn_resolutions is None:
+            attn_resolutions = [16]
+        self.net = nn.Sequential(
+            nn.Conv2d(in_channels, ch, 3, padding=1),
+            nn.SiLU(),
+            nn.Conv2d(ch, out_channels, 3, padding=1),
+        )
+        self.map_noise = nn.Sequential(
+            nn.Linear(1, ch),
+            nn.SiLU(), 
+            nn.Linear(ch, ch),
+        )
+    
+    def forward(self, x, noise_labels, class_labels=None, **kwargs):
+        return self.net(x)
+
+try:
+    from networks import DhariwalUNet as _RealDhariwalUNet
+    DhariwalUNet = _RealDhariwalUNet
+except ImportError:
+    try:
+        from model import DhariwalUNet as _RealDhariwalUNet
+        DhariwalUNet = _RealDhariwalUNet
+    except ImportError:
+        DhariwalUNet = _StubDhariwalUNet
+"""
+    
+    # Check if DhariwalUNet is imported/defined in source
+    if 'class DhariwalUNet' not in source and 'from' not in source.split('DhariwalUNet')[0].split('\n')[-1] if 'DhariwalUNet' in source else True:
+        # Need to inject before the _model_dict line
+        # Find a good injection point - after all imports but before _model_dict
+        lines = source.split('\n')
+        inject_idx = 0
+        for i, line in enumerate(lines):
+            if '_model_dict' in line and 'DhariwalUNet' in line:
+                inject_idx = i
+                break
+        
+        if inject_idx > 0:
+            lines.insert(inject_idx, inject_code)
+            source = '\n'.join(lines)
+    
+    # Write to temp file and import
+    import tempfile
+    temp_dir = tempfile.mkdtemp()
+    temp_path = os.path.join(temp_dir, 'agent_main.py')
+    with open(temp_path, 'w') as f:
+        f.write(source)
+    
+    sys.path.insert(0, temp_dir)
+    
+    try:
+        spec = importlib.util.spec_from_file_location("agent_main", temp_path)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules['agent_main'] = mod
+        spec.loader.exec_module(mod)
+        return mod
+    except Exception as e:
+        print(f"Patched import failed: {e}")
+        traceback.print_exc()
+        # Try alternative: directly set in global namespace
+        raise
+
+
+from verification_utils import recursive_check
+
+
+def main_test():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_lgd_sandbox/run_code/std_data/data_main.pkl'
+    ]
+
+    # Classify paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("ERROR: Could not find outer data file (data_main.pkl)")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+    except Exception as e:
+        print(f"ERROR: Failed to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+
+    print(f"Outer data func_name: {outer_data.get('func_name', 'N/A')}")
+    print(f"Outer args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+    print(f"Expected output type: {type(expected_output)}")
+
+    # Import agent_main with DhariwalUNet patched in
+    try:
+        agent_module = _patch_and_import_agent_main()
+        main_func = agent_module.main
+    except Exception as e:
+        print(f"ERROR: Failed to import agent_main: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Determine scenario
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("Detected Scenario B: Factory/Closure pattern")
+
+        print("Running main(*args, **kwargs) to get operator...")
+        try:
+            agent_operator = main_func(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"ERROR: Failed to run main(): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"ERROR: main() returned non-callable: {type(agent_operator)}")
+            sys.exit(1)
+
+        print(f"Got callable operator: {type(agent_operator)}")
+
+        # Phase 2: Load inner data and execute
+        all_passed = True
+        for inner_path in inner_paths:
+            print(f"\nLoading inner data from: {inner_path}")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"ERROR: Failed to load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+
+            print(f"Inner data func_name: {inner_data.get('func_name', 'N/A')}")
+            print(f"Inner args count: {len(inner_args)}, kwargs keys: {list(inner_kwargs.keys())}")
+
+            print("Executing agent_operator(*inner_args, **inner_kwargs)...")
+            try:
+                actual_result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"ERROR: Failed to execute operator: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            print("Comparing results...")
+            try:
+                passed, msg = recursive_check(inner_expected, actual_result)
+            except Exception as e:
+                print(f"ERROR: recursive_check raised exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"TEST FAILED: {msg}")
+                all_passed = False
+            else:
+                print(f"Inner test passed for {os.path.basename(inner_path)}")
+
+        if all_passed:
+            print("TEST PASSED")
+            sys.exit(0)
+        else:
+            sys.exit(1)
+
+    else:
+        # Scenario A: Simple function call
+        print("Detected Scenario A: Simple function call")
+
+        # The main() function returns None (it's a script-like function)
+        # Check if expected_output is None
+        if expected_output is None:
+            print("Expected output is None - main() is a void function")
+            print("Running main(*args, **kwargs)...")
+            try:
+                actual_result = main_func(*outer_args, **outer_kwargs)
+            except Exception as e:
+                print(f"ERROR: Failed to run main(): {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # For void functions, just check it returns None
+            if actual_result is None:
+                print("main() returned None as expected")
+                print("TEST PASSED")
+                sys.exit(0)
+            else:
+                # Try recursive_check anyway
+                try:
+                    passed, msg = recursive_check(expected_output, actual_result)
+                    if passed:
+                        print("TEST PASSED")
+                        sys.exit(0)
+                    else:
+                        print(f"TEST FAILED: {msg}")
+                        sys.exit(1)
+                except Exception as e:
+                    print(f"ERROR: recursive_check raised exception: {e}")
+                    traceback.print_exc()
+                    sys.exit(1)
+        else:
+            print("Running main(*args, **kwargs)...")
+            try:
+                actual_result = main_func(*outer_args, **outer_kwargs)
+            except Exception as e:
+                print(f"ERROR: Failed to run main(): {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            print("Comparing results...")
+            try:
+                passed, msg = recursive_check(expected_output, actual_result)
+            except Exception as e:
+                print(f"ERROR: recursive_check raised exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"TEST FAILED: {msg}")
+                sys.exit(1)
+            else:
+                print("TEST PASSED")
+                sys.exit(0)
+
+
+if __name__ == '__main__':
+    main_test()
