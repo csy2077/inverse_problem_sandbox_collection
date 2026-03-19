@@ -1,0 +1,94 @@
+================================================================================
+UNIT TEST: test_main.py
+================================================================================
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_fps_sandbox/run_code/std_data/data_main.pkl
+Inner data files: None (Scenario A)
+
+Phase 1: Loading outer data...
+  Outer func_name: main
+  Outer args count: 0
+  Outer kwargs keys: None
+  Outer output type: <class 'NoneType'>
+
+Phase 2: Importing agent_main and executing main()...
+  Outer output is: None
+  Output is None - main() is a full pipeline function
+  Executing: result = main(*outer_args, **outer_kwargs)
+Using device: cuda
+/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+[[34m2026-03-13 05:07:33[0m] Instantiating InverseScatter problem model...
+Loading SVD from cache.
+[[34m2026-03-13 05:07:40[0m] Instantiating Dataset...
+[[34m2026-03-13 05:07:40[0m] Loaded 1 test samples...
+[[34m2026-03-13 05:07:40[0m] Loading pre-trained model...
+[[34m2026-03-13 05:07:40[0m] Could not load pickle, trying torch.load from weights/inv-scatter-5m.pt
+[[34m2026-03-13 05:07:41[0m] Loaded pre-trained model from weights/inv-scatter-5m.pt...
+[[34m2026-03-13 05:07:41[0m] Instantiating FPS algorithm...
+[[34m2026-03-13 05:07:41[0m] Instantiating Evaluator...
+[[34m2026-03-13 05:07:42[0m] Running inference on test sample 0...
+
+  0%|          | 0/100 [00:00<?, ?it/s]
+  1%|          | 1/100 [00:00<00:50,  1.96it/s]
+  3%|▎         | 3/100 [00:00<00:17,  5.60it/s]
+  5%|▌         | 5/100 [00:00<00:12,  7.69it/s]
+  7%|▋         | 7/100 [00:00<00:10,  9.15it/s]
+  9%|▉         | 9/100 [00:01<00:08, 10.14it/s]
+ 11%|█         | 11/100 [00:01<00:08, 10.80it/s]
+ 13%|█▎        | 13/100 [00:01<00:07, 11.27it/s]
+ 15%|█▌        | 15/100 [00:01<00:07, 11.59it/s]
+ 17%|█▋        | 17/100 [00:01<00:07, 11.82it/s]
+ 19%|█▉        | 19/100 [00:01<00:06, 11.97it/s]
+ 21%|██        | 21/100 [00:02<00:06, 12.08it/s]
+ 23%|██▎       | 23/100 [00:02<00:06, 12.16it/s]
+ 25%|██▌       | 25/100 [00:02<00:06, 12.21it/s]
+ 27%|██▋       | 27/100 [00:02<00:05, 12.25it/s]
+ 29%|██▉       | 29/100 [00:02<00:05, 12.28it/s]
+ 31%|███       | 31/100 [00:02<00:05, 12.29it/s]
+ 33%|███▎      | 33/100 [00:03<00:05, 12.30it/s]
+ 35%|███▌      | 35/100 [00:03<00:05, 12.32it/s]
+ 37%|███▋      | 37/100 [00:03<00:05, 12.32it/s]
+ 39%|███▉      | 39/100 [00:03<00:04, 12.32it/s]
+ 41%|████      | 41/100 [00:03<00:04, 12.33it/s]
+ 43%|████▎     | 43/100 [00:03<00:04, 12.33it/s]
+ 45%|████▌     | 45/100 [00:04<00:04, 12.33it/s]
+ 47%|████▋     | 47/100 [00:04<00:04, 12.33it/s]
+ 49%|████▉     | 49/100 [00:04<00:04, 12.33it/s]
+ 51%|█████     | 51/100 [00:04<00:03, 12.33it/s]
+ 53%|█████▎    | 53/100 [00:04<00:03, 12.33it/s]
+ 55%|█████▌    | 55/100 [00:04<00:03, 12.33it/s]
+ 57%|█████▋    | 57/100 [00:05<00:03, 12.33it/s]
+ 59%|█████▉    | 59/100 [00:05<00:03, 12.33it/s]
+ 61%|██████    | 61/100 [00:05<00:03, 12.34it/s]
+ 63%|██████▎   | 63/100 [00:05<00:02, 12.34it/s]
+ 65%|██████▌   | 65/100 [00:05<00:02, 12.34it/s]
+ 67%|██████▋   | 67/100 [00:05<00:02, 12.34it/s]
+ 69%|██████▉   | 69/100 [00:05<00:02, 12.34it/s]
+ 71%|███████   | 71/100 [00:06<00:02, 12.33it/s]
+ 73%|███████▎  | 73/100 [00:06<00:02, 12.33it/s]
+ 75%|███████▌  | 75/100 [00:06<00:02, 12.33it/s]
+ 77%|███████▋  | 77/100 [00:06<00:01, 12.33it/s]
+ 79%|███████▉  | 79/100 [00:06<00:01, 12.33it/s]
+ 81%|████████  | 81/100 [00:06<00:01, 12.33it/s]
+ 83%|████████▎ | 83/100 [00:07<00:01, 12.33it/s]
+ 85%|████████▌ | 85/100 [00:07<00:01, 12.33it/s]
+ 87%|████████▋ | 87/100 [00:07<00:01, 12.33it/s]
+ 89%|████████▉ | 89/100 [00:07<00:00, 12.33it/s]
+ 91%|█████████ | 91/100 [00:07<00:00, 12.33it/s]
+ 93%|█████████▎| 93/100 [00:07<00:00, 12.33it/s]
+ 95%|█████████▌| 95/100 [00:08<00:00, 12.33it/s]
+ 97%|█████████▋| 97/100 [00:08<00:00, 12.33it/s]
+ 99%|█████████▉| 99/100 [00:08<00:00, 12.33it/s]
+100%|██████████| 100/100 [00:08<00:00, 11.76it/s]
+[[34m2026-03-13 05:07:50[0m] Peak GPU memory usage: 8.30 GB
+[[34m2026-03-13 05:07:50[0m] Saved results to exps/inference/inv-scatter-linear/FPS/standalone_fps/result_0.pt.
+[[34m2026-03-13 05:07:50[0m] Metric results: {'psnr': 30.845840454101562, 'ssim': 0.7822880148887634}...
+[[34m2026-03-13 05:07:50[0m] Evaluation completed...
+[[34m2026-03-13 05:07:50[0m] Final metric results: {'psnr': np.float64(30.845840454101562), 'psnr_std': np.float64(0.0), 'ssim': np.float64(0.7822880148887634), 'ssim_std': np.float64(0.0)}...
+  Result: None
+  Result type: <class 'NoneType'>
+
+Phase 4: Verification
+--------------------------------------------------------------------------------
+TEST PASSED
+All outputs match expected values.

@@ -1,0 +1,10 @@
+[Phase 1] Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_fps_sandbox/run_code/std_data/data_create_logger.pkl
+[Phase 1] Outer args: ('exps/inference/inv-scatter-linear/FPS/standalone_fps',)
+[Phase 1] Outer kwargs: {}
+[Phase 1] Using temporary directory: /tmp/tmpy1_unkp_
+[Phase 1] Modified args: ('/tmp/tmpy1_unkp_',)
+[Phase 1] Executing create_logger to reconstruct operator...
+[Phase 1] Agent operator created: <class 'logging.Logger'>
+[Phase 2] Scenario A detected: No inner data files, treating as simple function
+[Verification] Verifying logger configuration...
+TEST PASSED

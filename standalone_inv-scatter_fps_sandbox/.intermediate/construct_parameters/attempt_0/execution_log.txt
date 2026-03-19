@@ -1,0 +1,7 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_fps_sandbox/run_code/std_data/data_construct_parameters.pkl
+Executing construct_parameters with args=(0.18, 0.18, 128, 128, 6, 360, 20, 1.6, device(type='cuda')), kwargs={}
+
+Scenario A detected: Simple function (no inner executions)
+
+Verifying results...
+TEST PASSED

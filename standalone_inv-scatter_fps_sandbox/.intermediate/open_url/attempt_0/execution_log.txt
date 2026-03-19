@@ -1,0 +1,18 @@
+Outer data path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_fps_sandbox/run_code/std_data/data_open_url.pkl
+Inner data paths: []
+
+=== Phase 1: Loading Outer Data ===
+Outer args: ('weights/inv-scatter-5m.pt', 'rb')
+Outer kwargs: {}
+
+=== Executing open_url with outer data ===
+Agent operator type: <class '_io.BufferedReader'>
+Agent operator callable: False
+
+=== Scenario A: Simple Function ===
+Result type: <class '_io.BufferedReader'>
+Expected type: <class '_io.BufferedReader'>
+
+=== Verification ===
+TEST FAILED
+Failure message: Value mismatch at output: expected <_io.BufferedReader name='weights/inv-scatter-5m.pt'>, got <_io.BufferedReader name='weights/inv-scatter-5m.pt'>

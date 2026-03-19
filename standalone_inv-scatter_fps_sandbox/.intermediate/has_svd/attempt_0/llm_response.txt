@@ -1,0 +1,153 @@
+```python
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_has_svd import has_svd
+
+# Import verification utility
+from verification_utils import recursive_check
+
+def main():
+    """
+    Robust unit test for has_svd function.
+    Handles both simple function and factory/closure patterns.
+    """
+    
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_fps_sandbox/run_code/std_data/data_has_svd.pkl']
+    
+    print("=" * 80)
+    print("UNIT TEST: has_svd")
+    print("=" * 80)
+    
+    # Step 1: Analyze data files to determine test strategy
+    outer_path = None
+    inner_paths = []
+    
+    for path in data_paths:
+        if not os.path.exists(path):
+            print(f"ERROR: Data file not found: {path}")
+            sys.exit(1)
+        
+        filename = os.path.basename(path)
+        
+        # Check if this is outer data (standard function call)
+        if filename == 'data_has_svd.pkl':
+            outer_path = path
+        # Check if this is inner data (closure execution)
+        elif 'parent_function' in filename and 'has_svd' in filename:
+            inner_paths.append(path)
+    
+    if outer_path is None:
+        print("ERROR: No outer data file found (data_has_svd.pkl)")
+        sys.exit(1)
+    
+    print(f"\n[Phase 1] Loading outer data from: {outer_path}")
+    
+    # Step 2: Load outer data and reconstruct operator
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output')
+        
+        print(f"  - Outer args count: {len(outer_args)}")
+        print(f"  - Outer kwargs keys: {list(outer_kwargs.keys())}")
+        
+    except Exception as e:
+        print(f"ERROR: Failed to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    # Step 3: Execute the target function with outer data
+    try:
+        print("\n[Phase 2] Executing has_svd with outer data...")
+        agent_operator = has_svd(*outer_args, **outer_kwargs)
+        print(f"  - Result type: {type(agent_operator)}")
+        print(f"  - Result value: {agent_operator}")
+        
+    except Exception as e:
+        print(f"ERROR: Failed to execute has_svd: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    # Step 4: Determine test scenario and verify results
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure Pattern
+        print(f"\n[Scenario B] Detected closure pattern with {len(inner_paths)} inner data file(s)")
+        
+        if not callable(agent_operator):
+            print(f"ERROR: Expected callable operator for closure pattern, got {type(agent_operator)}")
+            sys.exit(1)
+        
+        # Process each inner data file
+        for inner_path in inner_paths:
+            print(f"\n  Loading inner data from: {inner_path}")
+            
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                
+                inner_args = inner_data.get('args', ())
+                inner_kwargs = inner_data.get('kwargs', {})
+                expected = inner_data.get('output')
+                
+                print(f"    - Inner args count: {len(inner_args)}")
+                print(f"    - Inner kwargs keys: {list(inner_kwargs.keys())}")
+                
+                # Execute the closure
+                print(f"    - Executing closure...")
+                result = agent_operator(*inner_args, **inner_kwargs)
+                
+                # Verify result
+                print(f"    - Verifying result...")
+                passed, msg = recursive_check(expected, result)
+                
+                if not passed:
+                    print(f"\n{'=' * 80}")
+                    print("TEST FAILED (Inner Execution)")
+                    print(f"{'=' * 80}")
+                    print(f"File: {inner_path}")
+                    print(f"Error: {msg}")
+                    sys.exit(1)
+                else:
+                    print(f"    ✓ Inner execution verified successfully")
+                
+            except Exception as e:
+                print(f"ERROR: Failed to process inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+    
+    else:
+        # Scenario A: Simple Function
+        print(f"\n[Scenario A] Simple function pattern detected")
+        
+        result = agent_operator
+        expected = outer_output
+        
+        print(f"  - Verifying result...")
+        passed, msg = recursive_check(expected, result)
+        
+        if not passed:
+            print(f"\n{'=' * 80}")
+            print("TEST FAILED")
+            print(f"{'=' * 80}")
+            print(f"Error: {msg}")
+            sys.exit(1)
+    
+    # All tests passed
+    print(f"\n{'=' * 80}")
+    print("TEST PASSED")
+    print(f"{'=' * 80}")
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()
+```

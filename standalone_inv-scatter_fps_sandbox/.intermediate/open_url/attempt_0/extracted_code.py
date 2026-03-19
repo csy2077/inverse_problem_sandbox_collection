@@ -1,0 +1,141 @@
+import sys
+import os
+import dill
+import traceback
+import numpy as np
+
+# Import the target function
+from agent_open_url import open_url
+
+# Import verification utility
+from verification_utils import recursive_check
+
+# Helper function to inject dependencies if needed
+def inject_dependencies():
+    """Inject any global dependencies required by dill.load"""
+    import torch
+    globals()['torch'] = torch
+    globals()['np'] = np
+
+def main():
+    # Inject dependencies
+    inject_dependencies()
+    
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_fps_sandbox/run_code/std_data/data_open_url.pkl']
+    
+    # Determine test scenario
+    outer_path = None
+    inner_paths = []
+    
+    for path in data_paths:
+        if path.endswith('data_open_url.pkl'):
+            outer_path = path
+        elif 'parent_function' in path and 'open_url' in path:
+            inner_paths.append(path)
+    
+    if outer_path is None:
+        print("ERROR: No outer data file found (data_open_url.pkl)")
+        sys.exit(1)
+    
+    print(f"Outer data path: {outer_path}")
+    print(f"Inner data paths: {inner_paths}")
+    
+    # Phase 1: Load outer data and reconstruct operator
+    try:
+        print("\n=== Phase 1: Loading Outer Data ===")
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output')
+        
+        print(f"Outer args: {outer_args}")
+        print(f"Outer kwargs: {outer_kwargs}")
+        
+        # Execute the function with outer data
+        print("\n=== Executing open_url with outer data ===")
+        agent_operator = open_url(*outer_args, **outer_kwargs)
+        
+        print(f"Agent operator type: {type(agent_operator)}")
+        print(f"Agent operator callable: {callable(agent_operator)}")
+        
+    except Exception as e:
+        print(f"ERROR in Phase 1: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    # Phase 2: Determine scenario and verify
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure Pattern
+        print("\n=== Scenario B: Factory/Closure Pattern Detected ===")
+        
+        for inner_path in inner_paths:
+            try:
+                print(f"\n--- Processing inner data: {inner_path} ---")
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                
+                inner_args = inner_data.get('args', ())
+                inner_kwargs = inner_data.get('kwargs', {})
+                expected = inner_data.get('output')
+                
+                print(f"Inner args: {inner_args}")
+                print(f"Inner kwargs: {inner_kwargs}")
+                
+                # Execute the operator with inner data
+                print("Executing agent_operator with inner data...")
+                result = agent_operator(*inner_args, **inner_kwargs)
+                
+                print(f"Result type: {type(result)}")
+                
+                # Verify
+                print("\n=== Verification ===")
+                passed, msg = recursive_check(expected, result)
+                
+                if not passed:
+                    print(f"TEST FAILED for {inner_path}")
+                    print(f"Failure message: {msg}")
+                    sys.exit(1)
+                else:
+                    print(f"TEST PASSED for {inner_path}")
+                    
+            except Exception as e:
+                print(f"ERROR processing {inner_path}: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+        
+        print("\n=== ALL TESTS PASSED ===")
+        sys.exit(0)
+        
+    else:
+        # Scenario A: Simple Function
+        print("\n=== Scenario A: Simple Function ===")
+        
+        try:
+            result = agent_operator
+            expected = outer_output
+            
+            print(f"Result type: {type(result)}")
+            print(f"Expected type: {type(expected)}")
+            
+            # Verify
+            print("\n=== Verification ===")
+            passed, msg = recursive_check(expected, result)
+            
+            if not passed:
+                print("TEST FAILED")
+                print(f"Failure message: {msg}")
+                sys.exit(1)
+            else:
+                print("TEST PASSED")
+                sys.exit(0)
+                
+        except Exception as e:
+            print(f"ERROR in Scenario A verification: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+if __name__ == "__main__":
+    main()

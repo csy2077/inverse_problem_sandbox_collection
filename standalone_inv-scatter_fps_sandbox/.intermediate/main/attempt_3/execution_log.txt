@@ -1,0 +1,19 @@
+================================================================================
+UNIT TEST: test_main.py
+================================================================================
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_fps_sandbox/run_code/std_data/data_main.pkl
+Inner data files: None (Scenario A)
+
+Phase 1: Loading outer data...
+  Outer args type: <class 'tuple'>
+  Outer kwargs keys: None
+  Outer output type: <class 'NoneType'>
+
+Phase 2: Importing agent_main and executing main()...
+ERROR in Phase 2 (executing main): name 'DhariwalUNet' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_fps_sandbox/test_main.py", line 70, in main_test
+    from agent_main import main
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_fps_sandbox/agent_main.py", line 216, in <module>
+    'DhariwalUNet': DhariwalUNet,
+NameError: name 'DhariwalUNet' is not defined

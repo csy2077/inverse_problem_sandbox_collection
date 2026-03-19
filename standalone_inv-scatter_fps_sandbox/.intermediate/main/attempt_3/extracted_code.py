@@ -1,0 +1,154 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Add the directory containing agent_main.py to the path if needed
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from verification_utils import recursive_check
+
+def main_test():
+    """
+    Robust Unit Test for main() function.
+    Handles both Scenario A (simple function) and Scenario B (factory/closure pattern).
+    """
+    
+    # Data paths provided
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_inv-scatter_fps_sandbox/run_code/std_data/data_main.pkl']
+    
+    print("=" * 80)
+    print("UNIT TEST: test_main.py")
+    print("=" * 80)
+    
+    # Phase 0: Analyze data files
+    outer_path = None
+    inner_paths = []
+    
+    for path in data_paths:
+        basename = os.path.basename(path)
+        if basename == 'data_main.pkl':
+            outer_path = path
+        elif 'parent_function' in basename and 'main' in basename:
+            inner_paths.append(path)
+    
+    if not outer_path:
+        print("ERROR: No outer data file (data_main.pkl) found.")
+        sys.exit(1)
+    
+    print(f"Outer data file: {outer_path}")
+    print(f"Inner data files: {inner_paths if inner_paths else 'None (Scenario A)'}")
+    print()
+    
+    # Phase 1: Load outer data
+    try:
+        print("Phase 1: Loading outer data...")
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output')
+        
+        print(f"  Outer args type: {type(outer_args)}")
+        print(f"  Outer kwargs keys: {list(outer_kwargs.keys()) if outer_kwargs else 'None'}")
+        print(f"  Outer output type: {type(outer_output)}")
+        print()
+        
+    except Exception as e:
+        print(f"ERROR in Phase 1 (loading data): {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    # Phase 2: Import and execute main
+    try:
+        print("Phase 2: Importing agent_main and executing main()...")
+        
+        # Import main from agent_main
+        from agent_main import main
+        
+        print("  Executing: agent_operator = main(*outer_args, **outer_kwargs)")
+        agent_operator = main(*outer_args, **outer_kwargs)
+        print(f"  Result type: {type(agent_operator)}")
+        print(f"  Is callable: {callable(agent_operator)}")
+        print()
+        
+    except Exception as e:
+        print(f"ERROR in Phase 2 (executing main): {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    
+    # Phase 3: Determine scenario and execute
+    if inner_paths:
+        # Scenario B: Factory/Closure Pattern
+        print("Scenario B detected: Factory/Closure Pattern")
+        print("=" * 80)
+        
+        if not callable(agent_operator):
+            print("ERROR: agent_operator is not callable, but inner data exists.")
+            sys.exit(1)
+        
+        # Use the first inner path
+        inner_path = inner_paths[0]
+        
+        try:
+            print(f"Phase 3: Loading inner data from {os.path.basename(inner_path)}...")
+            with open(inner_path, 'rb') as f:
+                inner_data = dill.load(f)
+            
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected_output = inner_data.get('output')
+            
+            print(f"  Inner args type: {type(inner_args)}")
+            print(f"  Inner kwargs keys: {list(inner_kwargs.keys()) if inner_kwargs else 'None'}")
+            print(f"  Expected output type: {type(expected_output)}")
+            print()
+            
+            # Execute the operator with inner data
+            print("  Executing: result = agent_operator(*inner_args, **inner_kwargs)")
+            result = agent_operator(*inner_args, **inner_kwargs)
+            print(f"  Result type: {type(result)}")
+            print()
+            
+        except Exception as e:
+            print(f"ERROR in Phase 3 (Scenario B): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+    
+    else:
+        # Scenario A: Simple Function
+        print("Scenario A detected: Simple Function")
+        print("=" * 80)
+        
+        result = agent_operator
+        expected_output = outer_output
+        print("  Using outer output as expected result")
+        print()
+    
+    # Phase 4: Verification
+    try:
+        print("Phase 4: Verification")
+        print("-" * 80)
+        
+        passed, msg = recursive_check(expected_output, result)
+        
+        if not passed:
+            print("TEST FAILED")
+            print(f"Reason: {msg}")
+            sys.exit(1)
+        else:
+            print("TEST PASSED")
+            print("All outputs match expected values.")
+            sys.exit(0)
+            
+    except Exception as e:
+        print(f"ERROR in Phase 4 (Verification): {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main_test()

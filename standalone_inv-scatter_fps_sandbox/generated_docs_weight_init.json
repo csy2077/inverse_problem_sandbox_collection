@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Initializes a weight tensor using specified initialization modes such as xavier or kaiming with uniform or normal distributions.",
+    "function_docstring": "Initializes weight tensor according to the specified mode and shape.\n\nArgs:\n    shape (Tuple[int, ...]): The shape of the tensor to be initialized.\n    mode (str): The initialization method to be used, one of 'xavier_uniform', 'xavier_normal', 'kaiming_uniform', 'kaiming_normal'.\n    fan_in (int): Number of input units in the weight tensor, used to compute initialization bounds.\n    fan_out (int): Number of output units in the weight tensor, similarly used to compute bounds.\n\nReturns:\n    torch.Tensor: A tensor of the specified shape, initialized according to the specified mode and using the fan_in and fan_out values to determine the distribution parameters.",
+    "usage_example": "import torch\nimport numpy as np\n\n# Example for initializing weights with xavier uniform\nshape = (64, 128)\nmode = 'xavier_uniform'\nfan_in = 64\nfan_out = 128\n\nweights = weight_init(shape, mode, fan_in, fan_out)\nprint(weights)"
+}

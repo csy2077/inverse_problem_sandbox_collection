@@ -1,0 +1,19 @@
+================================================================================
+UNIT TEST: full_propagate_to_sensor
+================================================================================
+SCENARIO A: Simple Function
+  - Data file: data_full_propagate_to_sensor.pkl
+--------------------------------------------------------------------------------
+Loading outer data...
+  - Args count: 5
+  - Kwargs keys: []
+
+Phase 1: Executing full_propagate_to_sensor with outer data...
+  ✓ Execution successful
+
+Phase 2: Simple Function - Verifying result...
+  ✓ Verification PASSED
+
+================================================================================
+TEST PASSED
+================================================================================

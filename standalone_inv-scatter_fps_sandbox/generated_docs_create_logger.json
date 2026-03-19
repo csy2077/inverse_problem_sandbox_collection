@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Creates and configures a logger with console and file handlers based on the process type.",
+    "function_docstring": "Creates a logger with console and file handlers for logging messages.\n\nArgs:\n    logging_dir (str): The directory path where the log file will be stored.\n    main_process (bool, optional): A flag indicating if the logger is for the main process. Defaults to True.\n\nReturns:\n    logging.Logger: A configured logger instance with console and file handlers if `main_process` is True, otherwise a logger with a null handler.",
+    "usage_example": "import logging\n\n# Create a logger for the main process\nlogger = create_logger('/path/to/logging/directory', main_process=True)\n\n# Log an info message\nlogger.info('This is an info message.')\n\n# Create a logger for a non-main process\nlogger_non_main = create_logger('/path/to/logging/directory', main_process=False)\n\n# This message will not be logged anywhere\nlogger_non_main.info('This message will not appear in any log.')"
+}
