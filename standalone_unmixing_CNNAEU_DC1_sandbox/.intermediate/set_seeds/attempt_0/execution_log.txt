@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CNNAEU_DC1_sandbox/run_code/std_data/data_set_seeds.pkl
+  func_name: set_seeds
+  set_seeds executed successfully. Result type: <class 'NoneType'>
+Scenario A detected: Simple function call.
+TEST PASSED

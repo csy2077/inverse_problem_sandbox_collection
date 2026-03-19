@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_CNNAEU_DC1_sandbox/run_code/std_data/data_rel_path.pkl
+  func_name: rel_path
+  rel_path executed successfully.
+Scenario A detected: Simple function
+TEST PASSED

@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Sets the random seed for both PyTorch and NumPy to ensure reproducibility.",
+    "function_docstring": "def set_seeds(seed):\n    \"\"\"\n    Sets the random seed for PyTorch and NumPy to ensure reproducibility.\n\n    Args:\n        seed (int): An integer value used to initialize the random number generators of PyTorch and NumPy.\n\n    Returns:\n        None\n    \"\"\"",
+    "usage_example": "import torch\nimport numpy as np\n\n# Set the seed for reproducibility\nset_seeds(42)\n\n# Generate random numbers\nrandom_tensor = torch.rand(5)\nrandom_array = np.random.rand(5)\n\n# Print the generated random numbers\nprint(random_tensor)\nprint(random_array)"
+}

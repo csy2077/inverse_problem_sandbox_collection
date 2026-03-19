@@ -1,0 +1,21 @@
+{
+    "EPS": 1e-10,
+    "seed": 0,
+    "SNR": 30,
+    "dataset": "DC1",
+    "data_dir": "data_standalone",
+    "figs_dir": "exp_standalone",
+    "l2_normalization": false,
+    "projection": false,
+    "model": {
+        "scale": 3.0,
+        "epochs": 320,
+        "lr": 0.0003,
+        "batch_size": 15,
+        "patch_size": 40
+    },
+    "lrelu_params": {
+        "negative_slope": 0.02,
+        "inplace": true
+    }
+}
