@@ -1,0 +1,417 @@
+[
+    {
+        "function_name": "read_tiff",
+        "inputs": {
+            "fname": {
+                "type": "str",
+                "value_sample": "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/data/sinogram.tiff"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                1125,
+                924
+            ],
+            "dtype": "float32"
+        }
+    },
+    {
+        "function_name": "get_astra_proj_matrix",
+        "inputs": {
+            "nd": {
+                "type": "int",
+                "value_sample": "924"
+            },
+            "angles": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    1125
+                ],
+                "dtype": "float64"
+            },
+            "method": {
+                "type": "str",
+                "value_sample": "FBP"
+            }
+        },
+        "output": {
+            "type": "CustomObject",
+            "class_name": "OpTomo",
+            "public_methods": [
+                "BP",
+                "FP",
+                "H",
+                "T",
+                "adjoint",
+                "dot",
+                "dtype",
+                "matmat",
+                "matvec",
+                "reconstruct",
+                "rmatmat",
+                "rmatvec",
+                "transpose",
+                "transposeOpTomo"
+            ],
+            "attributes": [
+                "dtype",
+                "vg",
+                "pg",
+                "data_mod",
+                "appendString",
+                "vshape",
+                "vsize",
+                "sshape",
+                "ssize",
+                "shape",
+                "proj_id",
+                "transposeOpTomo"
+            ]
+        }
+    },
+    {
+        "function_name": "reconstruct",
+        "inputs": {
+            "self": {
+                "type": "CustomObject",
+                "class_name": "OpTomo",
+                "public_methods": [
+                    "BP",
+                    "FP",
+                    "H",
+                    "T",
+                    "adjoint",
+                    "dot",
+                    "dtype",
+                    "matmat",
+                    "matvec",
+                    "reconstruct",
+                    "rmatmat",
+                    "rmatvec",
+                    "transpose",
+                    "transposeOpTomo"
+                ],
+                "attributes": [
+                    "dtype",
+                    "vg",
+                    "pg",
+                    "data_mod",
+                    "appendString",
+                    "vshape",
+                    "vsize",
+                    "sshape",
+                    "ssize",
+                    "shape",
+                    "proj_id",
+                    "transposeOpTomo"
+                ]
+            },
+            "method": {
+                "type": "str",
+                "value_sample": "FBP"
+            },
+            "s": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    1125,
+                    924
+                ],
+                "dtype": "float32"
+            },
+            "iterations": {
+                "type": "int",
+                "value_sample": "1"
+            },
+            "extraOptions": {
+                "type": "dict",
+                "value_sample": "{}"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                924,
+                924
+            ],
+            "dtype": "float32"
+        }
+    },
+    {
+        "function_name": "recon_slice",
+        "inputs": {
+            "sinogram": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    1125,
+                    924
+                ],
+                "dtype": "float32"
+            },
+            "method": {
+                "type": "str",
+                "value_sample": "FBP"
+            },
+            "pmat": {
+                "type": "CustomObject",
+                "class_name": "OpTomo",
+                "public_methods": [
+                    "BP",
+                    "FP",
+                    "H",
+                    "T",
+                    "adjoint",
+                    "dot",
+                    "dtype",
+                    "matmat",
+                    "matvec",
+                    "reconstruct",
+                    "rmatmat",
+                    "rmatvec",
+                    "transpose",
+                    "transposeOpTomo"
+                ],
+                "attributes": [
+                    "dtype",
+                    "vg",
+                    "pg",
+                    "data_mod",
+                    "appendString",
+                    "vshape",
+                    "vsize",
+                    "sshape",
+                    "ssize",
+                    "shape",
+                    "proj_id",
+                    "transposeOpTomo"
+                ]
+            },
+            "parameters": {
+                "type": "NoneType",
+                "value_sample": "None"
+            },
+            "pixel_size": {
+                "type": "float",
+                "value_sample": "0.0029"
+            },
+            "offset": {
+                "type": "int",
+                "value_sample": "0"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                924,
+                924
+            ],
+            "dtype": "float32"
+        }
+    },
+    {
+        "function_name": "write_tiff",
+        "inputs": {
+            "fname": {
+                "type": "str",
+                "value_sample": "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/output_fbp_cpu/recon_result.tiff"
+            },
+            "img": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    924,
+                    924
+                ],
+                "dtype": "float32"
+            },
+            "overwrite": {
+                "type": "bool",
+                "value_sample": "True"
+            }
+        },
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    },
+    {
+        "function_name": "get_circular_mask",
+        "inputs": {
+            "nrow": {
+                "type": "int",
+                "value_sample": "924"
+            },
+            "ncol": {
+                "type": "int",
+                "value_sample": "924"
+            },
+            "radius": {
+                "type": "NoneType",
+                "value_sample": "None"
+            },
+            "center": {
+                "type": "NoneType",
+                "value_sample": "None"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                924,
+                924
+            ],
+            "dtype": "bool"
+        }
+    },
+    {
+        "function_name": "SSIM",
+        "inputs": {
+            "img1": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    924,
+                    924
+                ],
+                "dtype": "float32"
+            },
+            "img2": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    924,
+                    924
+                ],
+                "dtype": "float32"
+            },
+            "circ_crop": {
+                "type": "bool",
+                "value_sample": "True"
+            },
+            "L": {
+                "type": "NoneType",
+                "value_sample": "None"
+            },
+            "K1": {
+                "type": "float",
+                "value_sample": "0.01"
+            },
+            "K2": {
+                "type": "float",
+                "value_sample": "0.03"
+            },
+            "sigma": {
+                "type": "float",
+                "value_sample": "1.5"
+            },
+            "local_ssim": {
+                "type": "bool",
+                "value_sample": "False"
+            }
+        },
+        "output": {
+            "type": "float64",
+            "value_sample": "0.630947667697842"
+        }
+    },
+    {
+        "function_name": "NRMSE",
+        "inputs": {
+            "img": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    924,
+                    924
+                ],
+                "dtype": "float32"
+            },
+            "ref": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    924,
+                    924
+                ],
+                "dtype": "float32"
+            },
+            "mask": {
+                "type": "str",
+                "value_sample": "whole"
+            }
+        },
+        "output": {
+            "type": "float64",
+            "value_sample": "0.6111206034303488"
+        }
+    },
+    {
+        "function_name": "get_rect_coordinates_from_roi",
+        "inputs": {
+            "fname": {
+                "type": "str",
+                "value_sample": "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/data/signal.roi"
+            }
+        },
+        "output": {
+            "type": "tuple",
+            "length": 4,
+            "elements": [
+                {
+                    "type": "int",
+                    "value_sample": "602"
+                },
+                {
+                    "type": "int",
+                    "value_sample": "659"
+                },
+                {
+                    "type": "int",
+                    "value_sample": "317"
+                },
+                {
+                    "type": "int",
+                    "value_sample": "387"
+                }
+            ]
+        }
+    },
+    {
+        "function_name": "CNR",
+        "inputs": {
+            "img": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    924,
+                    924
+                ],
+                "dtype": "float32"
+            },
+            "croi_signal": {
+                "type": "list",
+                "length": 0,
+                "elements": []
+            },
+            "croi_background": {
+                "type": "list",
+                "length": 0,
+                "elements": []
+            },
+            "froi_signal": {
+                "type": "str",
+                "value_sample": "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/data/signal.roi"
+            },
+            "froi_background": {
+                "type": "str",
+                "value_sample": "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/data/background.roi"
+            }
+        },
+        "output": {
+            "type": "float32",
+            "value_sample": "5.9001412"
+        }
+    },
+    {
+        "function_name": "main",
+        "inputs": {},
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    }
+]

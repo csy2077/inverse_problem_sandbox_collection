@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Generates a boolean mask representing a circular area within a grid defined by the number of rows and columns.",
+    "function_docstring": "def get_circular_mask(nrow, ncol, radius=None, center=None):\n    \"\"\"\n    Generates a boolean mask for a circular area within a grid.\n\n    Args:\n        nrow (int): The number of rows in the grid.\n        ncol (int): The number of columns in the grid.\n        radius (Optional[float]): The radius of the circle. Defaults to half of the smaller dimension of the grid.\n        center (Optional[Tuple[float, float]]): The center of the circle as (y, x) coordinates. Defaults to the center of the grid.\n\n    Returns:\n        np.ndarray: A 2D boolean array of shape (ncol, nrow) where True values represent the circular area.\n    \"\"\"",
+    "usage_example": "import numpy as np\n\n# Example usage of get_circular_mask\nnrow, ncol = 100, 100\nradius = 30\ncenter = (50, 50)\n\nmask = get_circular_mask(nrow, ncol, radius, center)\nprint(mask)"
+}

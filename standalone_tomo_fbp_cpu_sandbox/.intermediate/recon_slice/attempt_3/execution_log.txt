@@ -1,0 +1,10 @@
+File: data_recon_slice.pkl, size: 4165925 bytes
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl (4165925 bytes)
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl
+FAIL: Could not load outer data file: All load methods failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl (size=4165925). Errors: ['dill.load: Ran out of input', 'dill.loads: Ran out of input', "pickle latin1: Can't get attribute '__main__' on <module 'builtins' (built-in)>", "pickle bytes: Can't get attribute '__main__' on <module 'builtins' (built-in)>", "PatchedUnpickler: module 'builtins' has no attribute '__main__'", "pickle.Unpickler latin1: Can't get attribute '__main__' on <module 'builtins' (built-in)>"]
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 158, in main
+    outer_data = load_data(outer_path)
+  File "test_recon_slice.py", line 107, in load_data
+    f"All load methods failed for {filepath} (size={file_size}). Errors: {errors}"
+RuntimeError: All load methods failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl (size=4165925). Errors: ['dill.load: Ran out of input', 'dill.loads: Ran out of input', "pickle latin1: Can't get attribute '__main__' on <module 'builtins' (built-in)>", "pickle bytes: Can't get attribute '__main__' on <module 'builtins' (built-in)>", "PatchedUnpickler: module 'builtins' has no attribute '__main__'", "pickle.Unpickler latin1: Can't get attribute '__main__' on <module 'builtins' (built-in)>"]

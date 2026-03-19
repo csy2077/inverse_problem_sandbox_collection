@@ -1,0 +1,5 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_read_tiff.pkl
+[INFO] Keys in outer data: ['func_name', 'args', 'kwargs', 'output']
+[INFO] Scenario A detected: Simple function call
+[INFO] Function returned: <class 'numpy.ndarray'>
+TEST PASSED

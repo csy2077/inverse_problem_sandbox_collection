@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Reads a 2D TIFF image from a specified file path.",
+    "function_docstring": "def read_tiff(fname):\n    \"\"\"\n    Reads a 2D TIFF image from the specified file path.\n\n    Args:\n        fname (str): The file path to the TIFF image. This should be a valid path to a TIFF file on the filesystem.\n\n    Returns:\n        numpy.ndarray: A 2D array representing the image data read from the TIFF file.\n    \"\"\"",
+    "usage_example": "import os\nfrom agent_read_tiff import read_tiff\n\n# Example usage\nfile_path = '/path/to/image.tiff'\nimage_data = read_tiff(file_path)\nprint(image_data.shape)  # Outputs the shape of the image data"
+}

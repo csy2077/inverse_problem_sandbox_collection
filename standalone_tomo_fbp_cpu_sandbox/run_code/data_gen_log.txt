@@ -1,0 +1,23 @@
+--- FBP CPU Reconstruction (Headless) ---
+  [Metadata] Recorded schema for: read_tiff
+Sinogram shape: (1125, 924)
+> Starting Reconstruction (CPU)...
+  [Metadata] Recorded schema for: get_astra_proj_matrix
+  [Metadata] Recorded schema for: reconstruct
+  [Metadata] Recorded schema for: recon_slice
+Saving result to: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/output_fbp_cpu/recon_result.tiff
+File saved: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/output_fbp_cpu/recon_result.tiff
+  [Metadata] Recorded schema for: write_tiff
+Done.
+
+--- Evaluation ---
+Generating Reference (Ground Truth) for evaluation...
+  [Metadata] Recorded schema for: get_circular_mask
+  [Metadata] Recorded schema for: SSIM
+  [Metadata] Recorded schema for: NRMSE
+  [Metadata] Recorded schema for: get_rect_coordinates_from_roi
+  [Metadata] Recorded schema for: CNR
+SSIM : 0.6309
+NRMSE: 0.6111
+CNR  : 5.9001
+  [Metadata] Recorded schema for: main

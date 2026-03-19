@@ -1,0 +1,5 @@
+{
+    "function_explanation": "The function applies the forward projection operator, simulating the measurement process in CT imaging.",
+    "function_docstring": "Applies the forward projection operator (Radon transform) to simulate the measurement process in CT imaging.\n\nArgs:\n    x (np.ndarray): A 2D numpy array representing the reconstruction volume with shape (nd, nd).\n    pmat (OpTomo): An ASTRA projection matrix operator instance with a method `FP` that takes a 2D numpy array and returns a 2D numpy array.\n\nReturns:\n    np.ndarray: A 2D numpy array representing the predicted sinogram with shape (n_angles, n_detector).",
+    "usage_example": "import numpy as np\n\n# Example usage of forward_operator\nx = np.random.rand(128, 128)  # Example 2D image\npmat = OpTomo()  # Example ASTRA projection matrix operator\n\n# Apply forward projection\nsinogram = forward_operator(x, pmat)\nprint(sinogram.shape)  # Output shape will be (n_angles, n_detector)"
+}

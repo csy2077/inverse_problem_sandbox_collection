@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_write_tiff.pkl
+  func_name: write_tiff
+Detected Scenario A (Simple function)
+File saved: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/output_fbp_cpu/recon_result.tiff
+TEST PASSED

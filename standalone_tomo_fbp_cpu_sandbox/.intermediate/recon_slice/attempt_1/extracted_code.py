@@ -1,0 +1,278 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import pickle
+
+# Ensure the current directory is in the path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from agent_recon_slice import recon_slice
+from verification_utils import recursive_check
+
+
+def load_data(filepath):
+    """Try multiple methods to load a pickle/dill file."""
+    errors = []
+    
+    # Method 1: dill with 'rb'
+    try:
+        with open(filepath, 'rb') as f:
+            data = dill.load(f)
+        return data
+    except Exception as e:
+        errors.append(f"dill.load: {e}")
+    
+    # Method 2: pickle with 'rb'
+    try:
+        with open(filepath, 'rb') as f:
+            data = pickle.load(f)
+        return data
+    except Exception as e:
+        errors.append(f"pickle.load: {e}")
+    
+    # Method 3: Try loading with different pickle protocols
+    for proto in range(5):
+        try:
+            with open(filepath, 'rb') as f:
+                data = pickle.load(f, fix_imports=True, encoding='latin1')
+            return data
+        except Exception as e:
+            errors.append(f"pickle proto {proto}: {e}")
+    
+    # Method 4: Try dill with different settings
+    try:
+        with open(filepath, 'rb') as f:
+            unpickler = dill.Unpickler(f)
+            data = unpickler.load()
+        return data
+    except Exception as e:
+        errors.append(f"dill.Unpickler: {e}")
+    
+    # Method 5: Check if the file might contain multiple objects
+    try:
+        results = []
+        with open(filepath, 'rb') as f:
+            while True:
+                try:
+                    obj = dill.load(f)
+                    results.append(obj)
+                except EOFError:
+                    break
+        if results:
+            if len(results) == 1:
+                return results[0]
+            return results
+    except Exception as e:
+        errors.append(f"multi-object dill: {e}")
+
+    # Method 6: numpy load
+    try:
+        data = np.load(filepath, allow_pickle=True)
+        return data
+    except Exception as e:
+        errors.append(f"np.load: {e}")
+
+    # Method 7: Check if file is actually a different format or empty
+    file_size = os.path.getsize(filepath)
+    if file_size == 0:
+        raise RuntimeError(f"File is empty (0 bytes): {filepath}")
+
+    raise RuntimeError(f"All load methods failed for {filepath} (size={file_size} bytes). Errors: {errors}")
+
+
+def find_all_data_files(base_path):
+    """Search for alternative data files in the same directory."""
+    directory = os.path.dirname(base_path)
+    if not os.path.isdir(directory):
+        return []
+    
+    all_files = []
+    for f in os.listdir(directory):
+        if 'recon_slice' in f and (f.endswith('.pkl') or f.endswith('.pickle') or f.endswith('.npy')):
+            all_files.append(os.path.join(directory, f))
+    return sorted(all_files)
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl'
+    ]
+
+    # Also search the directory for any related files we might have missed
+    std_data_dir = '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data'
+    if os.path.isdir(std_data_dir):
+        for f in sorted(os.listdir(std_data_dir)):
+            full_path = os.path.join(std_data_dir, f)
+            if full_path not in data_paths and 'recon_slice' in f:
+                data_paths.append(full_path)
+                print(f"Discovered additional data file: {f}")
+
+    # Print file info for debugging
+    for p in data_paths:
+        if os.path.exists(p):
+            sz = os.path.getsize(p)
+            print(f"File: {os.path.basename(p)}, size: {sz} bytes")
+        else:
+            print(f"File NOT FOUND: {p}")
+
+    # Classify paths into outer (standard) and inner (parent_function) categories
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        if not os.path.exists(p):
+            continue
+        if os.path.getsize(p) == 0:
+            print(f"WARNING: Skipping empty file: {p}")
+            continue
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No valid outer data file found.")
+        sys.exit(1)
+
+    # Check file size
+    file_size = os.path.getsize(outer_path)
+    print(f"Outer data file size: {file_size} bytes")
+    
+    if file_size == 0:
+        print("FAIL: Outer data file is empty (0 bytes).")
+        # Try to find alternative files
+        alt_files = find_all_data_files(outer_path)
+        if alt_files:
+            print(f"Alternative files found: {alt_files}")
+        sys.exit(1)
+
+    # --- Phase 1: Load outer data and execute recon_slice ---
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        outer_data = load_data(outer_path)
+    except Exception as e:
+        print(f"FAIL: Could not load outer data file: {e}")
+        traceback.print_exc()
+        
+        # Debug: print first bytes of the file
+        try:
+            with open(outer_path, 'rb') as f:
+                header = f.read(min(100, file_size))
+            print(f"File header (hex): {header[:50].hex()}")
+            print(f"File header (raw): {header[:50]}")
+        except:
+            pass
+        sys.exit(1)
+
+    # Handle case where loaded data might be a list
+    if isinstance(outer_data, list):
+        if len(outer_data) == 1:
+            outer_data = outer_data[0]
+        elif len(outer_data) > 1:
+            # Try to find the dict with 'args' key
+            for item in outer_data:
+                if isinstance(item, dict) and 'args' in item:
+                    outer_data = item
+                    break
+
+    if not isinstance(outer_data, dict):
+        print(f"WARNING: outer_data is not a dict, it's {type(outer_data)}")
+        # Try to use it as-is if it has the right attributes
+        if hasattr(outer_data, 'item'):
+            outer_data = outer_data.item()
+
+    outer_args = outer_data.get('args', ()) if isinstance(outer_data, dict) else ()
+    outer_kwargs = outer_data.get('kwargs', {}) if isinstance(outer_data, dict) else {}
+    outer_output = outer_data.get('output', None) if isinstance(outer_data, dict) else None
+
+    print(f"Outer data func_name: {outer_data.get('func_name', 'N/A') if isinstance(outer_data, dict) else 'N/A'}")
+    print(f"Outer args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+
+    try:
+        agent_result = recon_slice(*outer_args, **outer_kwargs)
+    except Exception as e:
+        print(f"FAIL: recon_slice execution raised an exception: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # --- Phase 2: Determine scenario and verify ---
+    if inner_paths:
+        # Scenario B: Factory/Closure pattern
+        print(f"Scenario B detected: {len(inner_paths)} inner data file(s) found.")
+
+        # Verify agent_result is callable
+        if not callable(agent_result):
+            print(f"FAIL: Expected recon_slice to return a callable (operator), got {type(agent_result)}")
+            sys.exit(1)
+
+        all_passed = True
+        for idx, inner_path in enumerate(inner_paths):
+            print(f"\n--- Inner test {idx + 1}: {os.path.basename(inner_path)} ---")
+            try:
+                inner_data = load_data(inner_path)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data file: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if isinstance(inner_data, list) and len(inner_data) == 1:
+                inner_data = inner_data[0]
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            print(f"Inner args count: {len(inner_args)}, kwargs keys: {list(inner_kwargs.keys())}")
+
+            try:
+                actual_result = agent_result(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Operator execution raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, actual_result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL (inner test {idx + 1}): {msg}")
+                all_passed = False
+            else:
+                print(f"PASS (inner test {idx + 1})")
+
+        if not all_passed:
+            sys.exit(1)
+        print("\nTEST PASSED")
+        sys.exit(0)
+
+    else:
+        # Scenario A: Simple function call
+        print("Scenario A detected: Simple function, comparing output directly.")
+
+        expected = outer_output
+        result = agent_result
+
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: {msg}")
+            sys.exit(1)
+        else:
+            print("TEST PASSED")
+            sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

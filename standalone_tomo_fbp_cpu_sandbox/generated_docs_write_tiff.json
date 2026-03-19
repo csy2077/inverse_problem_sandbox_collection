@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Writes a numpy array to a TIFF file.",
+    "function_docstring": "\"\"\"\nWrites a numpy array to a TIFF file.\n\n Args:\n fname (str): The name of the file where the image will be saved. Automatically appends '.tiff' if not present. \n img (numpy.ndarray): The image data to be saved, represented as a NumPy array. The shape and dtype are flexible, accommodating typical image data.\n overwrite (bool, optional): Specifies whether to overwrite an existing file with the same name. Default is True.\n\n \"\"\"",
+    "usage_example": "\"\"\"\n# Assuming `image_data` is a numpy array containing image pixels\nimage_data = np.random.randint(0, 256, size=(256, 256, 3), dtype=np.uint8)\nwrite_tiff('output_image', image_data)\n\"\"\""
+}

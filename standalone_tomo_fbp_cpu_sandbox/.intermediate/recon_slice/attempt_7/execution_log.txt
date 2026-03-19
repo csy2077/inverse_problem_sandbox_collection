@@ -1,0 +1,17 @@
+File: data_recon_slice.pkl, size: 4165925 bytes
+
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl
+
+============================================================
+PHASE 1: Loading outer data
+============================================================
+  Raw file size: 4165925 bytes
+  First 20 bytes: 80037d710028580900000066756e635f6e616d65
+  Total objects found: 0
+FAIL: Could not load outer data: Could not load any valid object from file
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 453, in main
+    outer_data = robust_load(outer_path)
+  File "test_recon_slice.py", line 390, in robust_load
+    raise RuntimeError("Could not load any valid object from file")
+RuntimeError: Could not load any valid object from file

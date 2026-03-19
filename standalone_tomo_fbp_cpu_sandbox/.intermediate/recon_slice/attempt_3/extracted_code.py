@@ -1,0 +1,301 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import pickle
+import io
+import types
+
+# Ensure the current directory is in the path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# The pickle file references __builtin__ (Python 2 style) but was actually saved with dill
+# using protocol 3. The issue is that dill serialized references to __builtin__ module.
+# We need to make __builtin__ available as a module alias before loading.
+
+import builtins
+
+# Create a fake __builtin__ module that points to builtins
+if '__builtin__' not in sys.modules:
+    sys.modules['__builtin__'] = builtins
+
+# Also handle the case where dill tries to find attributes on __main__
+# The error "Can't get attribute '__main__' on <module 'builtins' (built-in)>"
+# suggests a different issue - let's handle it properly
+
+from agent_recon_slice import recon_slice
+from verification_utils import recursive_check
+
+
+def load_data(filepath):
+    """Load a dill/pickle file with robust error handling."""
+    errors = []
+    file_size = os.path.getsize(filepath)
+
+    # Method 1: dill.load with file handle (most likely for dill-saved files)
+    try:
+        with open(filepath, 'rb') as f:
+            data = dill.load(f)
+        return data
+    except Exception as e:
+        errors.append(f"dill.load: {e}")
+
+    # Method 2: Read all bytes then dill.loads
+    try:
+        with open(filepath, 'rb') as f:
+            raw = f.read()
+        data = dill.loads(raw)
+        return data
+    except Exception as e:
+        errors.append(f"dill.loads: {e}")
+
+    # Method 3: pickle with latin1 encoding
+    try:
+        with open(filepath, 'rb') as f:
+            data = pickle.load(f, encoding='latin1')
+        return data
+    except Exception as e:
+        errors.append(f"pickle latin1: {e}")
+
+    # Method 4: pickle with bytes encoding
+    try:
+        with open(filepath, 'rb') as f:
+            data = pickle.load(f, encoding='bytes')
+        return data
+    except Exception as e:
+        errors.append(f"pickle bytes: {e}")
+
+    # Method 5: Custom unpickler that patches module references
+    try:
+        with open(filepath, 'rb') as f:
+            raw = f.read()
+
+        class PatchedUnpickler(dill.Unpickler):
+            def find_class(self, module, name):
+                if module == '__builtin__':
+                    module = 'builtins'
+                try:
+                    return super().find_class(module, name)
+                except AttributeError:
+                    # If we can't find the attribute, try importing
+                    import importlib
+                    mod = importlib.import_module(module)
+                    return getattr(mod, name)
+
+        unpickler = PatchedUnpickler(io.BytesIO(raw))
+        data = unpickler.load()
+        return data
+    except Exception as e:
+        errors.append(f"PatchedUnpickler: {e}")
+
+    # Method 6: Try reading in chunks - the file might have been truncated or
+    # have extra data. Try loading just the first pickle object.
+    try:
+        with open(filepath, 'rb') as f:
+            raw = f.read()
+        # Find the STOP opcode for pickle protocol 3
+        # The STOP opcode is b'.'
+        buf = io.BytesIO(raw)
+        unpickler = pickle.Unpickler(buf, encoding='latin1')
+        data = unpickler.load()
+        return data
+    except Exception as e:
+        errors.append(f"pickle.Unpickler latin1: {e}")
+
+    raise RuntimeError(
+        f"All load methods failed for {filepath} (size={file_size}). Errors: {errors}"
+    )
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl'
+    ]
+
+    # Search for additional related files
+    std_data_dir = '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data'
+    if os.path.isdir(std_data_dir):
+        for f in sorted(os.listdir(std_data_dir)):
+            full_path = os.path.join(std_data_dir, f)
+            if full_path not in data_paths and 'recon_slice' in f:
+                data_paths.append(full_path)
+                print(f"Discovered additional data file: {f}")
+
+    # Print file info
+    for p in data_paths:
+        if os.path.exists(p):
+            sz = os.path.getsize(p)
+            print(f"File: {os.path.basename(p)}, size: {sz} bytes")
+        else:
+            print(f"File NOT FOUND: {p}")
+
+    # Classify paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        if not os.path.exists(p):
+            continue
+        if os.path.getsize(p) == 0:
+            print(f"WARNING: Skipping empty file: {p}")
+            continue
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No valid outer data file found.")
+        sys.exit(1)
+
+    print(f"Outer data file: {outer_path} ({os.path.getsize(outer_path)} bytes)")
+
+    # --- Phase 1: Load outer data and execute recon_slice ---
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        outer_data = load_data(outer_path)
+    except Exception as e:
+        print(f"FAIL: Could not load outer data file: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Handle bytes keys from Python 2 pickle loading
+    if isinstance(outer_data, dict):
+        sample_keys = list(outer_data.keys())
+        if sample_keys and isinstance(sample_keys[0], bytes):
+            outer_data = {
+                (k.decode('utf-8') if isinstance(k, bytes) else k): v
+                for k, v in outer_data.items()
+            }
+
+    if not isinstance(outer_data, dict):
+        print(f"WARNING: outer_data is {type(outer_data)}, not dict")
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    # Handle bytes keys in kwargs
+    if isinstance(outer_kwargs, dict):
+        sample_keys = list(outer_kwargs.keys())
+        if sample_keys and isinstance(sample_keys[0], bytes):
+            outer_kwargs = {
+                (k.decode('utf-8') if isinstance(k, bytes) else k): v
+                for k, v in outer_kwargs.items()
+            }
+
+    print(f"Outer data func_name: {outer_data.get('func_name', 'N/A')}")
+    print(f"Outer args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+
+    # Debug args
+    for i, arg in enumerate(outer_args):
+        if isinstance(arg, np.ndarray):
+            print(f"  arg[{i}]: ndarray shape={arg.shape}, dtype={arg.dtype}")
+        elif isinstance(arg, str):
+            print(f"  arg[{i}]: str = '{arg}'")
+        else:
+            print(f"  arg[{i}]: {type(arg).__name__} = {arg.__class__.__name__}")
+
+    try:
+        agent_result = recon_slice(*outer_args, **outer_kwargs)
+    except Exception as e:
+        print(f"FAIL: recon_slice execution raised an exception: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # --- Phase 2: Determine scenario and verify ---
+    if inner_paths:
+        # Scenario B: Factory/Closure pattern
+        print(f"Scenario B detected: {len(inner_paths)} inner data file(s) found.")
+
+        if not callable(agent_result):
+            print(f"FAIL: Expected callable, got {type(agent_result)}")
+            sys.exit(1)
+
+        all_passed = True
+        for idx, inner_path in enumerate(inner_paths):
+            print(f"\n--- Inner test {idx + 1}: {os.path.basename(inner_path)} ---")
+            try:
+                inner_data = load_data(inner_path)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if isinstance(inner_data, dict):
+                sample_keys = list(inner_data.keys())
+                if sample_keys and isinstance(sample_keys[0], bytes):
+                    inner_data = {
+                        (k.decode('utf-8') if isinstance(k, bytes) else k): v
+                        for k, v in inner_data.items()
+                    }
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            if isinstance(inner_kwargs, dict):
+                sample_keys = list(inner_kwargs.keys())
+                if sample_keys and isinstance(sample_keys[0], bytes):
+                    inner_kwargs = {
+                        (k.decode('utf-8') if isinstance(k, bytes) else k): v
+                        for k, v in inner_kwargs.items()
+                    }
+
+            try:
+                actual_result = agent_result(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Operator execution error: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, actual_result)
+            except Exception as e:
+                print(f"FAIL: recursive_check error: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL (inner test {idx + 1}): {msg}")
+                all_passed = False
+            else:
+                print(f"PASS (inner test {idx + 1})")
+
+        if not all_passed:
+            sys.exit(1)
+        print("\nTEST PASSED")
+        sys.exit(0)
+    else:
+        # Scenario A: Simple function call
+        print("Scenario A detected: Simple function, comparing output directly.")
+
+        expected = outer_output
+        result = agent_result
+
+        print(f"Result type: {type(result)}")
+        if isinstance(result, np.ndarray):
+            print(f"Result shape: {result.shape}, dtype: {result.dtype}")
+        if isinstance(expected, np.ndarray):
+            print(f"Expected shape: {expected.shape}, dtype: {expected.dtype}")
+
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"FAIL: recursive_check error: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: {msg}")
+            sys.exit(1)
+        else:
+            print("TEST PASSED")
+            sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

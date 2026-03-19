@@ -1,0 +1,6 @@
+[INFO] Outer data file size: 16954 bytes
+FAIL: Could not load outer data: All loading methods returned None
+Traceback (most recent call last):
+  File "test_get_astra_proj_matrix.py", line 185, in main
+    raise ValueError("All loading methods returned None")
+ValueError: All loading methods returned None

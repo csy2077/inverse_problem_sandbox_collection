@@ -1,0 +1,91 @@
+File: data_recon_slice.pkl, size: 4165925 bytes
+
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl (4165925 bytes)
+
+============================================================
+PHASE 1: Loading outer data
+============================================================
+File size: 4165925 bytes
+First bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+InterceptUnpickler failed: function() argument 2 must be dict, not module
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 1239, in main
+    outer_data = InterceptUnpickler(buf).load()
+  File "/fs-computility-new/UPDZ02_sunhe/shared/NeuTomPy-toolbox/env/lib/python3.6/site-packages/dill/_dill.py", line 643, in _create_function
+    func = FunctionType(fcode, fglobals or dict(), fname, fdefaults, fclosure)
+TypeError: function() argument 2 must be dict, not module
+Loaded with dill + padding
+dill.loads failed: Ran out of input
+dill.load failed: Ran out of input
+
+============================================================
+Trying robust_load...
+============================================================
+
+  Analyzing pickle file: data_recon_slice.pkl
+  File size: 4165925 bytes
+  Pickle protocol: 3
+  Number of '.' bytes (potential STOPs): 12671
+  Contains 'dill' references
+  Contains '_dill' references
+  First pickle stream ends at byte 4165924 out of 4165925
+  There are 1 extra bytes after first STOP
+  Patched GLOBAL pattern: b'c__builtin__\n__main__\n'
+  Patched GLOBAL pattern: b'c__builtin__\n__main__\n'
+  Pickle disassembly (first 2000 chars):
+
+  dill version: 0.3.4
+FAILED: robust_load: All load methods failed. Errors:
+  - plain dill: Ran out of input
+  - SmartUnpickler: function() argument 2 must be dict, not module
+  - truncated dill: pickle data was truncated
+  - truncated pickle: No module named '__builtin__'
+  - dill.loads: Ran out of input
+  - patched dill: function() argument 2 must be dict, not module
+  - patched pickle: function() argument 2 must be dict, not module
+  - dill recurse=True byref=True: Ran out of input
+  - dill recurse=True byref=False: Ran out of input
+  - dill recurse=False byref=True: Ran out of input
+  - dill recurse=False byref=False: Ran out of input
+  - dill._dill.Unpickler: Ran out of input
+  - enriched __main__ dill: Ran out of input
+  - temp file dill: Ran out of input
+  - cloudpickle not available
+  - pickle fix_imports latin1: No module named '__builtin__'
+  - FixedDillUnpickler: function() argument 2 must be dict, not module
+
+============================================================
+Trying load_with_dill_compat...
+============================================================
+  pickletools.genops failed: pickle exhausted before seeing STOP
+FAILED: load_with_dill_compat: load_with_dill_compat failed
+
+============================================================
+Trying ultimate_load...
+============================================================
+  Cannot parse pickle opcodes: pickle exhausted before seeing STOP
+  dill.load uses Unpickler
+    def load(file, ignore=None, **kwds):
+        """
+        Unpickle an object from a file.
+    
+        See :func:`loads` for keyword arguments.
+        """
+        return Unpickler(file, ignore=ignore, **kwds).load()
+    
+  dill.Unpickler failed with EOFError: Ran out of input
+  Buffer position at error: 4165925
+  Loaded with padded data + dill
+SUCCESS with ultimate_load
+
+Outer data func_name: N/A
+Outer args count: 0, kwargs keys: []
+
+============================================================
+PHASE 2: Executing recon_slice
+============================================================
+FAIL: recon_slice execution raised an exception: recon_slice() missing 3 required positional arguments: 'sinogram', 'method', and 'pmat'
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 1335, in main
+    agent_result = recon_slice(*outer_args, **outer_kwargs)
+TypeError: recon_slice() missing 3 required positional arguments: 'sinogram', 'method', and 'pmat'

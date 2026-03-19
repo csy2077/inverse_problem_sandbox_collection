@@ -1,0 +1,20 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_main.pkl
+Outer data function name: main
+Outer args count: 0, kwargs keys: []
+Running main(*args, **kwargs)...
+--- FBP CPU Reconstruction (Headless) ---
+Sinogram shape: (1125, 924)
+> Starting Reconstruction (CPU)...
+Saving result to: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/output_fbp_cpu/recon_result.tiff
+File saved: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/output_fbp_cpu/recon_result.tiff
+Done.
+
+--- Evaluation ---
+Generating Reference (Ground Truth) for evaluation...
+SSIM : 0.6309
+NRMSE: 0.6111
+CNR  : 5.9001
+main() returned: <class 'NoneType'>
+
+--- Scenario A: Simple function pattern ---
+TEST PASSED

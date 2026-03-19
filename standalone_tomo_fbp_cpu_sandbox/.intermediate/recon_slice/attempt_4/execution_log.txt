@@ -1,0 +1,53 @@
+File: data_recon_slice.pkl, size: 4165925 bytes
+Outer data file: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl (4165925 bytes)
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl
+  File size: 4165925
+  Protocol: 3
+FAIL: Could not load outer data file with robust_load: robust_load failed. Errors: ['builtins monkeypatch + pickle: function() argument 2 must be dict, not module', 'builtins monkeypatch + dill: Ran out of input', "GLOBAL patched pickle: Can't get attribute '__main__' on <module 'builtins' (built-in)>", 'GLOBAL patched dill: Ran out of input', "SHORT_BINUNICODE patched pickle: Can't get attribute '__main__' on <module 'builtins' (built-in)>", 'SHORT_BINUNICODE patched dill: Ran out of input', 'pickle.Unpickler + monkeypatch: function() argument 2 must be dict, not module', 'pickle enc=ASCII: function() argument 2 must be dict, not module', 'pickle enc=latin1: function() argument 2 must be dict, not module', 'pickle enc=bytes: function() argument 2 must be dict, not module', 'pickle enc=utf-8: function() argument 2 must be dict, not module']
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 665, in main
+    outer_data = robust_load(outer_path)
+  File "test_recon_slice.py", line 615, in robust_load
+    raise RuntimeError(f"robust_load failed. Errors: {errors}")
+RuntimeError: robust_load failed. Errors: ['builtins monkeypatch + pickle: function() argument 2 must be dict, not module', 'builtins monkeypatch + dill: Ran out of input', "GLOBAL patched pickle: Can't get attribute '__main__' on <module 'builtins' (built-in)>", 'GLOBAL patched dill: Ran out of input', "SHORT_BINUNICODE patched pickle: Can't get attribute '__main__' on <module 'builtins' (built-in)>", 'SHORT_BINUNICODE patched dill: Ran out of input', 'pickle.Unpickler + monkeypatch: function() argument 2 must be dict, not module', 'pickle enc=ASCII: function() argument 2 must be dict, not module', 'pickle enc=latin1: function() argument 2 must be dict, not module', 'pickle enc=bytes: function() argument 2 must be dict, not module', 'pickle enc=utf-8: function() argument 2 must be dict, not module']
+  Raw file size: 4165925 bytes
+  First 20 bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  Last 20 bytes: b'_\n__main__\nh\xf3j\x06\x01\x00\x00h\xf9'
+  Pickle protocol: 3
+  File does NOT end with STOP opcode, last byte: b'\xf9'
+  Last STOP opcode at position: 4162743
+  Truncated load failed: function() argument 2 must be dict, not module
+  FixedUnpickler failed: function() argument 2 must be dict, not module
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 665, in main
+    outer_data = robust_load(outer_path)
+  File "test_recon_slice.py", line 615, in robust_load
+    raise RuntimeError(f"robust_load failed. Errors: {errors}")
+RuntimeError: robust_load failed. Errors: ['builtins monkeypatch + pickle: function() argument 2 must be dict, not module', 'builtins monkeypatch + dill: Ran out of input', "GLOBAL patched pickle: Can't get attribute '__main__' on <module 'builtins' (built-in)>", 'GLOBAL patched dill: Ran out of input', "SHORT_BINUNICODE patched pickle: Can't get attribute '__main__' on <module 'builtins' (built-in)>", 'SHORT_BINUNICODE patched dill: Ran out of input', 'pickle.Unpickler + monkeypatch: function() argument 2 must be dict, not module', 'pickle enc=ASCII: function() argument 2 must be dict, not module', 'pickle enc=latin1: function() argument 2 must be dict, not module', 'pickle enc=bytes: function() argument 2 must be dict, not module', 'pickle enc=utf-8: function() argument 2 must be dict, not module']
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 280, in load_data_with_fixes
+    data = unpickler.load()
+  File "/fs-computility-new/UPDZ02_sunhe/shared/NeuTomPy-toolbox/env/lib/python3.6/site-packages/dill/_dill.py", line 643, in _create_function
+    func = FunctionType(fcode, fglobals or dict(), fname, fdefaults, fclosure)
+TypeError: function() argument 2 must be dict, not module
+  dill.load_module failed: module 'dill' has no attribute 'load_module'
+FAIL: load_data_with_fixes also failed: load_data_with_fixes failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 665, in main
+    outer_data = robust_load(outer_path)
+  File "test_recon_slice.py", line 615, in robust_load
+    raise RuntimeError(f"robust_load failed. Errors: {errors}")
+RuntimeError: robust_load failed. Errors: ['builtins monkeypatch + pickle: function() argument 2 must be dict, not module', 'builtins monkeypatch + dill: Ran out of input', "GLOBAL patched pickle: Can't get attribute '__main__' on <module 'builtins' (built-in)>", 'GLOBAL patched dill: Ran out of input', "SHORT_BINUNICODE patched pickle: Can't get attribute '__main__' on <module 'builtins' (built-in)>", 'SHORT_BINUNICODE patched dill: Ran out of input', 'pickle.Unpickler + monkeypatch: function() argument 2 must be dict, not module', 'pickle enc=ASCII: function() argument 2 must be dict, not module', 'pickle enc=latin1: function() argument 2 must be dict, not module', 'pickle enc=bytes: function() argument 2 must be dict, not module', 'pickle enc=utf-8: function() argument 2 must be dict, not module']
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 672, in main
+    outer_data = load_data_with_fixes(outer_path)
+  File "test_recon_slice.py", line 295, in load_data_with_fixes
+    raise RuntimeError(f"load_data_with_fixes failed for {filepath}")
+RuntimeError: load_data_with_fixes failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl
+FAIL: All loading methods exhausted: All load methods failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl (size=4165925). Errors: ['dill.load (with __main__ injection): Ran out of input', 'dill.loads: Ran out of input', 'MainPatchedUnpickler (file): function() argument 2 must be dict, not module', 'MainPatchedUnpickler2 (bytes): function() argument 2 must be dict, not module', 'StdPatchedUnpickler: function() argument 2 must be dict, not module', "gzip+dill: Not a gzipped file (b'\\x80\\x03')", 'dill recurse: Ran out of input']

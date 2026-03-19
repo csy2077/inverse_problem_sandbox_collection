@@ -1,0 +1,12 @@
+File: data_recon_slice.pkl, size: 4165925 bytes
+Outer data file size: 4165925 bytes
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl
+FAIL: Could not load outer data file: All load methods failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl (size=4165925 bytes). Errors: ["Python2Unpickler: Can't get attribute '__main__' on <module 'builtins' (built-in)>", "DillPython2Unpickler: Can't get attribute '__main__' on <module 'builtins' (built-in)>", "pickle.loads latin1: No module named '__builtin__'", "pickle.loads bytes: No module named '__builtin__'", 'dill.loads: Ran out of input', 'dill.load file: Ran out of input', "pickle.load file: No module named '__builtin__'", "pickle.Unpickler latin1: No module named '__builtin__'", "np.load: Failed to interpret file '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl' as a pickle"]
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 220, in main
+    outer_data = load_data(outer_path)
+  File "test_recon_slice.py", line 163, in load_data
+    f"All load methods failed for {filepath} (size={file_size} bytes). Errors: {errors}"
+RuntimeError: All load methods failed for /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl (size=4165925 bytes). Errors: ["Python2Unpickler: Can't get attribute '__main__' on <module 'builtins' (built-in)>", "DillPython2Unpickler: Can't get attribute '__main__' on <module 'builtins' (built-in)>", "pickle.loads latin1: No module named '__builtin__'", "pickle.loads bytes: No module named '__builtin__'", 'dill.loads: Ran out of input', 'dill.load file: Ran out of input', "pickle.load file: No module named '__builtin__'", "pickle.Unpickler latin1: No module named '__builtin__'", "np.load: Failed to interpret file '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_fbp_cpu_sandbox/run_code/std_data/data_recon_slice.pkl' as a pickle"]
+File header (hex): 80037d710028580900000066756e635f6e616d657101580b0000007265636f6e5f736c696365710258040000006172677371036364696c6c2e5f64696c6c0a5f6765745f617474720a71046364696c6c2e5f64696c6c0a5f696d706f72745f6d6f64756c
+File header (raw): b'\x80\x03}q\x00(X\t\x00\x00\x00func_nameq\x01X\x0b\x00\x00\x00recon_sliceq\x02X\x04\x00\x00\x00argsq\x03cdill._dill\n_get_attr\nq\x04cdill._dill\n_import_modul'

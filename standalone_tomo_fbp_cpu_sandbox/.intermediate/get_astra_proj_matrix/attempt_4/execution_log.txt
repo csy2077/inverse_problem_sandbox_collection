@@ -1,0 +1,26 @@
+[INFO] Outer data file size: 16954 bytes
+[DEBUG] Found class references in pickle: []
+[DEBUG] All GLOBAL references in pickle: [('dill._dill', '_get_attr'), ('dill._dill', '_import_module'), ('numpy', 'ndarray'), ('numpy', 'dtype'), ('dill._dill', '_create_type'), ('dill._dill', '_load_type'), ('scipy.sparse.linalg.interface', 'LinearOperator'), ('dill._dill', '_create_function'), ('dill._dill', '_create_code'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('dill._dill', '_create_cell'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__'), ('__builtin__', '__main__')]
+[DEBUG] Created fake module for GLOBAL: __builtin__
+[DEBUG] All loading methods failed:
+  - dill.load: Ran out of input
+  - pickle.load: Can't get attribute '__main__' on <module '__builtin__'>
+  - pickle.load(latin1): Can't get attribute '__main__' on <module '__builtin__'>
+  - SafeUnpickler: Can't get attribute '__main__' on <module '__builtin__'>
+  - dill with __main__ patch: Ran out of input
+  - dill with fake modules: Ran out of input
+  - dill.loads raw: Ran out of input
+  - DillSafeUnpickler: Ran out of input
+  - regex module scan + dill: Ran out of input
+[WARNING] Could not load outer data: All loading methods returned None
+Traceback (most recent call last):
+  File "test_get_astra_proj_matrix.py", line 357, in main
+    raise ValueError("All loading methods returned None")
+ValueError: All loading methods returned None
+[INFO] Falling back to extracting args from pickle manually or using hardcoded test.
+[INFO] Attempting hardcoded test based on typical usage...
+[INFO] get_astra_proj_matrix returned: OpTomo
+[INFO] Shape matches: (46080, 65536)
+[INFO] FP works, output shape: (180, 256)
+[INFO] BP works, output shape: (256, 256)
+TEST PASSED
