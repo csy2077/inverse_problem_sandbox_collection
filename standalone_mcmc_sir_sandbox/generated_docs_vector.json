@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Converts an input into a read-only 1-dimensional numpy array of floats.",
+    "function_docstring": "Converts various types of input data into a 1-dimensional numpy array with float dtype, ensuring it is immutable.\n\nArgs:\n    x (Union[float, list, np.ndarray]): The input data which can be a scalar, a list, or a numpy array.\n\nReturns:\n    np.ndarray: A read-only 1-dimensional numpy array of floats. If the input is multi-dimensional, it is flattened to a vector if possible.\n\nRaises:\n    ValueError: If the input cannot be reshaped into a 1-dimensional array of scalar values.",
+    "usage_example": "import numpy as np\n\n# Example 1: Convert a scalar\nscalar_input = 5.5\nvectorized_scalar = vector(scalar_input)\n\n# Example 2: Convert a list\nlist_input = [1, 2, 3]\nvectorized_list = vector(list_input)\n\n# Example 3: Convert a numpy array\narray_input = np.array([[1, 2], [3, 4]])\nvectorized_array = vector(array_input)"
+}

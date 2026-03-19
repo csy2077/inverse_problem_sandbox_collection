@@ -1,0 +1,6 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_sir_sandbox/run_code/std_data/data_matrix2d.pkl
+  Keys: ['func_name', 'args', 'kwargs', 'output']
+  func_name: matrix2d
+Detected Scenario A: Simple function call
+Executed matrix2d, result type=<class 'numpy.ndarray'>
+TEST PASSED

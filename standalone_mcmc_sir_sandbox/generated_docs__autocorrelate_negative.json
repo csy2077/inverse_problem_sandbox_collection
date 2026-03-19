@@ -1,0 +1,5 @@
+{
+    "function_explanation": "The function '_autocorrelate_negative' finds the first index of a negative value in an autocorrelation array.",
+    "function_docstring": "```python\ndef _autocorrelate_negative(autocorrelation):\n    \"\"\"\n    Finds the first index of a negative value in the provided autocorrelation array.\n\n    Args:\n        autocorrelation (array-like): An array of numerical values representing the autocorrelation of a dataset.\n\n    Returns:\n        int: The index of the first negative value in the autocorrelation array, or the length of the array if no negative values are found.\n    \"\"\"\n```",
+    "usage_example": "```python\nimport numpy as np\nfrom agent__autocorrelate_negative import _autocorrelate_negative\n\n# Example autocorrelation data\nautocorr_data = np.array([0.1, 0.05, -0.03, -0.1, 0.05])\n\n# Find the first negative index\nfirst_negative_index = _autocorrelate_negative(autocorr_data)\nprint(f\"The first negative index is: {first_negative_index}\")\n```"
+}

@@ -1,0 +1,699 @@
+[
+    {
+        "function_name": "vector",
+        "inputs": {
+            "x": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    21
+                ],
+                "dtype": "float64"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                21
+            ],
+            "dtype": "float64"
+        }
+    },
+    {
+        "function_name": "matrix2d",
+        "inputs": {
+            "x": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    21,
+                    2
+                ],
+                "dtype": "float64"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                21,
+                2
+            ],
+            "dtype": "float64"
+        }
+    },
+    {
+        "function_name": "_within",
+        "inputs": {
+            "chains": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    6,
+                    1500,
+                    5
+                ],
+                "dtype": "float64"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                5
+            ],
+            "dtype": "float64"
+        }
+    },
+    {
+        "function_name": "_between",
+        "inputs": {
+            "chains": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    6,
+                    1500,
+                    5
+                ],
+                "dtype": "float64"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                5
+            ],
+            "dtype": "float64"
+        }
+    },
+    {
+        "function_name": "rhat",
+        "inputs": {
+            "chains": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    3,
+                    3000,
+                    5
+                ],
+                "dtype": "float64"
+            },
+            "warm_up": {
+                "type": "float",
+                "value_sample": "0.0"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                5
+            ],
+            "dtype": "float64"
+        }
+    },
+    {
+        "function_name": "autocorrelation",
+        "inputs": {
+            "x": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    3000
+                ],
+                "dtype": "float64"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                3000
+            ],
+            "dtype": "float64"
+        }
+    },
+    {
+        "function_name": "_autocorrelate_negative",
+        "inputs": {
+            "autocorrelation": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    3000
+                ],
+                "dtype": "float64"
+            }
+        },
+        "output": {
+            "type": "int64",
+            "value_sample": "1022"
+        }
+    },
+    {
+        "function_name": "effective_sample_size_single_parameter",
+        "inputs": {
+            "x": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    3000
+                ],
+                "dtype": "float64"
+            }
+        },
+        "output": {
+            "type": "float64",
+            "value_sample": "10.97113413026686"
+        }
+    },
+    {
+        "function_name": "effective_sample_size",
+        "inputs": {
+            "samples": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    3000,
+                    5
+                ],
+                "dtype": "float64"
+            }
+        },
+        "output": {
+            "type": "list",
+            "length": 5,
+            "elements": [
+                {
+                    "type": "float64",
+                    "value_sample": "10.97113413026686"
+                },
+                {
+                    "type": "float64",
+                    "value_sample": "15.728714974835135"
+                },
+                {
+                    "type": "float64",
+                    "value_sample": "8.957475130280443"
+                },
+                {
+                    "type": "float64",
+                    "value_sample": "3.982918971192198"
+                },
+                {
+                    "type": "float64",
+                    "value_sample": "9.227751407668354"
+                }
+            ]
+        }
+    },
+    {
+        "function_name": "plot_trace",
+        "inputs": {
+            "samples": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    3,
+                    3000,
+                    5
+                ],
+                "dtype": "float64"
+            },
+            "parameter_names": {
+                "type": "list",
+                "length": 5,
+                "elements": [
+                    {
+                        "type": "str",
+                        "value_sample": "gamma"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "v"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "S_0"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "sigma infected"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "sigma recovery"
+                    }
+                ]
+            },
+            "save_path": {
+                "type": "str",
+                "value_sample": "mcmc_trace.png"
+            }
+        },
+        "output": {
+            "type": "tuple",
+            "length": 2,
+            "elements": [
+                {
+                    "type": "CustomObject",
+                    "class_name": "Figure",
+                    "public_methods": [
+                        "add_artist",
+                        "add_axes",
+                        "add_axobserver",
+                        "add_callback",
+                        "add_gridspec",
+                        "add_subfigure",
+                        "add_subplot",
+                        "align_labels",
+                        "align_titles",
+                        "align_xlabels",
+                        "align_ylabels",
+                        "autofmt_xdate",
+                        "clear",
+                        "clf",
+                        "colorbar",
+                        "contains",
+                        "convert_xunits",
+                        "convert_yunits",
+                        "delaxes",
+                        "draw",
+                        "draw_artist",
+                        "draw_without_rendering",
+                        "figimage",
+                        "findobj",
+                        "format_cursor_data",
+                        "gca",
+                        "get_agg_filter",
+                        "get_alpha",
+                        "get_animated",
+                        "get_axes",
+                        "get_children",
+                        "get_clip_box",
+                        "get_clip_on",
+                        "get_clip_path",
+                        "get_constrained_layout",
+                        "get_constrained_layout_pads",
+                        "get_cursor_data",
+                        "get_default_bbox_extra_artists",
+                        "get_dpi",
+                        "get_edgecolor",
+                        "get_facecolor",
+                        "get_figheight",
+                        "get_figure",
+                        "get_figwidth",
+                        "get_frameon",
+                        "get_gid",
+                        "get_in_layout",
+                        "get_label",
+                        "get_layout_engine",
+                        "get_linewidth",
+                        "get_mouseover",
+                        "get_path_effects",
+                        "get_picker",
+                        "get_rasterized",
+                        "get_size_inches",
+                        "get_sketch_params",
+                        "get_snap",
+                        "get_suptitle",
+                        "get_supxlabel",
+                        "get_supylabel",
+                        "get_tight_layout",
+                        "get_tightbbox",
+                        "get_transform",
+                        "get_transformed_clip_path_and_affine",
+                        "get_url",
+                        "get_visible",
+                        "get_window_extent",
+                        "get_zorder",
+                        "ginput",
+                        "have_units",
+                        "is_transform_set",
+                        "legend",
+                        "pchanged",
+                        "pick",
+                        "pickable",
+                        "properties",
+                        "remove",
+                        "remove_callback",
+                        "savefig",
+                        "sca",
+                        "set",
+                        "set_agg_filter",
+                        "set_alpha",
+                        "set_animated",
+                        "set_canvas",
+                        "set_clip_box",
+                        "set_clip_on",
+                        "set_clip_path",
+                        "set_constrained_layout",
+                        "set_constrained_layout_pads",
+                        "set_dpi",
+                        "set_edgecolor",
+                        "set_facecolor",
+                        "set_figheight",
+                        "set_figure",
+                        "set_figwidth",
+                        "set_frameon",
+                        "set_gid",
+                        "set_in_layout",
+                        "set_label",
+                        "set_layout_engine",
+                        "set_linewidth",
+                        "set_mouseover",
+                        "set_path_effects",
+                        "set_picker",
+                        "set_rasterized",
+                        "set_size_inches",
+                        "set_sketch_params",
+                        "set_snap",
+                        "set_tight_layout",
+                        "set_transform",
+                        "set_url",
+                        "set_visible",
+                        "set_zorder",
+                        "show",
+                        "stale_callback",
+                        "subfigures",
+                        "subplot_mosaic",
+                        "subplots",
+                        "subplots_adjust",
+                        "suptitle",
+                        "supxlabel",
+                        "supylabel",
+                        "text",
+                        "tight_layout",
+                        "update",
+                        "update_from",
+                        "waitforbuttonpress"
+                    ],
+                    "attributes": [
+                        "_stale",
+                        "stale_callback",
+                        "_parent_figure",
+                        "_transform",
+                        "_transformSet",
+                        "_visible",
+                        "_animated",
+                        "_alpha",
+                        "clipbox",
+                        "_clippath",
+                        "_clipon",
+                        "_label",
+                        "_picker",
+                        "_rasterized",
+                        "_agg_filter",
+                        "_mouseover",
+                        "_callbacks",
+                        "_remove_method",
+                        "_url",
+                        "_gid",
+                        "_snap",
+                        "_sketch",
+                        "_path_effects",
+                        "_sticky_edges",
+                        "_in_layout",
+                        "_suptitle",
+                        "_supxlabel",
+                        "_supylabel",
+                        "_align_label_groups",
+                        "_localaxes",
+                        "artists",
+                        "lines",
+                        "patches",
+                        "texts",
+                        "images",
+                        "legends",
+                        "subfigs",
+                        "suppressComposite",
+                        "_root_figure",
+                        "_layout_engine",
+                        "_canvas_callbacks",
+                        "_mouse_key_ids",
+                        "_button_pick_id",
+                        "_scroll_pick_id",
+                        "bbox_inches",
+                        "dpi_scale_trans",
+                        "_dpi",
+                        "bbox",
+                        "figbbox",
+                        "transFigure",
+                        "transSubfigure",
+                        "patch",
+                        "canvas",
+                        "_original_dpi",
+                        "subplotpars",
+                        "_axstack",
+                        "_axobservers",
+                        "_number"
+                    ]
+                },
+                {
+                    "type": "numpy.ndarray",
+                    "shape": [
+                        5,
+                        2
+                    ],
+                    "dtype": "object"
+                }
+            ]
+        }
+    },
+    {
+        "function_name": "plot_series",
+        "inputs": {
+            "samples": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    1000,
+                    5
+                ],
+                "dtype": "float64"
+            },
+            "problem": {
+                "type": "CustomObject",
+                "class_name": "MultiOutputProblem",
+                "public_methods": [
+                    "evaluate",
+                    "n_outputs",
+                    "n_parameters",
+                    "n_times",
+                    "times",
+                    "values"
+                ],
+                "attributes": [
+                    "_model",
+                    "_times",
+                    "_values",
+                    "_n_parameters",
+                    "_n_outputs",
+                    "_n_times"
+                ]
+            },
+            "save_path": {
+                "type": "str",
+                "value_sample": "posterior_predictive.png"
+            },
+            "thinning": {
+                "type": "NoneType",
+                "value_sample": "None"
+            }
+        },
+        "output": {
+            "type": "tuple",
+            "length": 2,
+            "elements": [
+                {
+                    "type": "CustomObject",
+                    "class_name": "Figure",
+                    "public_methods": [
+                        "add_artist",
+                        "add_axes",
+                        "add_axobserver",
+                        "add_callback",
+                        "add_gridspec",
+                        "add_subfigure",
+                        "add_subplot",
+                        "align_labels",
+                        "align_titles",
+                        "align_xlabels",
+                        "align_ylabels",
+                        "autofmt_xdate",
+                        "clear",
+                        "clf",
+                        "colorbar",
+                        "contains",
+                        "convert_xunits",
+                        "convert_yunits",
+                        "delaxes",
+                        "draw",
+                        "draw_artist",
+                        "draw_without_rendering",
+                        "figimage",
+                        "findobj",
+                        "format_cursor_data",
+                        "gca",
+                        "get_agg_filter",
+                        "get_alpha",
+                        "get_animated",
+                        "get_axes",
+                        "get_children",
+                        "get_clip_box",
+                        "get_clip_on",
+                        "get_clip_path",
+                        "get_constrained_layout",
+                        "get_constrained_layout_pads",
+                        "get_cursor_data",
+                        "get_default_bbox_extra_artists",
+                        "get_dpi",
+                        "get_edgecolor",
+                        "get_facecolor",
+                        "get_figheight",
+                        "get_figure",
+                        "get_figwidth",
+                        "get_frameon",
+                        "get_gid",
+                        "get_in_layout",
+                        "get_label",
+                        "get_layout_engine",
+                        "get_linewidth",
+                        "get_mouseover",
+                        "get_path_effects",
+                        "get_picker",
+                        "get_rasterized",
+                        "get_size_inches",
+                        "get_sketch_params",
+                        "get_snap",
+                        "get_suptitle",
+                        "get_supxlabel",
+                        "get_supylabel",
+                        "get_tight_layout",
+                        "get_tightbbox",
+                        "get_transform",
+                        "get_transformed_clip_path_and_affine",
+                        "get_url",
+                        "get_visible",
+                        "get_window_extent",
+                        "get_zorder",
+                        "ginput",
+                        "have_units",
+                        "is_transform_set",
+                        "legend",
+                        "pchanged",
+                        "pick",
+                        "pickable",
+                        "properties",
+                        "remove",
+                        "remove_callback",
+                        "savefig",
+                        "sca",
+                        "set",
+                        "set_agg_filter",
+                        "set_alpha",
+                        "set_animated",
+                        "set_canvas",
+                        "set_clip_box",
+                        "set_clip_on",
+                        "set_clip_path",
+                        "set_constrained_layout",
+                        "set_constrained_layout_pads",
+                        "set_dpi",
+                        "set_edgecolor",
+                        "set_facecolor",
+                        "set_figheight",
+                        "set_figure",
+                        "set_figwidth",
+                        "set_frameon",
+                        "set_gid",
+                        "set_in_layout",
+                        "set_label",
+                        "set_layout_engine",
+                        "set_linewidth",
+                        "set_mouseover",
+                        "set_path_effects",
+                        "set_picker",
+                        "set_rasterized",
+                        "set_size_inches",
+                        "set_sketch_params",
+                        "set_snap",
+                        "set_tight_layout",
+                        "set_transform",
+                        "set_url",
+                        "set_visible",
+                        "set_zorder",
+                        "show",
+                        "stale_callback",
+                        "subfigures",
+                        "subplot_mosaic",
+                        "subplots",
+                        "subplots_adjust",
+                        "suptitle",
+                        "supxlabel",
+                        "supylabel",
+                        "text",
+                        "tight_layout",
+                        "update",
+                        "update_from",
+                        "waitforbuttonpress"
+                    ],
+                    "attributes": [
+                        "_stale",
+                        "stale_callback",
+                        "_parent_figure",
+                        "_transform",
+                        "_transformSet",
+                        "_visible",
+                        "_animated",
+                        "_alpha",
+                        "clipbox",
+                        "_clippath",
+                        "_clipon",
+                        "_label",
+                        "_picker",
+                        "_rasterized",
+                        "_agg_filter",
+                        "_mouseover",
+                        "_callbacks",
+                        "_remove_method",
+                        "_url",
+                        "_gid",
+                        "_snap",
+                        "_sketch",
+                        "_path_effects",
+                        "_sticky_edges",
+                        "_in_layout",
+                        "_suptitle",
+                        "_supxlabel",
+                        "_supylabel",
+                        "_align_label_groups",
+                        "_localaxes",
+                        "artists",
+                        "lines",
+                        "patches",
+                        "texts",
+                        "images",
+                        "legends",
+                        "subfigs",
+                        "suppressComposite",
+                        "_root_figure",
+                        "_layout_engine",
+                        "_canvas_callbacks",
+                        "_mouse_key_ids",
+                        "_button_pick_id",
+                        "_scroll_pick_id",
+                        "bbox_inches",
+                        "dpi_scale_trans",
+                        "_dpi",
+                        "bbox",
+                        "figbbox",
+                        "transFigure",
+                        "transSubfigure",
+                        "patch",
+                        "canvas",
+                        "_original_dpi",
+                        "subplotpars",
+                        "_axstack",
+                        "_axobservers",
+                        "_number"
+                    ]
+                },
+                {
+                    "type": "numpy.ndarray",
+                    "shape": [
+                        2
+                    ],
+                    "dtype": "object"
+                }
+            ]
+        }
+    }
+]

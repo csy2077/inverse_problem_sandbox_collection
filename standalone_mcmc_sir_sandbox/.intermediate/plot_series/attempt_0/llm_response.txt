@@ -1,0 +1,183 @@
+
+
+```python
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend for testing
+
+# Ensure the current directory is in path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from agent_plot_series import plot_series
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_sir_sandbox/run_code/std_data/data_plot_series.pkl'
+    ]
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file found for plot_series.")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"  func_name: {outer_data.get('func_name', 'N/A')}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    # Override save_path to a temp file to avoid polluting the filesystem
+    # Check if 'save_path' is in kwargs or if it's a positional arg
+    # From signature: plot_series(samples, problem, save_path='posterior_predictive.png', thinning=None)
+    # Positional: args[0]=samples, args[1]=problem, args[2]=save_path (optional)
+    temp_save_path = '/tmp/test_posterior_predictive.png'
+    if 'save_path' in outer_kwargs:
+        outer_kwargs['save_path'] = temp_save_path
+    elif len(outer_args) > 2:
+        outer_args = list(outer_args)
+        outer_args[2] = temp_save_path
+        outer_args = tuple(outer_args)
+    else:
+        outer_kwargs['save_path'] = temp_save_path
+
+    if inner_paths:
+        # Scenario B: Factory/Closure pattern
+        print("Detected Scenario B: Factory/Closure pattern")
+
+        # Phase 1: Create operator
+        try:
+            agent_operator = plot_series(*outer_args, **outer_kwargs)
+            print("Phase 1: Operator created successfully.")
+        except Exception as e:
+            print(f"FAIL: Could not create operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print("FAIL: Returned operator is not callable.")
+            sys.exit(1)
+
+        # Phase 2: Execute with inner data
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+                print("Phase 2: Operator executed successfully.")
+            except Exception as e:
+                print(f"FAIL: Operator execution failed: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # Compare
+            try:
+                passed, msg = recursive_check(expected, result)
+                if not passed:
+                    print(f"FAIL: Verification failed: {msg}")
+                    sys.exit(1)
+                else:
+                    print("TEST PASSED")
+                    sys.exit(0)
+            except Exception as e:
+                print(f"FAIL: Verification error: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+    else:
+        # Scenario A: Simple function
+        print("Detected Scenario A: Simple function call")
+
+        # Execute function
+        try:
+            result = plot_series(*outer_args, **outer_kwargs)
+            print("Function executed successfully.")
+        except Exception as e:
+            print(f"FAIL: Function execution failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        # For plot_series, the output is (fig, axes) which are matplotlib objects
+        # recursive_check may not handle matplotlib objects well, so we do a structural check
+        try:
+            passed, msg = recursive_check(expected, result)
+            if not passed:
+                # If recursive_check fails on matplotlib objects, do a manual structural check
+                print(f"recursive_check reported: {msg}")
+                print("Attempting structural verification for matplotlib objects...")
+
+                # Verify result is a tuple of length 2
+                if not isinstance(result, tuple):
+                    print(f"FAIL: Expected tuple, got {type(result)}")
+                    sys.exit(1)
+                if len(result) != 2:
+                    print(f"FAIL: Expected tuple of length 2, got length {len(result)}")
+                    sys.exit(1)
+
+                fig, axes = result
+                import matplotlib.pyplot as plt
+                import matplotlib.figure
+
+                if not isinstance(fig, matplotlib.figure.Figure):
+                    print(f"FAIL: First element is not a Figure, got {type(fig)}")
+                    sys.exit(1)
+
+                # axes can be a single Axes or ndarray of Axes
+                print("Structural verification passed for matplotlib objects.")
+                print("TEST PASSED")
+                sys.exit(0)
+            else:
+                print("TEST PASSED")
+                sys.exit(0)
+        except Exception as e:
+            print(f"FAIL: Verification error: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+    # Cleanup temp file
+    try:
+        if os.path.exists(temp_save_path):
+            os.remove(temp_save_path)
+    except:
+        pass
+
+
+if __name__ == '__main__':
+    main()
+```

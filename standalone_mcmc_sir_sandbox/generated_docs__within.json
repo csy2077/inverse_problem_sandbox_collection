@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the mean of the variances within each chain across multiple chains.",
+    "function_docstring": "Calculates the mean of the variances within each chain across multiple chains.\n\nArgs:\n    chains (np.ndarray): A 3D numpy array of shape (C, N, D) where C is the number of chains, N is the number of samples per chain, and D is the dimensionality of each sample.\n\nReturns:\n    np.ndarray: A 1D numpy array of shape (D,) representing the mean of the variances within each chain across all chains.",
+    "usage_example": "import numpy as np\n\n# Example usage of _within function\nchains = np.random.rand(5, 100, 3)  # 5 chains, 100 samples per chain, 3-dimensional samples\nresult = _within(chains)\nprint(result)  # Output: 1D numpy array of shape (3,)"
+}

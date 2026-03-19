@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the effective sample size for each parameter in a set of samples, accounting for autocorrelation.",
+    "function_docstring": "Calculates the effective sample size for each parameter in a set of samples.\n\nArgs:\n    samples (np.ndarray): A 2D array of shape (n_samples, n_params) representing the samples for which the effective sample size is to be calculated.\n\nReturns:\n    List[float]: A list of effective sample sizes, one for each parameter in the samples.",
+    "usage_example": "import numpy as np\n\n# Example usage of effective_sample_size\nsamples = np.random.randn(100, 5)  # 100 samples of 5 parameters\ness = effective_sample_size(samples)\nprint(ess)  # Output: List of effective sample sizes for each parameter"
+}

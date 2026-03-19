@@ -1,0 +1,14 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_sir_sandbox/run_code/std_data/data_plot_series.pkl
+  func_name: plot_series
+Detected Scenario A: Simple function call
+FAIL: Function execution failed: name 'odeint' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_sir_sandbox/test_plot_series.py", line 124, in main
+    result = plot_series(*outer_args, **outer_kwargs)
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_sir_sandbox/agent_plot_series.py", line 30, in plot_series
+    predicted_values.append(problem.evaluate(params))
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_sir_sandbox/gen_std_data.py", line 385, in evaluate
+    y = np.asarray(self._model.simulate(parameters, self._times))
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_sir_sandbox/gen_std_data.py", line 346, in simulate
+    y = odeint(self._rhs, y0, times, (gamma, v))
+NameError: name 'odeint' is not defined

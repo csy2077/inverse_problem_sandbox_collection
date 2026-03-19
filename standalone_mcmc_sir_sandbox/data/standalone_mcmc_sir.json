@@ -1,0 +1,51 @@
+{
+    "model_name": "SIR",
+    "description": "SIR (Susceptible-Infected-Recovered) epidemic model data from a common cold outbreak on Tristan da Cunha island",
+    "initial_state": {
+        "S": 38,
+        "I": 1,
+        "R": 0
+    },
+    "suggested_parameters": {
+        "gamma": 0.026,
+        "v": 0.285,
+        "S0": 38
+    },
+    "suggested_times": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
+    "suggested_values": {
+        "description": "Common cold outbreak data: [Infected, Recovered] for each day",
+        "columns": ["Infected", "Recovered"],
+        "data": [
+            [1, 0],
+            [1, 0],
+            [3, 0],
+            [7, 0],
+            [6, 5],
+            [10, 7],
+            [13, 8],
+            [13, 13],
+            [14, 13],
+            [14, 16],
+            [17, 17],
+            [10, 24],
+            [6, 30],
+            [6, 31],
+            [4, 33],
+            [3, 34],
+            [1, 36],
+            [1, 36],
+            [1, 36],
+            [1, 36],
+            [0, 37]
+        ]
+    },
+    "mcmc_settings": {
+        "initial_positions": [
+            [0.001, 0.20, 52, 3, 3],
+            [0.05, 0.34, 34, 3, 3],
+            [0.02, 0.18, 20, 3, 3]
+        ],
+        "parameter_names": ["gamma", "v", "S_0", "sigma infected", "sigma recovery"]
+    }
+}
+

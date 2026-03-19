@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Calculates the 'between-chain' variance for chains in a Markov Chain Monte Carlo (MCMC) simulation.",
+    "function_docstring": "Calculates the 'between-chain' variance for given MCMC chains.\n\nArgs:\n    chains (numpy.ndarray): A NumPy array representing MCMC chains, with shape (C, N, ...), where C is the number of chains, and N is the number of samples per chain.\n\nReturns:\n    float: The calculated between-chain variance, which is a measure of how much the means of the individual chains deviate from the overall mean.",
+    "usage_example": "import numpy as np\n\n# Example MCMC chains with 3 chains, each having 5 samples\nchains = np.array([\n    [1.1, 1.2, 1.3, 1.4, 1.5],\n    [2.1, 2.2, 2.3, 2.4, 2.5],\n    [3.1, 3.2, 3.3, 3.4, 3.5]\n])\n\n# Compute the between-chain variance\nvariance = _between(chains)\nprint(variance)"
+}

@@ -1,0 +1,9 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mcmc_sir_sandbox/run_code/std_data/data_plot_series.pkl
+  func_name: plot_series
+Detected Scenario A: Simple function call
+Posterior predictive plot saved to: /tmp/test_posterior_predictive.png
+Function executed successfully.
+recursive_check reported: Value mismatch at output[0]: expected Figure(800x424.264), got Figure(800x424.264)
+Attempting structural verification for matplotlib objects...
+Structural verification passed for matplotlib objects.
+TEST PASSED
