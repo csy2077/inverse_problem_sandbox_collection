@@ -1,0 +1,1061 @@
+"""python
+# ============================================================================
+# STANDALONE UNMIXING SCRIPT - ADMMNet on DC1 Dataset
+# ============================================================================
+#
+# ORIGINAL SCRIPT PATH:
+#   /fs-computility-new/UPDZ02_sunhe/shared/jiayx/HySupp/unmixing.py
+#   with command: python unmixing.py data=DC1 model=ADMMNet SNR=30
+#
+# DEPENDENCIES:
+#   Input files:
+#     - ./data_standalone/DC1.mat (hyperspectral data with ground truth)
+#     - ./data_standalone/standalone_unmixing_ADMMNet_DC1.json (configuration)
+#
+#   Output files:
+#     - ./exp_standalone/DC1-endmembers-estimated.png (endmembers plot)
+#     - ./exp_standalone/DC1-abundances-estimated.png (abundances plot)
+#     - ./exp_standalone/estimates.mat (estimated E and A matrices)
+#     - ./exp_standalone/metrics.json (evaluation metrics)
+#
+# REQUIRED PACKAGES (standard/pip-installable):
+#   - numpy
+#   - scipy
+#   - matplotlib
+#   - torch (PyTorch)
+#   - tqdm
+#   - munkres (Hungarian algorithm implementation)
+#
+# ITERATION COUNT CHANGES:
+#   None - The original ADMMNet model uses 300 epochs. This is kept unchanged as it
+#   runs reasonably quickly on GPU.
+#
+# INLINED CODE:
+#   All high-level package calls from src.* and mlxp have been inlined:
+#     - src.data.base.HSIWithGT -> inlined as HSIWithGT class
+#     - src.data.noise.AdditiveWhiteGaussianNoise -> inlined
+#     - src.model.blind.ADMMNet -> inlined (including X_block, Z_block, D_block)
+#     - src.model.extractors.VCA -> inlined for endmember initialization
+#     - src.utils.aligners.AbundancesAligner -> inlined
+#     - src.utils.metrics.* -> inlined (SRE, SADDegrees, aRMSE, eRMSE, MSE)
+#     - src.data.utils.SVD_projection -> inlined (not used with current config)
+#
+# NOTES:
+#   - No task-specific imports from src.* or mlxp are used
+#   - All paths are relative to the script location
+#   - Plots are saved as PNG files (not displayed)
+#   - Single GPU usage enforced via CUDA_VISIBLE_DEVICES
+#
+# ============================================================================
+
+import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+import json
+import time
+import logging
+import numpy as np
+import numpy.linalg as LA
+import scipy.io as sio
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend - must be before pyplot import
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from munkres import Munkres
+
+# ============================================================================
+# SETUP LOGGING
+# ============================================================================
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)s - [%(levelname)s] - %(message)s",
+    datefmt="%d-%b-%y %H:%M:%S"
+)
+log = logging.getLogger(__name__)
+
+# ============================================================================
+# GET SCRIPT DIRECTORY FOR RELATIVE PATHS
+# ============================================================================
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def rel_path(*args):
+    """Convert relative path to absolute path based on script location."""
+    return os.path.join(SCRIPT_DIR, *args)
+
+# ============================================================================
+# LOAD CONFIGURATION
+# ============================================================================
+CONFIG_PATH = rel_path("data_standalone", "standalone_unmixing_ADMMNet_DC1.json")
+with open(CONFIG_PATH, "r") as f:
+    CONFIG = json.load(f)
+
+EPS = CONFIG["EPS"]
+
+# ============================================================================
+# INLINED: src.data.base (HSI and HSIWithGT classes)
+# ============================================================================
+
+INTEGER_VALUES = ("H", "W", "M", "L", "p", "N")
+
+class HSI:
+    def __init__(
+        self,
+        dataset: str,
+        data_dir: str = "./data",
+        figs_dir: str = "./figs",
+    ) -> None:
+
+        # Populate with Null data
+        # integers
+        self.H = 0
+        self.W = 0
+        self.M = 0
+        self.L = 0
+        self.p = 0
+        self.N = 0
+        # arrays
+        self.Y = np.zeros((self.L, self.N))
+        self.E = np.zeros((self.L, self.p))
+        self.A = np.zeros((self.p, self.N))
+        self.D = np.zeros((self.L, self.M))
+        self.labels = []
+        self.index = []
+
+        # Locate and check data file
+        self.name = dataset
+        filename = f"{self.name}.mat"
+        path = rel_path(data_dir, filename)
+        log.debug(f"Path to be opened: {path}")
+        assert os.path.isfile(path), f"Data file not found: {path}"
+
+        # Open data file
+        data = sio.loadmat(path)
+        log.debug(f"Data keys: {data.keys()}")
+
+        # Populate attributes based on data file values
+        for key in filter(
+            lambda k: not k.startswith("__"),
+            data.keys(),
+        ):
+            self.__setattr__(
+                key, data[key].item() if key in INTEGER_VALUES else data[key]
+            )
+
+        if "N" not in data.keys():
+            self.N = self.H * self.W
+
+        # Check data
+        assert self.N == self.H * self.W
+        assert self.Y.shape == (self.L, self.N)
+
+        self.has_dict = False
+        if "D" in data.keys():
+            self.has_dict = True
+            assert self.D.shape == (self.L, self.M)
+
+        if "index" in data.keys():
+            self.index = list(self.index.squeeze())
+
+        # Create output figures folder
+        self.figs_dir = rel_path(figs_dir)
+        if self.figs_dir is not None:
+            os.makedirs(self.figs_dir, exist_ok=True)
+
+    def get_data(self):
+        return (
+            self.Y,
+            self.p,
+            self.D,
+        )
+
+    def get_HSI_dimensions(self):
+        return {
+            "bands": self.L,
+            "pixels": self.N,
+            "lines": self.H,
+            "samples": self.W,
+            "atoms": self.M,
+        }
+
+    def get_img_shape(self):
+        return (
+            self.H,
+            self.W,
+        )
+
+    def get_labels(self):
+        return self.labels
+
+    def get_index(self):
+        return self.index
+
+    def __repr__(self) -> str:
+        msg = f"HSI => {self.name}\n"
+        msg += "------------------------------\n"
+        msg += f"{self.L} bands,\n"
+        msg += f"{self.H} lines, {self.W} samples ({self.N} pixels),\n"
+        msg += f"{self.p} endmembers ({self.labels}),\n"
+        msg += f"{self.M} atoms\n"
+        msg += f"GlobalMinValue: {self.Y.min()}, GlobalMaxValue: {self.Y.max()}\n"
+        return msg
+
+    def plot_endmembers(self, E0=None, suffix="-GT"):
+        """
+        Display endmembers
+        """
+        title = f"{self.name} - endmembers" + (" (GT)" if E0 is None else " (Estimated)")
+        ylabel = "Reflectance"
+        xlabel = "# Bands"
+        E = np.copy(self.E) if E0 is None else np.copy(E0)
+
+        plt.figure(figsize=(6, 6))
+        for pp in range(self.p):
+            label = self.labels[pp] if pp < len(self.labels) else f"#{pp}"
+            plt.plot(E[:, pp], label=label)
+        plt.title(title)
+        plt.legend(frameon=True)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+
+        figname = f"{self.name}-endmembers{suffix}.png"
+        plt.savefig(os.path.join(self.figs_dir, figname))
+        plt.close()
+        log.info(f"Saved endmembers plot to {os.path.join(self.figs_dir, figname)}")
+
+    def plot_abundances(self, A0=None, suffix="-GT"):
+        nrows, ncols = (1, self.p)
+        title = f"{self.name} - abundances" + (" (GT)" if A0 is None else " (Estimated)")
+
+        A = np.copy(self.A) if A0 is None else np.copy(A0)
+        A = A.reshape(self.p, self.H, self.W)
+
+        fig, ax = plt.subplots(
+            nrows=nrows,
+            ncols=ncols,
+            figsize=(12, 4 * nrows),
+        )
+        kk = 0
+        for ii in range(nrows):
+            for jj in range(ncols):
+                if nrows == 1:
+                    curr_ax = ax[jj] if ncols > 1 else ax
+                else:
+                    curr_ax = ax[ii, jj]
+                mappable = curr_ax.imshow(A[kk], vmin=0.0, vmax=1.0)
+                label = self.labels[kk] if kk < len(self.labels) else f"#{kk}"
+                curr_ax.set_title(f"{label}")
+                curr_ax.axis("off")
+                fig.colorbar(mappable, ax=curr_ax, location="right", shrink=0.5)
+
+                kk += 1
+                if kk == self.p:
+                    break
+
+        plt.suptitle(title)
+        figname = f"{self.name}-abundances{suffix}.png"
+        plt.savefig(os.path.join(self.figs_dir, figname))
+        plt.close()
+        log.info(f"Saved abundances plot to {os.path.join(self.figs_dir, figname)}")
+
+
+class HSIWithGT(HSI):
+    def __init__(
+        self,
+        dataset,
+        data_dir,
+        figs_dir,
+    ):
+        super().__init__(
+            dataset=dataset,
+            data_dir=data_dir,
+            figs_dir=figs_dir,
+        )
+
+        # Sanity check on ground truth
+        assert self.E.shape == (self.L, self.p)
+        assert self.A.shape == (self.p, self.N)
+
+        try:
+            assert len(self.labels) == self.p
+            tmp_labels = list(self.labels)
+            self.labels = [s.strip(" ") for s in tmp_labels]
+
+        except Exception:
+            # Create numeroted labels
+            self.labels = [f"#{ii}" for ii in range(self.p)]
+
+        # Check physical constraints
+        # Abundance Sum-to-One Constraint (ASC)
+        assert np.allclose(
+            self.A.sum(0),
+            np.ones(self.N),
+            rtol=1e-3,
+            atol=1e-3,
+        )
+        # Abundance Non-negative Constraint (ANC)
+        assert np.all(self.A >= -EPS)
+        # Endmembers Non-negative Constraint (ENC)
+        assert np.all(self.E >= -EPS)
+
+    def get_GT(self):
+        return (
+            self.E,
+            self.A,
+        )
+
+    def has_GT(self):
+        return True
+
+
+# ============================================================================
+# INLINED: src.data.noise.AdditiveWhiteGaussianNoise
+# ============================================================================
+
+class AdditiveWhiteGaussianNoise:
+    def __init__(self, SNR=None):
+        self.SNR = SNR
+
+    def apply(self, Y):
+        """
+        Compute sigmas for the desired SNR given a flattened input HSI Y
+        """
+        log.debug(f"Y shape => {Y.shape}")
+        assert len(Y.shape) == 2
+        L, N = Y.shape
+        log.info(f"Desired SNR => {self.SNR}")
+
+        #######
+        # Fit #
+        #######
+        if self.SNR is None:
+            sigmas = np.zeros(L)
+        else:
+            assert self.SNR > 0, "SNR must be strictly positive"
+            # Uniform across bands
+            sigmas = np.ones(L)
+            # Normalization
+            sigmas /= np.linalg.norm(sigmas)
+            log.debug(f"Sigmas after normalization: {sigmas[0]}")
+            # Compute sigma mean based on SNR
+            num = np.sum(Y**2) / N
+            denom = 10 ** (self.SNR / 10)
+            sigmas_mean = np.sqrt(num / denom)
+            log.debug(f"Sigma mean based on SNR: {sigmas_mean}")
+            # Noise variance
+            sigmas *= sigmas_mean
+            log.debug(f"Final sigmas value: {sigmas[0]}")
+
+        #############
+        # Transform #
+        #############
+        noise = np.diag(sigmas) @ np.random.randn(L, N)
+
+        # Return additive noise
+        return Y + noise
+
+
+# ============================================================================
+# INLINED: src.data.utils.SVD_projection
+# ============================================================================
+
+def SVD_projection(Y, p):
+    log.debug(f"Y shape => {Y.shape}")
+    V, SS, U = np.linalg.svd(Y, full_matrices=False)
+    PC = np.diag(SS) @ U
+    denoised_image_reshape = V[:, :p] @ PC[:p]
+    log.debug(f"projected Y shape => {denoised_image_reshape.shape}")
+    return np.clip(denoised_image_reshape, 0, 1)
+
+
+# ============================================================================
+# INLINED: src.model.base.UnmixingModel
+# ============================================================================
+
+class UnmixingModel:
+    def __init__(self):
+        self.time = 0
+
+    def __repr__(self):
+        msg = f"{self.__class__.__name__}"
+        return msg
+
+    def print_time(self):
+        return f"{self} took {self.time:.2f}s"
+
+
+# ============================================================================
+# INLINED: src.model.blind.base.BlindUnmixingModel
+# ============================================================================
+
+class BlindUnmixingModel(UnmixingModel):
+    def __init__(
+        self,
+    ):
+        super().__init__()
+
+    def compute_endmembers_and_abundances(
+        self,
+        Y,
+        p,
+        *args,
+        **kwargs,
+    ):
+        raise NotImplementedError(f"Solver is not implemented for {self}")
+
+
+# ============================================================================
+# INLINED: src.model.extractors.VCA (for endmember initialization)
+# ============================================================================
+
+class VCA:
+    def __init__(self):
+        self.seed = None
+        self.indices = None
+
+    def extract_endmembers(self, Y, p, seed=0, snr_input=0, *args, **kwargs):
+        """
+        Vertex Component Analysis
+
+        This code is a translation of a matlab code provided by
+        Jose Nascimento (zen@isel.pt) and Jose Bioucas Dias (bioucas@lx.it.pt)
+        available at http://www.lx.it.pt/~bioucas/code.htm
+        under a non-specified Copyright (c)
+        Translation of last version at 22-February-2018 
+        (Matlab version 2.1 (7-May-2004))
+
+        more details on:
+        Jose M. P. Nascimento and Jose M. B. Dias
+        "Vertex Component Analysis: A Fast Algorithm to Unmix Hyperspectral Data"
+        submited to IEEE Trans. Geosci. Remote Sensing, vol. .., no. .., pp. .-., 2004
+        """
+        L, N = Y.shape
+        self.seed = seed
+        generator = np.random.default_rng(seed=self.seed)
+
+        #############################################
+        # SNR Estimates
+        #############################################
+
+        if snr_input == 0:
+            y_m = np.mean(Y, axis=1, keepdims=True)
+            Y_o = Y - y_m  # data with zero-mean
+            Ud = LA.svd(np.dot(Y_o, Y_o.T) / float(N))[0][
+                :, :p
+            ]  # computes the R-projection matrix
+            x_p = np.dot(Ud.T, Y_o)  # project the zero-mean data onto p-subspace
+
+            SNR = self.estimate_snr(Y, y_m, x_p)
+
+            log.info(f"SNR estimated = {SNR}[dB]")
+        else:
+            SNR = snr_input
+            log.info(f"input SNR = {SNR}[dB]\n")
+
+        SNR_th = 15 + 10 * np.log10(p)
+        #############################################
+        # Choosing Projective Projection or
+        #          projection to p-1 subspace
+        #############################################
+
+        if SNR < SNR_th:
+            log.info("... Select proj. to R-1")
+
+            d = p - 1
+            if snr_input == 0:  # it means that the projection is already computed
+                Ud = Ud[:, :d]
+            else:
+                y_m = np.mean(Y, axis=1, keepdims=True)
+                Y_o = Y - y_m  # data with zero-mean
+
+                Ud = LA.svd(np.dot(Y_o, Y_o.T) / float(N))[0][
+                    :, :d
+                ]  # computes the p-projection matrix
+                x_p = np.dot(Ud.T, Y_o)  # project thezeros mean data onto p-subspace
+
+            Yp = np.dot(Ud, x_p[:d, :]) + y_m  # again in dimension L
+
+            x = x_p[:d, :]  #  x_p =  Ud.T * Y_o is on a R-dim subspace
+            c = np.amax(np.sum(x**2, axis=0)) ** 0.5
+            y = np.vstack((x, c * np.ones((1, N))))
+        else:
+            log.info("... Select the projective proj.")
+
+            d = p
+            Ud = LA.svd(np.dot(Y, Y.T) / float(N))[0][
+                :, :d
+            ]  # computes the p-projection matrix
+
+            x_p = np.dot(Ud.T, Y)
+            Yp = np.dot(
+                Ud, x_p[:d, :]
+            )  # again in dimension L (note that x_p has no null mean)
+
+            x = np.dot(Ud.T, Y)
+            u = np.mean(x, axis=1, keepdims=True)  # equivalent to  u = Ud.T * r_m
+            y = x / np.dot(u.T, x)
+
+        #############################################
+        # VCA algorithm
+        #############################################
+
+        indices = np.zeros((p), dtype=int)
+        A = np.zeros((p, p))
+        A[-1, 0] = 1
+
+        for i in range(p):
+            w = generator.random(size=(p, 1))
+            f = w - np.dot(A, np.dot(LA.pinv(A), w))
+            f = f / np.linalg.norm(f)
+
+            v = np.dot(f.T, y)
+
+            indices[i] = np.argmax(np.absolute(v))
+            A[:, i] = y[:, indices[i]]  # same as x(:,indice(i))
+
+        E = Yp[:, indices]
+
+        log.debug(f"Indices chosen to be the most pure: {indices}")
+        self.indices = indices
+
+        return E
+
+    @staticmethod
+    def estimate_snr(Y, r_m, x):
+        L, N = Y.shape  # L number of bands (channels), N number of pixels
+        p, N = x.shape  # p number of endmembers (reduced dimension)
+
+        P_y = np.sum(Y**2) / float(N)
+        P_x = np.sum(x**2) / float(N) + np.sum(r_m**2)
+        snr_est = 10 * np.log10((P_x - p / L * P_y) / (P_y - P_x))
+
+        return snr_est
+
+    def __repr__(self):
+        msg = f"{self.__class__.__name__}_seed{self.seed}"
+        return msg
+
+
+# ============================================================================
+# INLINED: src.model.blind.ADMMNet (X_block, Z_block, D_block, ADMMNet)
+# ============================================================================
+
+class X_block(nn.Module):
+    def __init__(self, L, p, A_init, mu, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.W = nn.Linear(L, p, bias=False)
+        self.B = nn.Linear(p, p, bias=False)
+
+        # init
+        M = A_init.T @ A_init + mu * torch.eye(p)
+
+        self.W.weight.data = torch.linalg.solve(M, A_init.T)
+        self.B.weight.data = torch.linalg.solve(M, mu * torch.eye(p))
+
+    def forward(self, y, z, d):
+        return self.W(y) + self.B(z + d)
+
+
+class D_block(nn.Module):
+    def __init__(self, eta_init=1.0, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.eta = nn.Parameter(
+            data=eta_init * torch.ones(1),
+            requires_grad=True,
+        )
+
+    def forward(self, x, z, d):
+        return d - self.eta * (x - z)
+
+
+class Z_block(nn.Module):
+    def __init__(self, p, theta_init=0.0, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        # init
+        self.theta = nn.Parameter(
+            data=theta_init * torch.ones(p),
+            requires_grad=True,
+        )
+
+    def forward(self, x, d):
+        return F.relu(x - d - self.theta)
+
+
+class ADMMNet(nn.Module, BlindUnmixingModel):
+    def __init__(
+        self,
+        lr,
+        epochs,
+        batchsize,
+        nblocks,
+        lambd,
+        mu,
+        tied,
+        *args,
+        **kwargs,
+    ):
+        nn.Module.__init__(self)
+        BlindUnmixingModel.__init__(self)
+
+        self.device = torch.device(
+            "cuda:0" if torch.cuda.is_available() else "cpu",
+        )
+
+        self.epochs = epochs
+        self.batchsize = batchsize
+        self.lr = lr
+        self.nblocks = nblocks
+        self.tied = tied
+
+        # Hyperparameters
+        self.lambd = lambd
+        self.mu = mu
+
+    def init_architecture(
+        self,
+        A_init,
+        eta_init=1.0,
+    ):
+
+        self.x_blocks = nn.ModuleList()
+        self.z_blocks = nn.ModuleList()
+        self.d_blocks = nn.ModuleList()
+
+        # NOTE this is for tied params
+
+        if self.tied:
+            x_block = X_block(self.L, self.p, A_init=A_init, mu=self.mu)
+            z_block = Z_block(self.p, theta_init=self.lambd / self.mu)
+            d_block = D_block(eta_init=eta_init)
+
+            for _ in range(self.nblocks):
+                self.x_blocks.append(x_block)
+                self.z_blocks.append(z_block)
+                self.d_blocks.append(d_block)
+
+        else:
+            for _ in range(self.nblocks):
+                self.x_blocks.append(X_block(self.L, self.p, A_init=A_init, mu=self.mu))
+                self.z_blocks.append(Z_block(self.p, theta_init=self.lambd / self.mu))
+                self.d_blocks.append(D_block(eta_init=eta_init))
+
+        self.decoder = nn.Linear(
+            self.p,
+            self.L,
+            bias=False,
+        )
+        self.decoder.weight.data = A_init
+
+    def forward(self, y):
+        bs, _ = y.shape
+        z = torch.zeros((bs, self.p)).to(self.device)
+        d = torch.zeros((bs, self.p)).to(self.device)
+        for ii in range(self.nblocks):
+            x = self.x_blocks[ii](y, z, d)
+            z = self.z_blocks[ii](x, d)
+            d = self.d_blocks[ii](x, z, d)
+
+        abund = z
+        abund = abund / (abund.sum(1, keepdims=True) + EPS)
+        output = self.decoder(abund)
+        return abund, output
+
+    def compute_endmembers_and_abundances(self, Y, p, *args, **kwargs):
+
+        tic = time.time()
+        log.debug("Solving started...")
+
+        L, N = Y.shape
+
+        # Hyperparameters
+        self.L = L
+        self.p = p
+
+        # endmembers initialization
+        extractor = VCA()
+        Ehat = extractor.extract_endmembers(Y, p)
+        A_init = torch.Tensor(Ehat)
+        self.init_architecture(A_init=A_init)
+
+        self = self.to(self.device)
+
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        train_db = torch.utils.data.TensorDataset(torch.Tensor(Y.T))
+        dataloader = torch.utils.data.DataLoader(
+            train_db,
+            batch_size=self.batchsize,
+            shuffle=True,
+        )
+
+        progress = tqdm(range(self.epochs))
+        self.train()
+
+        for ii in progress:
+            running_loss = 0
+            for x, y in enumerate(dataloader):
+                y = y[0].to(self.device)
+
+                abund, output = self(y)
+
+                loss = F.mse_loss(y, output)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+                running_loss += loss.item()
+
+                # Enforce non-negativity on endmembers
+                self.decoder.weight.data[self.decoder.weight <= 0] = 0
+                self.decoder.weight.data[self.decoder.weight >= 1] = 1
+
+            progress.set_postfix_str(f"loss={running_loss:.2e}")
+
+        self.eval()
+        with torch.no_grad():
+            abund, _ = self(torch.Tensor(Y.T).to(self.device))
+            Ahat = abund.cpu().numpy().T
+            Ehat = self.decoder.weight.detach().cpu().numpy()
+
+        self.time = time.time() - tic
+        log.info(self.print_time())
+
+        return Ehat, Ahat
+
+
+# ============================================================================
+# INLINED: src.utils.metrics (MSE, SRE, SADDegrees, aRMSE, eRMSE)
+# ============================================================================
+
+class BaseMetric:
+    def __init__(self):
+        self.name = self.__class__.__name__
+
+    @staticmethod
+    def _check_input(X, Xref):
+        assert X.shape == Xref.shape
+        assert type(X) == type(Xref)
+        return X, Xref
+
+    def __call__(self, X, Xref):
+        raise NotImplementedError
+
+    def __repr__(self):
+        return f"{self.name}"
+
+
+class MSE(BaseMetric):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, E, Eref):
+        E, Eref = self._check_input(E, Eref)
+
+        normE = LA.norm(E, axis=0, keepdims=True)
+        normEref = LA.norm(Eref, axis=0, keepdims=True)
+
+        return np.sqrt(normE.T**2 + normEref**2 - 2 * (E.T @ Eref))
+
+
+class SpectralAngleDistance(BaseMetric):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, E, Eref):
+        E, Eref = self._check_input(E, Eref)
+
+        normE = LA.norm(E, axis=0, keepdims=True)
+        normEref = LA.norm(Eref, axis=0, keepdims=True)
+
+        tmp = (E / normE).T @ (Eref / normEref)
+        ret = np.minimum(tmp, 1.0)  # NOTE Handle floating errors
+        return np.arccos(ret)
+
+
+class SADDegrees(SpectralAngleDistance):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, E, Eref):
+        tmp = super().__call__(E, Eref)
+        return (np.diag(tmp) * (180 / np.pi)).mean()
+
+
+class aRMSE(BaseMetric):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, A, Aref):
+        A, Aref = self._check_input(A, Aref)
+        return 100 * np.sqrt(((A - Aref) ** 2).mean())
+
+
+class eRMSE(BaseMetric):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, E, Eref):
+        E, Eref = self._check_input(E, Eref)
+        return 100 * np.sqrt(((E - Eref) ** 2).mean())
+
+
+class SRE(BaseMetric):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, X, Xref):
+        X, Xref = self._check_input(X, Xref)
+        return 20 * np.log10(LA.norm(Xref, "fro") / LA.norm(Xref - X, "fro"))
+
+
+def compute_metric(metric, X_gt, X_hat, labels, detail=True, on_endmembers=False):
+    """
+    Return individual and global metric
+    """
+    d = {}
+    d["Overall"] = round(float(metric(X_hat, X_gt)), 4)
+    if detail:
+        for ii, label in enumerate(labels):
+            if on_endmembers:
+                x_gt, x_hat = X_gt[:, ii][:, None], X_hat[:, ii][:, None]
+                d[label] = round(float(metric(x_hat, x_gt)), 4)
+            else:
+                d[label] = round(float(metric(X_hat[ii], X_gt[ii])), 4)
+
+    log.info(f"{metric} => {d}")
+    return d
+
+
+# ============================================================================
+# INLINED: src.utils.aligners (BaseAligner, HungarianAligner, AbundancesAligner)
+# ============================================================================
+
+class BaseAligner:
+    def __init__(self, Aref, criterion):
+
+        self.Aref = Aref
+        self.criterion = criterion
+        self.P = None
+        self.dists = None
+
+    def fit(self, A):
+        raise NotImplementedError
+
+    def transform(self, A):
+        assert self.P is not None, "Must be fitted first"
+        assert A.shape[0] == self.P.shape[0]
+        assert A.shape[0] == self.P.shape[1]
+
+        return self.P @ A
+
+    def transform_endmembers(self, E):
+        assert self.P is not None, "Must be fitted first"
+        assert E.shape[1] == self.P.shape[0]
+        assert E.shape[1] == self.P.shape[1]
+
+        return E @ self.P.T
+
+    def fit_transform(self, A):
+
+        self.fit(A)
+        res = self.transform(A)
+        return res
+
+    def __repr__(self):
+        msg = f"{self.__class__.__name__}_crit{self.criterion}"
+        return msg
+
+
+class HungarianAligner(BaseAligner):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def fit(self, A):
+
+        # Computing distance matrix
+        self.dists = self.criterion(A.T, self.Aref.T)
+
+        # Initialization
+        p = A.shape[0]
+        P = np.zeros((p, p))
+
+        m = Munkres()
+        indices = m.compute(self.dists.tolist())
+        for row, col in indices:
+            P[row, col] = 1.0
+
+        self.P = P.T
+
+
+class AbundancesAligner(HungarianAligner):
+    def __init__(self, **kwargs):
+        super().__init__(
+            criterion=MSE(),
+            **kwargs,
+        )
+
+
+# ============================================================================
+# MAIN FUNCTION
+# ============================================================================
+
+def set_seeds(seed):
+    """Set random seeds for reproducibility."""
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+
+
+def main():
+    log.info("=" * 60)
+    log.info("Standalone Blind Unmixing - ADMMNet on DC1")
+    log.info("=" * 60)
+    
+    # Set seed
+    seed = CONFIG["seed"]
+    set_seeds(seed)
+    log.info(f"Random seed set to: {seed}")
+    
+    # Initialize noise
+    noise = AdditiveWhiteGaussianNoise(SNR=CONFIG["SNR"])
+    
+    # Load HSI data
+    hsi = HSIWithGT(
+        dataset=CONFIG["dataset"],
+        data_dir=CONFIG["data_dir"],
+        figs_dir=CONFIG["figs_dir"],
+    )
+    log.info(hsi)
+    
+    # Get data
+    Y, p, _ = hsi.get_data()
+    # Get image dimensions
+    H, W = hsi.get_img_shape()
+    
+    # Apply noise
+    Y = noise.apply(Y)
+    
+    # L2 normalization (if configured)
+    if CONFIG["l2_normalization"]:
+        normY = np.linalg.norm(Y, axis=0, ord=2, keepdims=True)
+        Y = Y / normY
+    
+    # Apply SVD projection (if configured)
+    if CONFIG["projection"]:
+        Y = SVD_projection(Y, p)
+    
+    # Build model
+    model_config = CONFIG["model"]
+    model = ADMMNet(
+        lr=model_config["lr"],
+        batchsize=model_config["batchsize"],
+        epochs=model_config["epochs"],
+        nblocks=model_config["nblocks"],
+        lambd=model_config["lambd"],
+        mu=model_config["mu"],
+        tied=model_config["tied"],
+    )
+    
+    log.info("Blind Unmixing - [START]")
+    
+    # Solve unmixing
+    E_hat, A_hat = model.compute_endmembers_and_abundances(
+        Y,
+        p,
+        H=H,
+        W=W,
+    )
+    
+    # Save estimates
+    estimates_path = rel_path(CONFIG["figs_dir"], "estimates.mat")
+    estimates_data = {"E": E_hat, "A": A_hat.reshape(-1, H, W)}
+    sio.savemat(estimates_path, estimates_data)
+    log.info(f"Saved estimates to {estimates_path}")
+    
+    # Initialize metrics dictionary
+    all_metrics = {}
+    
+    if hsi.has_GT():
+        # Get ground truth
+        E_gt, A_gt = hsi.get_GT()
+        
+        # Align based on abundances
+        aligner = AbundancesAligner(Aref=A_gt)
+        A1 = aligner.fit_transform(A_hat)
+        E1 = aligner.transform_endmembers(E_hat)
+        
+        # Get labels
+        labels = hsi.get_labels()
+        
+        # Compute metrics
+        sre_metrics = compute_metric(
+            SRE(),
+            A_gt,
+            A1,
+            labels,
+            detail=False,
+            on_endmembers=False,
+        )
+        all_metrics["SRE"] = sre_metrics
+        
+        armse_metrics = compute_metric(
+            aRMSE(),
+            A_gt,
+            A1,
+            labels,
+            detail=True,
+            on_endmembers=False,
+        )
+        all_metrics["aRMSE"] = armse_metrics
+        
+        sad_metrics = compute_metric(
+            SADDegrees(),
+            E_gt,
+            E1,
+            labels,
+            detail=True,
+            on_endmembers=True,
+        )
+        all_metrics["SAD"] = sad_metrics
+        
+        ermse_metrics = compute_metric(
+            eRMSE(),
+            E_gt,
+            E1,
+            labels,
+            detail=True,
+            on_endmembers=True,
+        )
+        all_metrics["eRMSE"] = ermse_metrics
+        
+        # Save metrics to JSON
+        metrics_path = rel_path(CONFIG["figs_dir"], "metrics.json")
+        with open(metrics_path, "w") as f:
+            json.dump(all_metrics, f, indent=2)
+        log.info(f"Saved metrics to {metrics_path}")
+        
+        # Plot estimated endmembers
+        hsi.plot_endmembers(E0=E1, suffix="-estimated")
+        
+        # Plot estimated abundances
+        hsi.plot_abundances(A0=A1, suffix="-estimated")
+        
+        # Also plot ground truth for comparison
+        hsi.plot_endmembers(E0=None, suffix="-GT")
+        hsi.plot_abundances(A0=None, suffix="-GT")
+    
+    log.info("Blind Unmixing - [END]")
+    log.info("=" * 60)
+    log.info("RESULTS SUMMARY")
+    log.info("=" * 60)
+    for metric_name, metric_values in all_metrics.items():
+        log.info(f"{metric_name}: {metric_values}")
+    log.info("=" * 60)
+
+
+if __name__ == "__main__":
+    main()
+"""

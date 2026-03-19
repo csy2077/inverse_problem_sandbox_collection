@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes predicted observations by multiplying endmembers with abundances.",
+    "function_docstring": "def forward_operator(abundances, endmembers):\n    \"\"\"\n    Computes predicted observations using a forward model.\n\n    Args:\n        abundances (Tensor): A tensor of shape (p, N) representing the abundances of different materials across N samples.\n        endmembers (Tensor): A tensor of shape (L, p) representing the spectral signatures of L endmembers.\n\n    Returns:\n        Tensor: A tensor of shape (L, N) representing the predicted observations.\n    \"\"\"",
+    "usage_example": "import torch\n\n# Example abundances and endmembers\nabundances = torch.rand((5, 10))  # p=5, N=10\nendmembers = torch.rand((3, 5))  # L=3, p=5\n\n# Compute predicted observations\npredicted_observations = forward_operator(abundances, endmembers)\nprint(predicted_observations.shape)  # Output: torch.Size([3, 10])"
+}

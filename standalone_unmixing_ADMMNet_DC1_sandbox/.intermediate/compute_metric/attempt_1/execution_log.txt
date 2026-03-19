@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_ADMMNet_DC1_sandbox/test_compute_metric.py", line 11, in <module>
+    import agent_compute_metric
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_ADMMNet_DC1_sandbox/agent_compute_metric.py", line 5, in <module>
+    log = logging.getLogger(__name__)
+NameError: name 'logging' is not defined
