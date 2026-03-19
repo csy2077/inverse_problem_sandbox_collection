@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Loads a JSON configuration file and converts it into an EasyDict object for attribute-style access.",
+    "function_docstring": "def load_config(json_path: str) -> EasyDict:\n    \"\"\"\n    Loads a JSON configuration file and converts it into an EasyDict object.\n\n    Args:\n        json_path (str): The file path to the JSON configuration file.\n\n    Returns:\n        EasyDict: An EasyDict object representing the configuration, allowing attribute-style access.\n    \"\"\"",
+    "usage_example": "from agent_load_config import load_config\n\n# Load configuration from a JSON file\nconfig = load_config('path/to/config.json')\n\n# Access configuration values using attribute-style access\nprint(config.some_key)"
+}

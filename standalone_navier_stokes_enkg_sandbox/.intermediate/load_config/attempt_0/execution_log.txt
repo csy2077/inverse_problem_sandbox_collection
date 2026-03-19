@@ -1,0 +1,6 @@
+Loaded outer data: func_name=load_config
+  args types: ['str']
+  kwargs keys: []
+Scenario A detected: Simple function call
+FAIL: Verification failed.
+  Message: Type mismatch at output: expected <class 'dict'>, got <class 'agent_load_config.EasyDict'>

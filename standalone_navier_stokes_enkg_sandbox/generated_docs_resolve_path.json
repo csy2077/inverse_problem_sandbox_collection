@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Resolves a given path to an absolute path based on the provided script directory.",
+    "function_docstring": "def resolve_path(script_dir, path):\n    \"\"\"\n    Resolves a given path to an absolute path using the provided script directory.\n\n    Args:\n        script_dir (str): The directory path where the script is located. This is used as the base directory for resolving relative paths.\n        path (str): The path to be resolved. If this path is already absolute, it is returned as is. Otherwise, it is joined with the script_dir to form an absolute path.\n\n    Returns:\n        str: The resolved absolute path.\n    \"\"\"",
+    "usage_example": "import os\n\n# Example usage of resolve_path\nscript_directory = '/home/user/scripts'\nrelative_path = 'data/input.txt'\nabsolute_path = resolve_path(script_directory, relative_path)\nprint(absolute_path)  # Outputs: '/home/user/scripts/data/input.txt'"
+}

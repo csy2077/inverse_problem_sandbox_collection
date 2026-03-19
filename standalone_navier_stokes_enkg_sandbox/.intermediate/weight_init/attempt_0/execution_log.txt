@@ -1,0 +1,11 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/run_code/std_data/data_weight_init.pkl
+[INFO] Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+[INFO] func_name: weight_init
+[INFO] outer_args types: ['list']
+[INFO] outer_kwargs keys: ['mode', 'fan_in', 'fan_out']
+[INFO] Scenario A detected: Simple function call.
+[INFO] result type: <class 'torch.Tensor'>
+[INFO] Exact match failed (expected for stochastic function): Value mismatch at output: max difference 0.020254574716091156 > tol
+[INFO] Performing structural and statistical validation...
+[INFO] Structural and statistical validation passed.
+TEST PASSED

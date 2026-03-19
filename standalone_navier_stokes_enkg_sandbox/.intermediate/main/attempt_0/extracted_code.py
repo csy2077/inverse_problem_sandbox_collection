@@ -1,0 +1,148 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Determine data paths
+data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/run_code/std_data/data_main.pkl']
+
+# Separate outer (standard) and inner (parent_function) paths
+outer_path = None
+inner_paths = []
+
+for p in data_paths:
+    basename = os.path.basename(p)
+    if 'parent_function' in basename or 'parent_' in basename:
+        inner_paths.append(p)
+    else:
+        outer_path = p
+
+if outer_path is None:
+    print("ERROR: Could not find outer data file (data_main.pkl)")
+    sys.exit(1)
+
+# Load outer data
+try:
+    with open(outer_path, 'rb') as f:
+        outer_data = dill.load(f)
+    print(f"Successfully loaded outer data from: {outer_path}")
+    print(f"Outer data keys: {list(outer_data.keys())}")
+    print(f"Function name: {outer_data.get('func_name', 'N/A')}")
+except Exception as e:
+    print(f"ERROR loading outer data: {e}")
+    traceback.print_exc()
+    sys.exit(1)
+
+# Extract outer args and kwargs
+outer_args = outer_data.get('args', ())
+outer_kwargs = outer_data.get('kwargs', {})
+expected_output = outer_data.get('output', None)
+
+print(f"Outer args count: {len(outer_args)}")
+print(f"Outer kwargs keys: {list(outer_kwargs.keys()) if isinstance(outer_kwargs, dict) else 'N/A'}")
+
+# Scenario A: Simple function, no inner paths
+# The main() function takes no arguments and returns None (it's a script-like function)
+# We need to handle this carefully
+
+if len(inner_paths) == 0:
+    # Scenario A: Simple function call
+    print("\n=== Scenario A: Simple Function Call ===")
+    try:
+        from agent_main import main
+        print("Successfully imported main from agent_main")
+    except Exception as e:
+        print(f"ERROR importing main: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    try:
+        print("Running main(*args, **kwargs)...")
+        result = main(*outer_args, **outer_kwargs)
+        print(f"main() returned: {type(result)}")
+    except Exception as e:
+        print(f"ERROR running main(): {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Compare result with expected output
+    try:
+        from verification_utils import recursive_check
+        passed, msg = recursive_check(expected_output, result)
+        if passed:
+            print("TEST PASSED")
+            sys.exit(0)
+        else:
+            print(f"TEST FAILED: {msg}")
+            sys.exit(1)
+    except Exception as e:
+        print(f"ERROR during verification: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+else:
+    # Scenario B: Factory/Closure Pattern
+    print("\n=== Scenario B: Factory/Closure Pattern ===")
+    try:
+        from agent_main import main
+        print("Successfully imported main from agent_main")
+    except Exception as e:
+        print(f"ERROR importing main: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Phase 1: Reconstruct operator
+    try:
+        print("Running main(*outer_args, **outer_kwargs) to get operator...")
+        agent_operator = main(*outer_args, **outer_kwargs)
+        print(f"Got operator of type: {type(agent_operator)}")
+        if not callable(agent_operator):
+            print(f"WARNING: Returned operator is not callable (type: {type(agent_operator)})")
+    except Exception as e:
+        print(f"ERROR creating operator: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Phase 2: Execute with inner data
+    for inner_path in inner_paths:
+        print(f"\nProcessing inner data: {inner_path}")
+        try:
+            with open(inner_path, 'rb') as f:
+                inner_data = dill.load(f)
+            print(f"Inner data keys: {list(inner_data.keys())}")
+        except Exception as e:
+            print(f"ERROR loading inner data: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        inner_args = inner_data.get('args', ())
+        inner_kwargs = inner_data.get('kwargs', {})
+        inner_expected = inner_data.get('output', None)
+
+        try:
+            print("Executing operator with inner args...")
+            result = agent_operator(*inner_args, **inner_kwargs)
+            print(f"Operator returned: {type(result)}")
+        except Exception as e:
+            print(f"ERROR executing operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        try:
+            from verification_utils import recursive_check
+            passed, msg = recursive_check(inner_expected, result)
+            if passed:
+                print("TEST PASSED")
+                sys.exit(0)
+            else:
+                print(f"TEST FAILED: {msg}")
+                sys.exit(1)
+        except Exception as e:
+            print(f"ERROR during verification: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+    print("TEST PASSED")
+    sys.exit(0)

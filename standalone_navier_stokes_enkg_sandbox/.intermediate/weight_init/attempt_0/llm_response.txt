@@ -1,0 +1,224 @@
+
+
+```python
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_weight_init import weight_init
+from verification_utils import recursive_check
+
+def main():
+    # All data paths provided
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/run_code/std_data/data_weight_init.pkl'
+    ]
+
+    # Separate outer (direct function data) and inner (parent_function / closure) paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: Could not find outer data file (data_weight_init.pkl).")
+        sys.exit(1)
+
+    # Phase 1: Load outer data and reconstruct / run the function
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"[INFO] Loaded outer data from: {outer_path}")
+        print(f"[INFO] Keys in outer_data: {list(outer_data.keys())}")
+        print(f"[INFO] func_name: {outer_data.get('func_name', 'N/A')}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data file: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+
+    # Print arg info for debugging
+    try:
+        print(f"[INFO] outer_args types: {[type(a).__name__ for a in outer_args]}")
+        print(f"[INFO] outer_kwargs keys: {list(outer_kwargs.keys())}")
+    except Exception:
+        pass
+
+    # Determine scenario based on inner paths
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("[INFO] Scenario B detected: Factory/Closure pattern.")
+
+        # Phase 1: Create the operator
+        try:
+            agent_operator = weight_init(*outer_args, **outer_kwargs)
+            print(f"[INFO] agent_operator type: {type(agent_operator)}")
+        except Exception as e:
+            print(f"FAIL: Error calling weight_init with outer args: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable operator, got {type(agent_operator)}")
+            sys.exit(1)
+
+        # Phase 2: Execute with inner data
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"[INFO] Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data file: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output')
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Error executing agent_operator with inner args: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # Phase 3: Compare
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"FAIL: Error during recursive_check: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Verification failed for {inner_path}")
+                print(f"  Message: {msg}")
+                sys.exit(1)
+            else:
+                print(f"[INFO] Inner test passed for: {os.path.basename(inner_path)}")
+
+    else:
+        # Scenario A: Simple function call
+        print("[INFO] Scenario A detected: Simple function call.")
+
+        # Note: weight_init uses torch.rand / torch.randn which are stochastic.
+        # The saved output was generated with a specific random state.
+        # We cannot reproduce the exact same random values, so we do a
+        # statistical/structural check instead if exact match fails.
+
+        expected = outer_data.get('output')
+
+        try:
+            # Set seeds to attempt reproducibility (may not match original)
+            result = weight_init(*outer_args, **outer_kwargs)
+            print(f"[INFO] result type: {type(result)}")
+        except Exception as e:
+            print(f"FAIL: Error calling weight_init: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        # Phase 3: Compare
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"FAIL: Error during recursive_check: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            # Since weight_init involves random operations, exact match may fail.
+            # Perform structural and statistical validation instead.
+            print(f"[INFO] Exact match failed (expected for stochastic function): {msg}")
+            print("[INFO] Performing structural and statistical validation...")
+
+            structural_pass = True
+            fail_reasons = []
+
+            # Check type match
+            if type(expected) != type(result):
+                structural_pass = False
+                fail_reasons.append(f"Type mismatch: expected {type(expected)}, got {type(result)}")
+
+            # Check shape match for tensors
+            if isinstance(expected, torch.Tensor) and isinstance(result, torch.Tensor):
+                if expected.shape != result.shape:
+                    structural_pass = False
+                    fail_reasons.append(f"Shape mismatch: expected {expected.shape}, got {result.shape}")
+
+                if expected.dtype != result.dtype:
+                    structural_pass = False
+                    fail_reasons.append(f"Dtype mismatch: expected {expected.dtype}, got {result.dtype}")
+
+                # Validate the statistical properties based on mode
+                mode = None
+                fan_in = None
+                fan_out = None
+                # Extract mode from args/kwargs
+                try:
+                    import inspect
+                    sig = inspect.signature(weight_init)
+                    bound = sig.bind(*outer_args, **outer_kwargs)
+                    bound.apply_defaults()
+                    mode = bound.arguments.get('mode')
+                    fan_in = bound.arguments.get('fan_in')
+                    fan_out = bound.arguments.get('fan_out')
+                except Exception:
+                    pass
+
+                if mode and fan_in is not None:
+                    # Verify the result has reasonable bounds/statistics
+                    if mode == 'xavier_uniform':
+                        bound_val = np.sqrt(6 / (fan_in + fan_out))
+                        if result.max().item() > bound_val * 1.01 or result.min().item() < -bound_val * 1.01:
+                            structural_pass = False
+                            fail_reasons.append(
+                                f"Xavier uniform bounds violated: expected [-{bound_val}, {bound_val}], "
+                                f"got [{result.min().item()}, {result.max().item()}]"
+                            )
+                    elif mode == 'kaiming_uniform':
+                        bound_val = np.sqrt(3 / fan_in)
+                        if result.max().item() > bound_val * 1.01 or result.min().item() < -bound_val * 1.01:
+                            structural_pass = False
+                            fail_reasons.append(
+                                f"Kaiming uniform bounds violated: expected [-{bound_val}, {bound_val}], "
+                                f"got [{result.min().item()}, {result.max().item()}]"
+                            )
+                    elif mode in ('xavier_normal', 'kaiming_normal'):
+                        # For normal distributions, just check it's not all zeros/constant
+                        if result.std().item() < 1e-10:
+                            structural_pass = False
+                            fail_reasons.append("Normal init produced near-zero std")
+
+            if not structural_pass:
+                print("FAIL: Structural/statistical validation failed:")
+                for reason in fail_reasons:
+                    print(f"  - {reason}")
+                sys.exit(1)
+            else:
+                print("[INFO] Structural and statistical validation passed.")
+                print("TEST PASSED")
+                sys.exit(0)
+        else:
+            print("TEST PASSED")
+            sys.exit(0)
+
+    print("TEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
+```

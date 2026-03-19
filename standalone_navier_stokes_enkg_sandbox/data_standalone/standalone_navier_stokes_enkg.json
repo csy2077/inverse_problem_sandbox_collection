@@ -1,0 +1,71 @@
+{
+    "tf32": true,
+    "inference": true,
+    "num_samples": 1,
+    "compile": false,
+    "seed": 0,
+    "wandb": false,
+    "exp_name": "standalone_default",
+    "problem": {
+        "name": "navier-stokes-ds2",
+        "prior": "weights/ns-5m.pt",
+        "model": {
+            "forward_time": 1.0,
+            "Re": 200.0,
+            "resolution": 128,
+            "downsample_factor": 2,
+            "sigma_noise": 0.0,
+            "unnorm_scale": 10.0,
+            "unnorm_shift": 0.0,
+            "adaptive": true,
+            "delta_t": 0.01
+        },
+        "data": {
+            "root": "data_standalone/navier-stokes-test/Re200.0-t5.0",
+            "resolution": 128,
+            "raw_resolution": 128,
+            "num_channels": 1,
+            "mean": 0.0,
+            "std": 5.0,
+            "id_list": "0"
+        },
+        "exp_dir": "exps/inference/navier-stokes-ds2"
+    },
+    "algorithm": {
+        "name": "EnKG",
+        "method": {
+            "guidance_scale": 2.0,
+            "num_updates": 2,
+            "num_steps": 80,
+            "num_samples": 100,
+            "sigma_max": 80.0,
+            "sigma_min": 0.002,
+            "threshold": 0.1,
+            "batch_size": 100,
+            "rho": 7,
+            "factor": 8,
+            "lr_min_ratio": 0.0
+        }
+    },
+    "pretrain": {
+        "model": {
+            "model_type": "DhariwalUNet",
+            "img_resolution": 128,
+            "img_channels": 1,
+            "label_dim": 0,
+            "model_channels": 128,
+            "channel_mult": [1, 1, 1, 2, 2],
+            "attn_resolutions": [16],
+            "num_blocks": 1,
+            "dropout": 0.0,
+            "use_fp16": false,
+            "sigma_min": 0,
+            "sigma_max": "inf",
+            "sigma_data": 0.5
+        }
+    },
+    "physical_constants": {
+        "L": 6.283185307179586,
+        "pi": 3.141592653589793
+    }
+}

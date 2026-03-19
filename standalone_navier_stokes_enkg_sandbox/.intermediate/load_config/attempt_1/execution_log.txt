@@ -1,0 +1,7 @@
+Loaded outer data: func_name=load_config
+  args types: ['str']
+  kwargs keys: []
+Scenario A detected: Simple function call
+  Result verified successfully.
+
+TEST PASSED

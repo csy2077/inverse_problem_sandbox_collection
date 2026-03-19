@@ -1,0 +1,14 @@
+Successfully loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/run_code/std_data/data_main.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Function name: main
+Outer args count: 0
+Outer kwargs keys: []
+
+=== Scenario A: Simple Function Call ===
+ERROR importing main: name 'DhariwalUNet' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/test_main.py", line 54, in <module>
+    from agent_main import main
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/agent_main.py", line 188, in <module>
+    'DhariwalUNet': DhariwalUNet,
+NameError: name 'DhariwalUNet' is not defined

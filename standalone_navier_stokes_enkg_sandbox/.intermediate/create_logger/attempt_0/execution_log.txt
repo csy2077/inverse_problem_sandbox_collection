@@ -1,0 +1,8 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/run_code/std_data/data_create_logger.pkl
+Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+Outer args: ('/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/exps/inference/navier-stokes-ds2/EnKG/standalone_default',)
+Outer kwargs: {}
+Ensured logging directory exists: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/exps/inference/navier-stokes-ds2/EnKG/standalone_default
+create_logger returned: <class 'logging.Logger'>
+FAIL: Verification failed.
+Message: Value mismatch at output: expected <Logger __main__ (WARNING)>, got <Logger agent_create_logger (INFO)>

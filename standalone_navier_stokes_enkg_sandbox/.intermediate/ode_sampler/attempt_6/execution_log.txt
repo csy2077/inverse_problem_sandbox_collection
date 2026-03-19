@@ -1,0 +1,15 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/run_code/std_data/data_ode_sampler.pkl
+  func_name: ode_sampler
+Patching UNetBlock references in loaded model...
+Found actual UNetBlock class: id=94293660940208
+  Patched DhariwalUNet.forward globals with UNetBlock id=94293660940208
+/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/test_ode_sampler.py:138: FutureWarning: `torch.distributed.reduce_op` is deprecated, please use `torch.distributed.ReduceOp` instead
+  if isinstance(obj, type) and obj.__name__ == 'UNetBlock' and issubclass(obj, torch.nn.Module):
+GC scan found actual UNetBlock: id=94293660940208
+/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/test_ode_sampler.py:164: FutureWarning: `torch.distributed.reduce_op` is deprecated, please use `torch.distributed.ReduceOp` instead
+  if hasattr(obj, '__globals__') and callable(obj):
+  GC patched 1 function globals
+Detected Scenario A: Simple function call
+Successfully executed ode_sampler.
+PASS: Verification succeeded.
+TEST PASSED

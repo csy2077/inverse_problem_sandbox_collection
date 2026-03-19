@@ -1,0 +1,4 @@
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/test_ode_sampler.py", line 162
+    global unet_block_class
+    ^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: name 'unet_block_class' is used prior to global declaration

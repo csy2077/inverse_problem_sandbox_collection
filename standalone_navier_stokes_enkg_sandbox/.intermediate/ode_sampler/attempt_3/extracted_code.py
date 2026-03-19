@@ -1,0 +1,340 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+import torch.nn.functional as F
+
+# We need to fix UNetBlock reference in gen_std_data BEFORE loading any pickled objects
+# The issue is that UNetBlock is used in isinstance() checks inside forward() methods
+# but it's not available as a proper type in the forward method's global scope.
+
+# First, import gen_std_data and find UNetBlock
+try:
+    import gen_std_data
+
+    # Ensure F is available
+    if not hasattr(gen_std_data, 'F'):
+        gen_std_data.F = F
+
+    # Find UNetBlock class in gen_std_data
+    unet_block_class = None
+
+    # Method 1: Direct attribute
+    if hasattr(gen_std_data, 'UNetBlock'):
+        candidate = getattr(gen_std_data, 'UNetBlock')
+        if isinstance(candidate, type):
+            unet_block_class = candidate
+
+    # Method 2: Search all attributes for a class named UNetBlock
+    if unet_block_class is None:
+        for name, obj in list(gen_std_data.__dict__.items()):
+            if isinstance(obj, type) and name == 'UNetBlock':
+                unet_block_class = obj
+                break
+
+    # Method 3: Search for any class with UNetBlock in name
+    if unet_block_class is None:
+        for name, obj in list(gen_std_data.__dict__.items()):
+            if isinstance(obj, type) and 'UNetBlock' in name:
+                unet_block_class = obj
+                gen_std_data.UNetBlock = obj
+                break
+
+    # Method 4: Parse source code to find and compile UNetBlock
+    if unet_block_class is None:
+        try:
+            source_file = gen_std_data.__file__
+            if source_file and os.path.exists(source_file):
+                with open(source_file, 'r') as f:
+                    source_code = f.read()
+
+                if 'class UNetBlock' in source_code:
+                    # Re-execute the entire module to ensure all classes are defined
+                    ns = dict(gen_std_data.__dict__)
+                    ns['F'] = F
+                    ns['torch'] = torch
+                    ns['np'] = np
+                    exec(compile(source_code, source_file, 'exec'), ns)
+                    if 'UNetBlock' in ns and isinstance(ns['UNetBlock'], type):
+                        unet_block_class = ns['UNetBlock']
+                        gen_std_data.UNetBlock = unet_block_class
+        except Exception as e:
+            print(f"Warning: Source parsing for UNetBlock failed: {e}")
+
+    # Now patch ALL nn.Module subclass forward methods in gen_std_data
+    # to have the correct UNetBlock and F references
+    if unet_block_class is not None:
+        for name, obj in list(gen_std_data.__dict__.items()):
+            if isinstance(obj, type) and issubclass(obj, torch.nn.Module):
+                if hasattr(obj, 'forward') and hasattr(obj.forward, '__globals__'):
+                    obj.forward.__globals__['F'] = F
+                    obj.forward.__globals__['UNetBlock'] = unet_block_class
+
+except ImportError as e:
+    print(f"Warning: Could not import gen_std_data: {e}")
+    unet_block_class = None
+
+from agent_ode_sampler import ode_sampler
+from verification_utils import recursive_check
+
+
+def deep_patch_module(module, unet_block_cls):
+    """Recursively patch all nn.Module instances to have F and UNetBlock in their forward globals."""
+    if module is None or unet_block_cls is None:
+        return
+
+    patched_classes = set()
+
+    if isinstance(module, torch.nn.Module):
+        for name, child in module.named_modules():
+            child_class = type(child)
+            if id(child_class) not in patched_classes:
+                patched_classes.add(id(child_class))
+                if hasattr(child_class, 'forward') and hasattr(child_class.forward, '__globals__'):
+                    child_class.forward.__globals__['F'] = F
+                    child_class.forward.__globals__['UNetBlock'] = unet_block_cls
+
+            # Also patch any callable attributes that might have __globals__
+            for attr_name in dir(child_class):
+                if attr_name.startswith('_') and attr_name != '__call__':
+                    continue
+                try:
+                    attr = getattr(child_class, attr_name)
+                    if callable(attr) and hasattr(attr, '__globals__'):
+                        if 'UNetBlock' in attr.__globals__ or 'F' in attr.__globals__:
+                            attr.__globals__['F'] = F
+                            attr.__globals__['UNetBlock'] = unet_block_cls
+                except Exception:
+                    pass
+
+        # Also handle the model attribute specifically
+        if hasattr(module, 'model') and isinstance(module.model, torch.nn.Module):
+            deep_patch_module(module.model, unet_block_cls)
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_navier_stokes_enkg_sandbox/run_code/std_data/data_ode_sampler.pkl'
+    ]
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file found.")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    try:
+        # Before loading, ensure gen_std_data has UNetBlock patched
+        if unet_block_class is not None:
+            try:
+                import gen_std_data as gsd
+                gsd.UNetBlock = unet_block_class
+                gsd.F = F
+            except:
+                pass
+
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"  func_name: {outer_data.get('func_name', 'N/A')}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    # After loading, we need to find UNetBlock again in case loading brought in new classes
+    global unet_block_class
+    effective_unet_block = unet_block_class
+
+    if effective_unet_block is None:
+        # Try to find it in all loaded modules after deserialization
+        for mod_name, mod in list(sys.modules.items()):
+            if mod is None:
+                continue
+            try:
+                if hasattr(mod, 'UNetBlock'):
+                    candidate = getattr(mod, 'UNetBlock')
+                    if isinstance(candidate, type):
+                        effective_unet_block = candidate
+                        break
+            except:
+                continue
+
+        # Also search through all classes
+        if effective_unet_block is None:
+            for mod_name, mod in list(sys.modules.items()):
+                if mod is None or not hasattr(mod, '__dict__'):
+                    continue
+                try:
+                    for attr_name, attr_val in list(mod.__dict__.items()):
+                        if attr_name == 'UNetBlock' and isinstance(attr_val, type):
+                            effective_unet_block = attr_val
+                            break
+                except:
+                    continue
+                if effective_unet_block is not None:
+                    break
+
+    # If still not found, try to identify UNetBlock from the net object's module hierarchy
+    if effective_unet_block is None and len(outer_args) > 0:
+        net = outer_args[0]
+        if isinstance(net, torch.nn.Module):
+            # Look through all child modules to find one whose class name is UNetBlock
+            for name, child in net.named_modules():
+                if type(child).__name__ == 'UNetBlock':
+                    effective_unet_block = type(child)
+                    break
+
+            # Also check model attribute
+            if effective_unet_block is None and hasattr(net, 'model') and isinstance(net.model, torch.nn.Module):
+                for name, child in net.model.named_modules():
+                    if type(child).__name__ == 'UNetBlock':
+                        effective_unet_block = type(child)
+                        break
+
+    if effective_unet_block is not None:
+        print(f"Found UNetBlock class: {effective_unet_block}")
+
+        # Patch gen_std_data
+        try:
+            import gen_std_data as gsd
+            gsd.UNetBlock = effective_unet_block
+            gsd.F = F
+
+            # Patch ALL forward methods in gen_std_data classes
+            for attr_name, attr_val in list(gsd.__dict__.items()):
+                if isinstance(attr_val, type) and issubclass(attr_val, torch.nn.Module):
+                    if hasattr(attr_val, 'forward') and hasattr(attr_val.forward, '__globals__'):
+                        attr_val.forward.__globals__['F'] = F
+                        attr_val.forward.__globals__['UNetBlock'] = effective_unet_block
+        except:
+            pass
+
+        # Patch the net object and all its submodules
+        if len(outer_args) > 0:
+            net = outer_args[0]
+            deep_patch_module(net, effective_unet_block)
+
+        # Comprehensive patch: all modules that might contain nn.Module subclasses
+        for mod_name, mod in list(sys.modules.items()):
+            if mod is None or not hasattr(mod, '__dict__'):
+                continue
+            try:
+                for attr_name in list(mod.__dict__.keys()):
+                    try:
+                        attr_val = mod.__dict__[attr_name]
+                        if isinstance(attr_val, type) and issubclass(attr_val, torch.nn.Module):
+                            if hasattr(attr_val, 'forward') and hasattr(attr_val.forward, '__globals__'):
+                                attr_val.forward.__globals__['F'] = F
+                                attr_val.forward.__globals__['UNetBlock'] = effective_unet_block
+                    except TypeError:
+                        # issubclass can fail with certain types
+                        continue
+                    except Exception:
+                        continue
+            except Exception:
+                continue
+    else:
+        print("WARNING: UNetBlock class not found. isinstance checks may fail.")
+
+    # Determine scenario
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("Detected Scenario B: Factory/Closure pattern")
+
+        try:
+            agent_operator = ode_sampler(*outer_args, **outer_kwargs)
+            print("Successfully created agent_operator from ode_sampler.")
+        except Exception as e:
+            print(f"FAIL: Error calling ode_sampler to create operator: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: agent_operator is not callable, got type: {type(agent_operator)}")
+            sys.exit(1)
+
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data from {inner_path}: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+                print("Successfully executed agent_operator with inner args.")
+            except Exception as e:
+                print(f"FAIL: Error executing agent_operator: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+                if not passed:
+                    print(f"FAIL: Verification failed for {inner_path}")
+                    print(f"  Message: {msg}")
+                    sys.exit(1)
+                else:
+                    print(f"PASS: Verification succeeded for {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Error during verification: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+    else:
+        # Scenario A: Simple function call
+        print("Detected Scenario A: Simple function call")
+
+        try:
+            result = ode_sampler(*outer_args, **outer_kwargs)
+            print("Successfully executed ode_sampler.")
+        except Exception as e:
+            print(f"FAIL: Error calling ode_sampler: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        try:
+            passed, msg = recursive_check(expected, result)
+            if not passed:
+                print(f"FAIL: Verification failed.")
+                print(f"  Message: {msg}")
+                sys.exit(1)
+            else:
+                print("PASS: Verification succeeded.")
+        except Exception as e:
+            print(f"FAIL: Error during verification: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+    print("TEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

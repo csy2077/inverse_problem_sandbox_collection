@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the relative L2 error between two tensors.",
+    "function_docstring": "def relative_l2(pred, target):\n    \"\"\"\n    Compute the relative L2 error between two tensors.\n\n    Args:\n        pred (torch.Tensor): A tensor representing the predicted values with shape (B, ...), where B is the batch size.\n        target (torch.Tensor): A tensor representing the target values with the same shape as `pred`.\n\n    Returns:\n        torch.Tensor: A tensor containing the relative L2 error for each element in the batch, with shape (B,).\n    \"\"\"",
+    "usage_example": "import torch\n\n# Example tensors\npred = torch.tensor([[1.0, 2.0], [3.0, 4.0]])\ntarget = torch.tensor([[1.5, 2.5], [3.5, 4.5]])\n\n# Compute relative L2 error\nerror = relative_l2(pred, target)\nprint(error)"
+}
