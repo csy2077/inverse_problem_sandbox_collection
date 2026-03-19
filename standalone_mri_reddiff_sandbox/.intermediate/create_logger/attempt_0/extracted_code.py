@@ -1,0 +1,201 @@
+import sys
+import os
+import dill
+import torch
+import numpy
+import traceback
+import logging
+import tempfile
+
+# Import the target function
+from agent_create_logger import create_logger
+
+# Import verification utility
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_reddiff_sandbox/run_code/std_data/data_create_logger.pkl'
+    ]
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file found for create_logger.")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"  func_name: {outer_data.get('func_name', 'N/A')}")
+        print(f"  args types: {[type(a).__name__ for a in outer_data.get('args', [])]}")
+        print(f"  kwargs keys: {list(outer_data.get('kwargs', {}).keys())}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+
+    # The function creates a file handler that writes to logging_dir/log.txt
+    # We need to ensure the logging_dir exists. The original args may reference
+    # a directory that doesn't exist anymore. We'll handle this gracefully.
+    # Check if the logging_dir from args exists, if not create a temp dir.
+    try:
+        if len(outer_args) > 0:
+            logging_dir = outer_args[0]
+        elif 'logging_dir' in outer_kwargs:
+            logging_dir = outer_kwargs['logging_dir']
+        else:
+            logging_dir = None
+
+        if logging_dir is not None and not os.path.exists(logging_dir):
+            os.makedirs(logging_dir, exist_ok=True)
+            print(f"  Created logging directory: {logging_dir}")
+    except Exception as e:
+        # If we can't create the original dir, use a temp dir
+        print(f"  Warning: Could not create original logging dir '{logging_dir}': {e}")
+        tmp_dir = tempfile.mkdtemp(prefix="test_create_logger_")
+        print(f"  Using temp directory instead: {tmp_dir}")
+        if len(outer_args) > 0:
+            outer_args = (tmp_dir,) + outer_args[1:]
+        elif 'logging_dir' in outer_kwargs:
+            outer_kwargs['logging_dir'] = tmp_dir
+
+    # Clear any existing handlers on the logger to avoid accumulation from repeated runs
+    logger_name = 'agent_create_logger'
+    existing_logger = logging.getLogger(logger_name)
+    existing_logger.handlers.clear()
+
+    # Phase 2: Run the function
+    try:
+        agent_result = create_logger(*outer_args, **outer_kwargs)
+        print(f"  create_logger returned: {type(agent_result).__name__}")
+    except Exception as e:
+        print(f"FAIL: create_logger raised an exception: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Phase 3: Determine scenario and verify
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print(f"\nScenario B detected: {len(inner_paths)} inner data file(s) found.")
+
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"\nLoaded inner data from: {inner_path}")
+                print(f"  func_name: {inner_data.get('func_name', 'N/A')}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+
+            # Verify agent_result is callable
+            if not callable(agent_result):
+                print(f"FAIL: agent_result is not callable, got {type(agent_result).__name__}")
+                sys.exit(1)
+
+            try:
+                actual_result = agent_result(*inner_args, **inner_kwargs)
+                print(f"  Execution returned: {type(actual_result).__name__}")
+            except Exception as e:
+                print(f"FAIL: Executing agent_result raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # Compare
+            try:
+                passed, msg = recursive_check(inner_expected, actual_result)
+                if passed:
+                    print("TEST PASSED")
+                    sys.exit(0)
+                else:
+                    print(f"FAIL: Verification failed: {msg}")
+                    sys.exit(1)
+            except Exception as e:
+                print(f"FAIL: Verification raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+    else:
+        # Scenario A: Simple function - the result IS the output
+        print("\nScenario A detected: No inner data files. Comparing direct output.")
+
+        result = agent_result
+        expected = expected_output
+
+        # For a Logger object, recursive_check may not do a deep equality.
+        # We verify structurally: both should be Logger instances with same properties.
+        try:
+            # First, try the standard recursive check
+            passed, msg = recursive_check(expected, result)
+            if passed:
+                print("TEST PASSED")
+                sys.exit(0)
+            else:
+                # If recursive_check fails, do a structural comparison for Logger
+                # since Logger objects are not easily comparable by value
+                print(f"  recursive_check returned: passed={passed}, msg={msg}")
+                print("  Attempting structural comparison for Logger objects...")
+
+                if isinstance(expected, logging.Logger) and isinstance(result, logging.Logger):
+                    checks_passed = True
+                    issues = []
+
+                    # Check logger level
+                    if expected.level != result.level:
+                        issues.append(f"Level mismatch: expected={expected.level}, got={result.level}")
+                        checks_passed = False
+
+                    # Check that result has at least the expected handler types
+                    expected_handler_types = [type(h).__name__ for h in expected.handlers]
+                    result_handler_types = [type(h).__name__ for h in result.handlers]
+
+                    # Check StreamHandler present
+                    if 'StreamHandler' in expected_handler_types and 'StreamHandler' not in result_handler_types:
+                        issues.append("Missing StreamHandler in result")
+                        checks_passed = False
+
+                    # Check FileHandler present
+                    if 'FileHandler' in expected_handler_types and 'FileHandler' not in result_handler_types:
+                        issues.append("Missing FileHandler in result")
+                        checks_passed = False
+
+                    if checks_passed:
+                        print("  Structural comparison passed for Logger objects.")
+                        print("TEST PASSED")
+                        sys.exit(0)
+                    else:
+                        print(f"FAIL: Structural comparison failed: {'; '.join(issues)}")
+                        sys.exit(1)
+                else:
+                    print(f"FAIL: Verification failed: {msg}")
+                    print(f"  Expected type: {type(expected).__name__}, Got type: {type(result).__name__}")
+                    sys.exit(1)
+        except Exception as e:
+            print(f"FAIL: Verification raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

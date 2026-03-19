@@ -1,0 +1,8 @@
+{
+  "parse_int_list": "PASS",
+  "create_logger": "PASS",
+  "weight_init": "PASS",
+  "normalize_mvue": "PASS",
+  "get_mvue": "PASS",
+  "main": "PASS"
+}

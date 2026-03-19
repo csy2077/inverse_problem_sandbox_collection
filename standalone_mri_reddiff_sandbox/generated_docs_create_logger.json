@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Creates a logger that outputs logs to both the console and a specified file.",
+    "function_docstring": "Creates a logger that outputs logs to both the console and a specified file.\n\nArgs:\n    logging_dir (str): The directory path where the log file will be stored.\n    main_process (bool, optional): A flag indicating if the logger is for the main process. Defaults to True.\n\nReturns:\n    logging.Logger: A configured logger instance that logs messages to both the console and a file located in the specified directory.",
+    "usage_example": "import logging\n\n# Create a logger that logs to the console and a file in the specified directory\nlogger = create_logger('/path/to/logging/directory')\n\n# Use the logger\nlogger.info('This is an info message')\nlogger.error('This is an error message')"
+}

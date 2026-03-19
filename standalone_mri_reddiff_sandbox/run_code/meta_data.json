@@ -1,0 +1,188 @@
+[
+    {
+        "function_name": "create_logger",
+        "inputs": {
+            "logging_dir": {
+                "type": "str",
+                "value_sample": "exps/inference/multi-coil-mri-knee/REDDiff/standalone_test"
+            },
+            "main_process": {
+                "type": "bool",
+                "value_sample": "True"
+            }
+        },
+        "output": {
+            "type": "CustomObject",
+            "class_name": "Logger",
+            "public_methods": [
+                "addFilter",
+                "addHandler",
+                "callHandlers",
+                "critical",
+                "debug",
+                "error",
+                "exception",
+                "fatal",
+                "filter",
+                "findCaller",
+                "getChild",
+                "getEffectiveLevel",
+                "handle",
+                "hasHandlers",
+                "info",
+                "isEnabledFor",
+                "log",
+                "makeRecord",
+                "removeFilter",
+                "removeHandler",
+                "setLevel",
+                "warn",
+                "warning"
+            ],
+            "attributes": [
+                "filters",
+                "name",
+                "level",
+                "parent",
+                "propagate",
+                "handlers",
+                "disabled",
+                "_cache",
+                "manager"
+            ]
+        }
+    },
+    {
+        "function_name": "parse_int_list",
+        "inputs": {
+            "s": {
+                "type": "str",
+                "value_sample": "0"
+            }
+        },
+        "output": {
+            "type": "list",
+            "length": 1,
+            "elements": [
+                {
+                    "type": "int",
+                    "value_sample": "0"
+                }
+            ]
+        }
+    },
+    {
+        "function_name": "weight_init",
+        "inputs": {
+            "shape": {
+                "type": "list",
+                "length": 2,
+                "elements": [
+                    {
+                        "type": "int",
+                        "value_sample": "512"
+                    },
+                    {
+                        "type": "int",
+                        "value_sample": "128"
+                    }
+                ]
+            },
+            "mode": {
+                "type": "str",
+                "value_sample": "kaiming_uniform"
+            },
+            "fan_in": {
+                "type": "int",
+                "value_sample": "128"
+            },
+            "fan_out": {
+                "type": "int",
+                "value_sample": "512"
+            }
+        },
+        "output": {
+            "type": "torch.Tensor",
+            "shape": [
+                512,
+                128
+            ],
+            "dtype": "torch.float32",
+            "device": "cpu"
+        }
+    },
+    {
+        "function_name": "normalize_mvue",
+        "inputs": {
+            "gen_img": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    1,
+                    320,
+                    320
+                ],
+                "dtype": "complex64"
+            },
+            "estimated_mvue": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    1,
+                    320,
+                    320
+                ],
+                "dtype": "complex64"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                1,
+                320,
+                320
+            ],
+            "dtype": "complex64"
+        }
+    },
+    {
+        "function_name": "get_mvue",
+        "inputs": {
+            "kspace": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    1,
+                    15,
+                    320,
+                    320
+                ],
+                "dtype": "complex64"
+            },
+            "s_maps": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    1,
+                    15,
+                    320,
+                    320
+                ],
+                "dtype": "complex64"
+            }
+        },
+        "output": {
+            "type": "numpy.ndarray",
+            "shape": [
+                1,
+                320,
+                320
+            ],
+            "dtype": "complex64"
+        }
+    },
+    {
+        "function_name": "main",
+        "inputs": {},
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    }
+]

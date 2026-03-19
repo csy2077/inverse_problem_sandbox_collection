@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_reddiff_sandbox/run_code/std_data/data_get_mvue.pkl
+  func_name: get_mvue
+Successfully executed get_mvue with outer args/kwargs.
+Scenario A detected: No inner data files. Comparing direct output.
+TEST PASSED

@@ -1,0 +1,38 @@
+/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/__init__.py:1617: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  _C._set_float32_matmul_precision(precision)
+  [Metadata] Recorded schema for: create_logger
+[[34m2026-03-13 07:47:06[0m] Instantiating MultiCoilMRI forward operator...
+[[34m2026-03-13 07:47:06[0m] Instantiating Dataset...
+  [Metadata] Recorded schema for: parse_int_list
+[[34m2026-03-13 07:47:06[0m] Loaded 1 test samples...
+[[34m2026-03-13 07:47:06[0m] Loading pre-trained model...
+  [Metadata] Recorded schema for: weight_init
+[[34m2026-03-13 07:47:09[0m] Loaded pre-trained model from weights/MRI-knee.pt...
+[[34m2026-03-13 07:47:09[0m] Instantiating REDDiff algorithm...
+  [Metadata] Recorded schema for: normalize_mvue
+/fs-computility-new/UPDZ02_sunhe/shared/InverseBench/.venv/lib/python3.10/site-packages/torch/utils/data/_utils/collate.py:285: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:206.)
+  return collate([torch.as_tensor(b) for b in batch], collate_fn_map=collate_fn_map)
+  [Metadata] Recorded schema for: get_mvue
+[[34m2026-03-13 07:47:09[0m] Running inference on test sample 0...
+
+REDDiff Inference:   0%|          | 0/10 [00:00<?, ?it/s]
+Iteration 1/10. Data fitting loss: 134.2498:   0%|          | 0/10 [00:00<?, ?it/s]
+Iteration 1/10. Data fitting loss: 134.2498:  10%|█         | 1/10 [00:00<00:03,  2.28it/s]
+Iteration 2/10. Data fitting loss: 127.9430:  10%|█         | 1/10 [00:00<00:03,  2.28it/s]
+Iteration 3/10. Data fitting loss: 121.8628:  10%|█         | 1/10 [00:00<00:03,  2.28it/s]
+Iteration 4/10. Data fitting loss: 115.9714:  10%|█         | 1/10 [00:00<00:03,  2.28it/s]
+Iteration 5/10. Data fitting loss: 110.2596:  10%|█         | 1/10 [00:00<00:03,  2.28it/s]
+Iteration 5/10. Data fitting loss: 110.2596:  50%|█████     | 5/10 [00:00<00:00, 11.48it/s]
+Iteration 6/10. Data fitting loss: 104.7296:  50%|█████     | 5/10 [00:00<00:00, 11.48it/s]
+Iteration 7/10. Data fitting loss: 99.3858:  50%|█████     | 5/10 [00:00<00:00, 11.48it/s] 
+Iteration 8/10. Data fitting loss: 94.2428:  50%|█████     | 5/10 [00:00<00:00, 11.48it/s]
+Iteration 9/10. Data fitting loss: 89.3239:  50%|█████     | 5/10 [00:00<00:00, 11.48it/s]
+Iteration 10/10. Data fitting loss: 84.6541:  50%|█████     | 5/10 [00:00<00:00, 11.48it/s]
+Iteration 10/10. Data fitting loss: 84.6541: 100%|██████████| 10/10 [00:00<00:00, 20.54it/s]
+Iteration 10/10. Data fitting loss: 84.6541: 100%|██████████| 10/10 [00:00<00:00, 15.19it/s]
+[[34m2026-03-13 07:47:10[0m] Peak GPU memory usage: 0.94 GB
+[[34m2026-03-13 07:47:10[0m] Saved results to exps/inference/multi-coil-mri-knee/REDDiff/standalone_test/result_0.pt.
+[[34m2026-03-13 07:47:10[0m] Metric results: {'psnr': 19.78852714070142, 'ssim': 0.501582452447515, 'data misfit': 80.28115521892269}...
+[[34m2026-03-13 07:47:10[0m] Evaluation completed...
+[[34m2026-03-13 07:47:10[0m] Final metric results: {'psnr': np.float64(19.78852714070142), 'psnr_std': np.float64(0.0), 'ssim': np.float64(0.501582452447515), 'ssim_std': np.float64(0.0), 'data misfit': np.float64(80.28115521892269), 'data misfit_std': np.float64(0.0)}...
+  [Metadata] Recorded schema for: main

@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Normalizes a generated image using the 99th percentile of the absolute values of an estimated MVUE image.",
+    "function_docstring": "Normalizes a generated image by scaling it with the 99th percentile of the absolute values of an estimated MVUE image.\n\nArgs:\n    gen_img (np.ndarray): A numpy array representing the generated image to be normalized. The shape can be arbitrary.\n    estimated_mvue (np.ndarray): A numpy array representing the estimated MVUE image. The shape should match that of `gen_img`.\n\nReturns:\n    np.ndarray: The normalized generated image, with the same shape as `gen_img`.",
+    "usage_example": "import numpy as np\n\n# Example generated image and estimated MVUE\ngen_img = np.random.rand(64, 64)\nestimated_mvue = np.random.rand(64, 64)\n\n# Normalize the generated image\nnormalized_img = normalize_mvue(gen_img, estimated_mvue)\nprint(normalized_img)"
+}

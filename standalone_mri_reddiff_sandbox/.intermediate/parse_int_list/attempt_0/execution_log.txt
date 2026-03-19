@@ -1,0 +1,10 @@
+[INFO] Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_reddiff_sandbox/run_code/std_data/data_parse_int_list.pkl
+[INFO] Keys in outer_data: ['func_name', 'args', 'kwargs', 'output']
+[INFO] outer_args: ('0',)
+[INFO] outer_kwargs: {}
+[INFO] expected outer_output: [0]
+[INFO] agent_result: [0]
+[INFO] Scenario A detected: Simple function.
+[INFO] expected: [0]
+[INFO] actual result: [0]
+TEST PASSED

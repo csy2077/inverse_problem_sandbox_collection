@@ -1,0 +1,432 @@
+
+
+```python
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Ensure the current directory is in the path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from verification_utils import recursive_check
+
+
+def main_test():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_reddiff_sandbox/run_code/std_data/data_main.pkl'
+    ]
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file (data_main.pkl) found.")
+        sys.exit(1)
+
+    # Phase 1: Load outer data
+    print(f"Loading outer data from: {outer_path}")
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    expected_output = outer_data.get('output', None)
+
+    print(f"Outer data loaded. func_name: {outer_data.get('func_name', 'unknown')}")
+    print(f"  args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys()) if outer_kwargs else []}")
+
+    # Phase 2: Import main - need to handle DhariwalUNet not being defined
+    # We need to inject a stub or find the real DhariwalUNet before importing agent_main
+    try:
+        # Try to find and import DhariwalUNet from various possible locations
+        dhariwal_imported = False
+        
+        # Try common module paths
+        possible_modules = [
+            'torch_utils.network',
+            'networks', 
+            'models',
+            'unet',
+            'dhariwal_unet',
+            'training.networks',
+            'torch_utils',
+        ]
+        
+        # Also search for python files that might contain DhariwalUNet
+        search_dirs = [
+            os.path.dirname(os.path.abspath(__file__)),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'),
+        ]
+        
+        for search_dir in search_dirs:
+            if not os.path.isdir(search_dir):
+                continue
+            for root, dirs, files in os.walk(search_dir):
+                for fname in files:
+                    if fname.endswith('.py'):
+                        fpath = os.path.join(root, fname)
+                        try:
+                            with open(fpath, 'r') as f:
+                                content = f.read()
+                            if 'class DhariwalUNet' in content:
+                                # Found it - add directory to path and figure out module name
+                                rel_path = os.path.relpath(fpath, os.path.dirname(os.path.abspath(__file__)))
+                                module_name = rel_path.replace(os.sep, '.').replace('.py', '')
+                                if module_name not in possible_modules:
+                                    possible_modules.insert(0, module_name)
+                                # Also add the parent directory to sys.path
+                                parent_dir = os.path.dirname(fpath)
+                                if parent_dir not in sys.path:
+                                    sys.path.insert(0, parent_dir)
+                        except:
+                            pass
+
+        for mod_name in possible_modules:
+            try:
+                mod = __import__(mod_name, fromlist=['DhariwalUNet'])
+                if hasattr(mod, 'DhariwalUNet'):
+                    import agent_main
+                    agent_main.DhariwalUNet = mod.DhariwalUNet
+                    agent_main._model_dict = {'DhariwalUNet': mod.DhariwalUNet}
+                    dhariwal_imported = True
+                    print(f"Found DhariwalUNet in module: {mod_name}")
+                    break
+            except Exception:
+                continue
+
+        if not dhariwal_imported:
+            # Attempt to patch agent_main before full import by injecting into builtins/globals
+            # Read agent_main.py to understand the structure
+            agent_main_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'agent_main.py')
+            
+            # Try to find DhariwalUNet via dill in the pickle data
+            # Sometimes the model class is serialized alongside the data
+            
+            # Last resort: try importing with a broader search
+            # Check if there's a networks module with subdirectories
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            for item in os.listdir(script_dir):
+                item_path = os.path.join(script_dir, item)
+                if os.path.isdir(item_path):
+                    init_path = os.path.join(item_path, '__init__.py')
+                    if os.path.exists(init_path):
+                        try:
+                            mod = __import__(item, fromlist=['DhariwalUNet'])
+                            if hasattr(mod, 'DhariwalUNet'):
+                                import agent_main
+                                agent_main.DhariwalUNet = mod.DhariwalUNet
+                                agent_main._model_dict = {'DhariwalUNet': mod.DhariwalUNet}
+                                dhariwal_imported = True
+                                print(f"Found DhariwalUNet in package: {item}")
+                                break
+                        except:
+                            pass
+                    # Also check submodules
+                    for sub_item in os.listdir(item_path):
+                        if sub_item.endswith('.py') and sub_item != '__init__.py':
+                            sub_mod_name = f"{item}.{sub_item[:-3]}"
+                            try:
+                                mod = __import__(sub_mod_name, fromlist=['DhariwalUNet'])
+                                if hasattr(mod, 'DhariwalUNet'):
+                                    import agent_main
+                                    agent_main.DhariwalUNet = mod.DhariwalUNet
+                                    agent_main._model_dict = {'DhariwalUNet': mod.DhariwalUNet}
+                                    dhariwal_imported = True
+                                    print(f"Found DhariwalUNet in module: {sub_mod_name}")
+                                    break
+                            except:
+                                pass
+                    if dhariwal_imported:
+                        break
+
+        if not dhariwal_imported:
+            # Try a completely dynamic approach - scan all .py files recursively
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            for root, dirs, files in os.walk(script_dir):
+                # Skip hidden directories and common non-source directories
+                dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ('__pycache__', '.git', 'node_modules')]
+                for fname in files:
+                    if not fname.endswith('.py'):
+                        continue
+                    fpath = os.path.join(root, fname)
+                    try:
+                        with open(fpath, 'r') as f:
+                            content = f.read()
+                        if 'class DhariwalUNet' in content:
+                            # Dynamically load this file
+                            if root not in sys.path:
+                                sys.path.insert(0, root)
+                            mod_name = fname[:-3]
+                            try:
+                                mod = __import__(mod_name, fromlist=['DhariwalUNet'])
+                                if hasattr(mod, 'DhariwalUNet'):
+                                    # Now we need to inject before agent_main loads
+                                    # We'll modify the module loading
+                                    import builtins
+                                    builtins.DhariwalUNet = mod.DhariwalUNet
+                                    dhariwal_imported = True
+                                    print(f"Found DhariwalUNet in file: {fpath}")
+                                    break
+                            except Exception as e2:
+                                print(f"  Warning: Found DhariwalUNet in {fpath} but couldn't import: {e2}")
+                    except:
+                        pass
+                if dhariwal_imported:
+                    break
+
+        if not dhariwal_imported:
+            # Create a stub DhariwalUNet that can be used as a placeholder
+            # This allows agent_main to import; the actual model will be loaded from checkpoint
+            print("WARNING: Could not find DhariwalUNet class. Creating a stub.")
+            
+            import builtins
+            
+            class DhariwalUNetStub(torch.nn.Module):
+                def __init__(self, img_resolution, in_channels, out_channels, label_dim=0, 
+                             model_channels=128, channel_mult=None, attn_resolutions=None,
+                             num_blocks=1, dropout=0.0, **kwargs):
+                    super().__init__()
+                    self.img_resolution = img_resolution
+                    self.in_channels = in_channels
+                    self.out_channels = out_channels
+                    # Create a minimal network that can accept state_dict
+                    # We'll use a simple placeholder
+                    self._dummy = torch.nn.Linear(1, 1)
+                    
+                def forward(self, x, noise_labels, class_labels=None, **kwargs):
+                    return torch.zeros_like(x)
+                    
+                def load_state_dict(self, state_dict, strict=True):
+                    # Override to accept any state dict without errors
+                    # Build the actual architecture from the state dict keys
+                    pass
+
+            builtins.DhariwalUNet = DhariwalUNetStub
+
+    except Exception as e:
+        print(f"Warning during DhariwalUNet search: {e}")
+        traceback.print_exc()
+
+    # Now try to properly handle the import by pre-injecting DhariwalUNet into the module namespace
+    try:
+        # If we haven't successfully imported agent_main yet, try now
+        if 'agent_main' not in sys.modules:
+            # We need DhariwalUNet in the global namespace when agent_main loads
+            import builtins
+            if not hasattr(builtins, 'DhariwalUNet'):
+                # Search one more time with importlib
+                import importlib
+                import importlib.util
+                
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+                found = False
+                for root, dirs, files in os.walk(script_dir):
+                    dirs[:] = [d for d in dirs if not d.startswith('.') and d != '__pycache__']
+                    for fname in files:
+                        if not fname.endswith('.py') or fname == 'agent_main.py' or fname == 'test_main.py':
+                            continue
+                        fpath = os.path.join(root, fname)
+                        try:
+                            with open(fpath, 'r') as f:
+                                content = f.read()
+                            if 'class DhariwalUNet' in content:
+                                spec = importlib.util.spec_from_file_location("_dhariwal_module", fpath)
+                                if spec and spec.loader:
+                                    _mod = importlib.util.module_from_spec(spec)
+                                    # Add parent dirs to path for any imports the module needs
+                                    parent = os.path.dirname(fpath)
+                                    if parent not in sys.path:
+                                        sys.path.insert(0, parent)
+                                    spec.loader.exec_module(_mod)
+                                    if hasattr(_mod, 'DhariwalUNet'):
+                                        builtins.DhariwalUNet = _mod.DhariwalUNet
+                                        found = True
+                                        print(f"Successfully loaded DhariwalUNet from {fpath}")
+                                        break
+                        except Exception as ex:
+                            print(f"  Note: Tried {fpath}, got: {ex}")
+                    if found:
+                        break
+
+            # Now import agent_main
+            # We need to ensure DhariwalUNet is available in agent_main's namespace
+            # Monkey-patch approach: modify the source before import
+            agent_main_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'agent_main.py')
+            
+            if hasattr(builtins, 'DhariwalUNet'):
+                # Inject into the module's globals during import
+                import importlib.util
+                spec = importlib.util.spec_from_file_location("agent_main", agent_main_path)
+                agent_main = importlib.util.module_from_spec(spec)
+                agent_main.DhariwalUNet = builtins.DhariwalUNet
+                sys.modules['agent_main'] = agent_main
+                spec.loader.exec_module(agent_main)
+            else:
+                # If we still don't have it, try a different approach
+                # Read agent_main.py and inject a stub
+                with open(agent_main_path, 'r') as f:
+                    source = f.read()
+                
+                # Check if agent_main imports DhariwalUNet from somewhere
+                import re as re_mod
+                import_matches = re_mod.findall(r'from\s+(\S+)\s+import.*DhariwalUNet', source)
+                if import_matches:
+                    for imp_mod in import_matches:
+                        try:
+                            m = __import__(imp_mod, fromlist=['DhariwalUNet'])
+                            if hasattr(m, 'DhariwalUNet'):
+                                builtins.DhariwalUNet = m.DhariwalUNet
+                                print(f"Found DhariwalUNet via import analysis: {imp_mod}")
+                                break
+                        except:
+                            pass
+
+                import importlib.util
+                spec = importlib.util.spec_from_file_location("agent_main", agent_main_path)
+                agent_main = importlib.util.module_from_spec(spec)
+                if hasattr(builtins, 'DhariwalUNet'):
+                    agent_main.DhariwalUNet = builtins.DhariwalUNet
+                sys.modules['agent_main'] = agent_main
+                try:
+                    spec.loader.exec_module(agent_main)
+                except NameError as ne:
+                    if 'DhariwalUNet' in str(ne):
+                        # Create a proper stub using the checkpoint to determine architecture
+                        print("Creating DhariwalUNet stub for module loading...")
+                        
+                        class DhariwalUNetFallback(torch.nn.Module):
+                            def __init__(self, **kwargs):
+                                super().__init__()
+                                self._kwargs = kwargs
+                                self._params = torch.nn.ParameterDict()
+                                self._buffers_dict = {}
+                                self._built = False
+                                
+                            def _build_from_state_dict(self, state_dict):
+                                for key, value in state_dict.items():
+                                    safe_key = key.replace('.', '_')
+                                    if isinstance(value, torch.Tensor):
+                                        self._params[safe_key] = torch.nn.Parameter(value.clone())
+                                self._built = True
+                                
+                            def forward(self, x, noise_labels, class_labels=None, **kwargs):
+                                return torch.zeros_like(x)
+                                
+                            def load_state_dict(self, state_dict, strict=True):
+                                pass
+
+                        agent_main.DhariwalUNet = DhariwalUNetFallback
+                        agent_main._model_dict = {'DhariwalUNet': DhariwalUNetFallback}
+                        sys.modules['agent_main'] = agent_main
+                        spec.loader.exec_module(agent_main)
+                    else:
+                        raise
+
+        from agent_main import main
+    except Exception as e:
+        print(f"FAIL: Could not import main from agent_main: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    print("Running main(*args, **kwargs)...")
+    try:
+        actual_result = main(*outer_args, **outer_kwargs)
+    except Exception as e:
+        print(f"FAIL: main() raised an exception: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Phase 3: Determine scenario
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print(f"Scenario B detected: {len(inner_paths)} inner data file(s) found.")
+
+        if not callable(actual_result):
+            print(f"FAIL: Expected main() to return a callable (operator/closure), got {type(actual_result)}")
+            sys.exit(1)
+
+        agent_operator = actual_result
+
+        # Sort inner paths for deterministic ordering
+        inner_paths.sort()
+
+        all_passed = True
+        for idx, inner_path in enumerate(inner_paths):
+            print(f"\n--- Inner test {idx + 1}/{len(inner_paths)}: {os.path.basename(inner_path)} ---")
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data from {inner_path}: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+
+            print(f"  Inner args count: {len(inner_args)}, kwargs keys: {list(inner_kwargs.keys()) if inner_kwargs else []}")
+
+            try:
+                inner_result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: agent_operator() raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(inner_expected, inner_result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised an exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Inner test {idx + 1} failed verification: {msg}")
+                all_passed = False
+            else:
+                print(f"PASS: Inner test {idx + 1} passed.")
+
+        if not all_passed:
+            sys.exit(1)
+        else:
+            print("\nTEST PASSED")
+            sys.exit(0)
+
+    else:
+        # Scenario A: Simple function
+        print("Scenario A detected: No inner data files. Comparing main() output directly.")
+
+        try:
+            passed, msg = recursive_check(expected_output, actual_result)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised an exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: Verification failed: {msg}")
+            sys.exit(1)
+        else:
+            print("TEST PASSED")
+            sys.exit(0)
+
+
+if __name__ == '__main__':
+    main_test()
+```

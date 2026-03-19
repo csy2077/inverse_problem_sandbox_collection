@@ -1,0 +1,10 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_reddiff_sandbox/run_code/std_data/data_create_logger.pkl
+  func_name: create_logger
+  args types: ['str']
+  kwargs keys: []
+  create_logger returned: Logger
+
+Scenario A detected: No inner data files. Comparing direct output.
+  recursive_check returned: passed=False, msg=Value mismatch at output: expected <Logger __main__ (WARNING)>, got <Logger agent_create_logger (INFO)>
+  Attempting structural comparison for Logger objects...
+FAIL: Structural comparison failed: Level mismatch: expected=0, got=20

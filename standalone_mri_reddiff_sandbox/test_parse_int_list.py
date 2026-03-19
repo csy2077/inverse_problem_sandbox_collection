@@ -1,0 +1,130 @@
+import sys
+import os
+import dill
+import traceback
+
+# Import the target function
+from agent_parse_int_list import parse_int_list
+from verification_utils import recursive_check
+
+def main():
+    data_paths = ['/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_mri_reddiff_sandbox/run_code/std_data/data_parse_int_list.pkl']
+
+    # Separate outer and inner paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("ERROR: No outer data file found for parse_int_list.")
+        sys.exit(1)
+
+    # Phase 1: Load outer data and reconstruct operator
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"[INFO] Loaded outer data from: {outer_path}")
+        print(f"[INFO] Keys in outer_data: {list(outer_data.keys())}")
+    except Exception as e:
+        print(f"ERROR: Failed to load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    print(f"[INFO] outer_args: {outer_args}")
+    print(f"[INFO] outer_kwargs: {outer_kwargs}")
+    print(f"[INFO] expected outer_output: {outer_output}")
+
+    try:
+        agent_result = parse_int_list(*outer_args, **outer_kwargs)
+        print(f"[INFO] agent_result: {agent_result}")
+    except Exception as e:
+        print(f"ERROR: Failed to execute parse_int_list with outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Phase 2: Determine scenario
+    if inner_paths:
+        # Scenario B: Factory/Closure pattern
+        print("[INFO] Scenario B detected: Factory/Closure pattern.")
+
+        if not callable(agent_result):
+            print(f"ERROR: Expected callable from parse_int_list, got {type(agent_result)}")
+            sys.exit(1)
+
+        agent_operator = agent_result
+
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"[INFO] Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"ERROR: Failed to load inner data from {inner_path}: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            print(f"[INFO] inner_args: {inner_args}")
+            print(f"[INFO] inner_kwargs: {inner_kwargs}")
+            print(f"[INFO] expected inner output: {expected}")
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+                print(f"[INFO] actual result: {result}")
+            except Exception as e:
+                print(f"ERROR: Failed to execute agent_operator with inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"ERROR: recursive_check failed: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"TEST FAILED: {msg}")
+                sys.exit(1)
+            else:
+                print(f"[INFO] Inner test passed for {inner_path}")
+
+    else:
+        # Scenario A: Simple function
+        print("[INFO] Scenario A detected: Simple function.")
+
+        result = agent_result
+        expected = outer_output
+
+        print(f"[INFO] expected: {expected}")
+        print(f"[INFO] actual result: {result}")
+
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"ERROR: recursive_check failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"TEST FAILED: {msg}")
+            sys.exit(1)
+
+    print("TEST PASSED")
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
