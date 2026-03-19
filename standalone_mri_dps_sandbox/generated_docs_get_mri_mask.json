@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Generates an MRI sampling mask based on specified parameters such as acceleration ratio and pattern.",
+    "function_docstring": "Generates an MRI sampling mask based on the specified acceleration ratio, pattern, and orientation.\n\nArgs:\n    total_lines (int): The total number of lines in the MRI data.\n    acceleration_ratio (float): The factor by which the data is undersampled. Must be greater than 1.\n    pattern (str): The pattern of undersampling, either 'random' or 'equispaced'.\n    mask_seed (int): The seed for the random number generator to ensure reproducibility.\n    orientation (str): The orientation of the mask, either 'vertical' or 'horizontal'.\n\nReturns:\n    numpy.ndarray: A boolean mask array with shape (1, 1, 1, total_lines) if vertical, or (1, 1, total_lines, 1) if horizontal, indicating which lines are sampled.",
+    "usage_example": "import numpy as np\n\n# Example usage of get_mri_mask\nmask = get_mri_mask(total_lines=128, acceleration_ratio=4.0, pattern='random', mask_seed=42, orientation='vertical')\nprint(mask.shape)  # Output: (1, 1, 1, 128)"
+}

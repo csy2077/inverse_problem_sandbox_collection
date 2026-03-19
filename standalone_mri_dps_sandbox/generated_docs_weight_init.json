@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Initializes and returns a tensor of specified shape using a given weight initialization method.",
+    "function_docstring": "\"\"\"\nInitializes a tensor with specified shape using the given weight initialization mode.\n\nArgs:\n    shape (tuple): The shape of the tensor to be initialized.\n    mode (str): The initialization method, such as 'xavier_uniform', 'xavier_normal', 'kaiming_uniform', or 'kaiming_normal'.\n    fan_in (int): The number of input units in the layer.\n    fan_out (int): The number of output units in the layer.\n\nReturns:\n    torch.Tensor: A tensor initialized based on the specified mode, with the given shape and appropriate values.\n\nRaises:\n    ValueError: If an invalid initialization mode is provided.\n\"\"\"",
+    "usage_example": "import torch\nfrom agent_weight_init import weight_init\n\n# Example usage\nshape = (64, 128)\nmode = 'xavier_uniform'\nfan_in = 64\nfan_out = 128\n\ninitialized_tensor = weight_init(shape, mode, fan_in, fan_out)\nprint(initialized_tensor)"
+}

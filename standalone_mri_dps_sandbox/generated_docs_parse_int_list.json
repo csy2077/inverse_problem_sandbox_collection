@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Converts a string representation of integers and ranges into a list of integers.",
+    "function_docstring": "Converts a string, integer, or list of integers into a list of integers, expanding any ranges specified in the string.\n\nArgs:\n    s (Union[str, int, List[int], None]): The input can be a string containing comma-separated integers and/or ranges (e.g., '1,2,5-7'), a single integer, a list of integers, or None.\n\nReturns:\n    List[int] or None: A list of integers expanded from the input string or list, or None if the input is None.",
+    "usage_example": "result = parse_int_list('1,2,5-7')\n# result will be [1, 2, 5, 6, 7]\n\nresult = parse_int_list(3)\n# result will be [3]\n\nresult = parse_int_list([1, 2, 3])\n# result will be [1, 2, 3]\n\nresult = parse_int_list(None)\n# result will be None"
+}

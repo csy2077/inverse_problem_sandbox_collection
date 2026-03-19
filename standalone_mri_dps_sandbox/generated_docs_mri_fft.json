@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Performs a 2D FFT operation with proper center-shifting and normalization on the input tensor.",
+    "function_docstring": "Performs a 2D Fast Fourier Transform (FFT) on a batched tensor with support for\napplying orthogonal normalization and center-shifting in frequency domain executions.\n\nArgs:\n    x (torch.Tensor): A complex-valued tensor of shape (..., H, W) representing the spatial\ndomain image or signal data on which the 2D FFT is to be performed. The inner most two dimensions (H, W)\nare processed for FFTs.\n\nReturns:\n    torch.Tensor: A complex-valued tensor of the same shape as the input (..., H, W)\nrepresenting the frequency domain representation of the input data after FFT processing.",
+    "usage_example": "import torch\n\n# Create a random complex tensor of shape (4, 32, 32)\nx = torch.randn(4, 32, 32, dtype=torch.complex64)\n\n# Apply the 2D FFT transformation on the tensor\nresult = mri_fft(x)\n\n# Verify the shape\nassert result.shape == x.shape\n\n# Use the transformed frequency domain result\nprint(result)"
+}
