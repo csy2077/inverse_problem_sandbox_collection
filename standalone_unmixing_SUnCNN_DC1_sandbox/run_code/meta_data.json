@@ -1,0 +1,113 @@
+[
+    {
+        "function_name": "rel_path",
+        "inputs": {
+            "args": {
+                "type": "tuple",
+                "length": 2,
+                "elements": [
+                    {
+                        "type": "str",
+                        "value_sample": "data_standalone"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "standalone_unmixing_SUnCNN_DC1.json"
+                    }
+                ]
+            }
+        },
+        "output": {
+            "type": "str",
+            "value_sample": "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnCNN_DC1_sandbox/data_standalone/standalone_unmixing_SUnCNN_DC1.json"
+        }
+    },
+    {
+        "function_name": "set_seeds",
+        "inputs": {
+            "seed": {
+                "type": "int",
+                "value_sample": "0"
+            }
+        },
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    },
+    {
+        "function_name": "compute_metric",
+        "inputs": {
+            "metric": {
+                "type": "CustomObject",
+                "class_name": "SRE",
+                "public_methods": [],
+                "attributes": [
+                    "name"
+                ]
+            },
+            "X_gt": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    5,
+                    5625
+                ],
+                "dtype": "float64"
+            },
+            "X_hat": {
+                "type": "numpy.ndarray",
+                "shape": [
+                    5,
+                    5625
+                ],
+                "dtype": "float32"
+            },
+            "labels": {
+                "type": "list",
+                "length": 5,
+                "elements": [
+                    {
+                        "type": "str",
+                        "value_sample": "#0"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#1"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#2"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#3"
+                    },
+                    {
+                        "type": "str",
+                        "value_sample": "#4"
+                    }
+                ]
+            },
+            "detail": {
+                "type": "bool",
+                "value_sample": "False"
+            },
+            "on_endmembers": {
+                "type": "bool",
+                "value_sample": "False"
+            }
+        },
+        "output": {
+            "type": "dict",
+            "value_sample": "{'Overall': 9.3864}"
+        }
+    },
+    {
+        "function_name": "main",
+        "inputs": {},
+        "output": {
+            "type": "NoneType",
+            "value_sample": "None"
+        }
+    }
+]

@@ -1,0 +1,11 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnCNN_DC1_sandbox/run_code/std_data/data_main.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Outer args count: 0
+Outer kwargs keys: []
+FAIL: Could not import main from agent_main: name 'logging' is not defined
+Traceback (most recent call last):
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnCNN_DC1_sandbox/test_main.py", line 60, in main_test
+    from agent_main import main
+  File "/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_unmixing_SUnCNN_DC1_sandbox/agent_main.py", line 17, in <module>
+    log = logging.getLogger(__name__)
+NameError: name 'logging' is not defined

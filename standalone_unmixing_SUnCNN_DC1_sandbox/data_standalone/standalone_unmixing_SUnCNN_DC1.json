@@ -1,0 +1,23 @@
+{
+    "EPS": 1e-10,
+    "seed": 0,
+    "SNR": 30,
+    "dataset": "DC1",
+    "data_dir": "data_standalone",
+    "figs_dir": "exp_standalone_unmixing_SUnCNN_DC1",
+    "l2_normalization": false,
+    "projection": false,
+    "force_align": false,
+    "model": {
+        "niters": 20000,
+        "lr": 0.001,
+        "exp_weight": 0.99,
+        "noisy_input": true
+    },
+    "kernel_sizes": [3, 3, 3, 1, 1, 1],
+    "strides": [2, 1, 1, 1, 1, 1],
+    "lrelu_params": {
+        "negative_slope": 0.1,
+        "inplace": true
+    }
+}
