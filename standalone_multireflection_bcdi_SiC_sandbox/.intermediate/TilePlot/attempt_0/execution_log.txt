@@ -1,0 +1,8 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_multireflection_bcdi_SiC_sandbox/run_code/std_data/data_TilePlot.pkl
+  func_name: TilePlot
+Detected Scenario A: Simple function call
+Successfully executed TilePlot.
+recursive_check reported: Value mismatch at output[0]: expected Figure(1000x500), got Figure(1000x500)
+Attempting structural validation for matplotlib output...
+Structural validation passed.
+TEST PASSED

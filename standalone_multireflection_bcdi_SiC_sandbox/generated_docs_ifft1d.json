@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Performs a 1D inverse Fast Fourier Transform (IFFT) on a specified dimension of a tensor, with orthogonal normalization.",
+    "function_docstring": "Performs a 1D inverse Fast Fourier Transform (IFFT) on a specified dimension of a tensor, with orthogonal normalization.\n\nArgs:\n    arr (torch.Tensor): A multi-dimensional tensor on which the 1D IFFT is to be performed.\n    n (int): The dimension along which to perform the IFFT.\n\nReturns:\n    torch.Tensor: A tensor of the same shape as `arr`, with the IFFT applied along the specified dimension.",
+    "usage_example": "import torch\nfrom agent_ifft1d import ifft1d\n\n# Create a sample tensor\narr = torch.randn(64, 128)\n\n# Perform 1D IFFT along the second dimension (n=1)\nresult = ifft1d(arr, n=1)\n\nprint(result.shape)  # Should output: torch.Size([64, 128])"
+}

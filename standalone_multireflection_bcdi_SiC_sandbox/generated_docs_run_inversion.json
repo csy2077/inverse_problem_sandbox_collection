@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Runs the multi-reflection Bragg Coherent Diffraction Imaging (BCDI) inversion optimization.",
+    "function_docstring": "def run_inversion(preprocessed_data, script_dir):\n    \"\"\"\n    Run the multi-reflection BCDI inversion optimization.\n\n    Args:\n        preprocessed_data (dict): A dictionary containing preprocessed data required for inversion,\n                                  including the database of scans and solver parameters.\n        script_dir (str): A string representing the directory path where intermediate and final results will be saved.\n\n    Returns:\n        dict: A dictionary containing the optimized solver instance, error values during optimization, reconstructed amplitude, classified displacements ('solver', 'error', 'amp', 'u_recon').\n    \"\"\"",
+    "usage_example": "import os\nimport torch\nfrom run_inversion import run_inversion\n\n# Assuming preprocessed_data is a dictionary with necessary inputs\n# and script_dir is the directory path to save results\n\n# Sample usage\npreprocessed_data = {"
+}

@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the 3D Total Variation (TV) of a given 3D tensor.",
+    "function_docstring": "Calculates the 3D Total Variation (TV) of a given 3D tensor.\n\nArgs:\n    arr (torch.Tensor): A 3D tensor of shape (D, H, W) where D is the depth, H is the height, and W is the width. The tensor should be of a floating-point type.\n\nReturns:\n    torch.Tensor: A scalar tensor representing the mean total variation of the input tensor.",
+    "usage_example": "import torch\n\n# Create a random 3D tensor\narr = torch.rand((10, 20, 30))\n\n# Calculate the 3D Total Variation\nresult = TV3D(arr)\nprint(result)"
+}
