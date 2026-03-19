@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Computes the 1-dimensional inverse Fast Fourier Transform (IFFT) along a specified dimension of a tensor using orthogonal normalization.",
+    "function_docstring": "```python\ndef ifft1d(arr, n):\n    \"\"\"\n    Computes the 1-dimensional inverse Fast Fourier Transform (IFFT) along a specified dimension of a tensor using orthogonal normalization.\n\n    Args:\n        arr (torch.Tensor): A tensor representing the input data for the IFFT operation. The tensor can have any shape, but the IFFT is applied along the specified dimension.\n        n (int): The dimension along which to perform the IFFT operation.\n\n    Returns:\n        torch.Tensor: A tensor of the same shape as `arr`, containing the result of the IFFT operation along the specified dimension.\n    \"\"\"\n```",
+    "usage_example": "```python\nimport torch\nfrom agent_ifft1d import ifft1d\n\n# Create a sample tensor\narr = torch.randn(64, 128)\n\n# Perform 1D IFFT along the second dimension\nresult = ifft1d(arr, n=1)\n\nprint(result)\n```"
+}

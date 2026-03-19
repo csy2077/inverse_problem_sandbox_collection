@@ -1,0 +1,157 @@
+import sys
+import os
+import dill
+import torch
+import numpy as np
+import traceback
+
+# Import the target function
+from agent_ifft1d import ifft1d
+
+# Import verification utility
+from verification_utils import recursive_check
+
+
+def main():
+    # Define data paths
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_multireflection_bcdi_adam_twodisloc_sandbox/run_code/std_data/data_ifft1d.pkl'
+    ]
+
+    # Separate outer (standard) and inner (parent_function) paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: No outer data file found for ifft1d.")
+        sys.exit(1)
+
+    # --- Phase 1: Load outer data and run ifft1d ---
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"  func_name: {outer_data.get('func_name', 'N/A')}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data file: {outer_path}")
+        print(f"  Error: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    # Move tensors to appropriate device if needed
+    def to_device(obj, device='cpu'):
+        if isinstance(obj, torch.Tensor):
+            return obj.to(device)
+        if isinstance(obj, (list, tuple)):
+            converted = [to_device(x, device) for x in obj]
+            return type(obj)(converted)
+        if isinstance(obj, dict):
+            return {k: to_device(v, device) for k, v in obj.items()}
+        return obj
+
+    # Determine device - use GPU if available and if input data is on GPU
+    device = 'cpu'
+    for arg in outer_args:
+        if isinstance(arg, torch.Tensor) and arg.is_cuda:
+            if torch.cuda.is_available():
+                device = arg.device
+            else:
+                # Move to CPU if GPU not available
+                outer_args = to_device(outer_args, 'cpu')
+                outer_kwargs = to_device(outer_kwargs, 'cpu')
+                outer_output = to_device(outer_output, 'cpu')
+            break
+
+    try:
+        agent_result = ifft1d(*outer_args, **outer_kwargs)
+        print("  ifft1d executed successfully.")
+    except Exception as e:
+        print(f"FAIL: ifft1d raised an exception during execution.")
+        print(f"  Error: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # --- Phase 2: Determine scenario and verify ---
+    if inner_paths:
+        # Scenario B: Factory/Closure pattern
+        # The result of ifft1d should be callable
+        if not callable(agent_result):
+            print("FAIL: Scenario B detected (inner data files exist) but ifft1d result is not callable.")
+            print(f"  Result type: {type(agent_result)}")
+            sys.exit(1)
+
+        all_passed = True
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data file: {inner_path}")
+                print(f"  Error: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            inner_expected = inner_data.get('output', None)
+
+            try:
+                inner_result = agent_result(*inner_args, **inner_kwargs)
+                print("  Inner function executed successfully.")
+            except Exception as e:
+                print(f"FAIL: Inner function execution raised an exception.")
+                print(f"  Error: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(inner_expected, inner_result)
+                if not passed:
+                    print(f"FAIL: Output mismatch for inner data: {inner_path}")
+                    print(f"  Message: {msg}")
+                    all_passed = False
+                else:
+                    print(f"  Inner check PASSED for: {os.path.basename(inner_path)}")
+            except Exception as e:
+                print(f"FAIL: recursive_check raised an exception.")
+                print(f"  Error: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+        if not all_passed:
+            sys.exit(1)
+        print("TEST PASSED")
+        sys.exit(0)
+
+    else:
+        # Scenario A: Simple function - compare result directly with outer output
+        try:
+            passed, msg = recursive_check(outer_output, agent_result)
+            if not passed:
+                print(f"FAIL: Output mismatch for ifft1d.")
+                print(f"  Message: {msg}")
+                sys.exit(1)
+            else:
+                print("TEST PASSED")
+                sys.exit(0)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised an exception.")
+            print(f"  Error: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,4 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_multireflection_bcdi_adam_twodisloc_sandbox/run_code/std_data/data_ifft1d.pkl
+  func_name: ifft1d
+  ifft1d executed successfully.
+TEST PASSED

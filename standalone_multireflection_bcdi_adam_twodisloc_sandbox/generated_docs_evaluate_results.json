@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Evaluate and save reconstruction results from diffraction data.",
+    "function_docstring": "Evaluate and save reconstruction results.\n\nArgs:\n    results (dict): A dictionary containing the reconstruction results, including keys like 'cubeSize', 'N', 'activ_a', 'error_history', 'amplitude', 'displacement', 'x', 'scan_list', 'bragg_condition', 'solver_state', 'peaks', and '_buffer'.\n    preprocessed_data (dict): A dictionary containing preprocessed data, including a 'database' key with a close method.\n    script_dir (str): Directory path for saving plots.\n    resultfile (str): Path for the HDF5 output file.\n\nReturns:\n    None: The function performs side effects such as plotting and saving data, but does not return a value.",
+    "usage_example": "results, preprocessed_data, script_dir, resultfile = create_mock_data()\nevaluate_results(results, preprocessed_data, script_dir, resultfile)"
+}

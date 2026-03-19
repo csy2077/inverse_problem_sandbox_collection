@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Performs a 1D Fast Fourier Transform (FFT) on a specified dimension of a tensor, applying fftshift before and after the transform.",
+    "function_docstring": "Performs a 1D Fast Fourier Transform (FFT) on a specified dimension of a tensor, applying fftshift before and after the transform.\n\nArgs:\n    arr (torch.Tensor): A multi-dimensional tensor on which the 1D FFT is to be performed. The tensor can have any shape, but the FFT will be applied along the specified dimension.\n    n (int): The dimension along which to perform the 1D FFT. This should be a valid dimension index of the input tensor `arr`.\n\nReturns:\n    torch.Tensor: A tensor of the same shape as `arr`, with the 1D FFT applied along the specified dimension `n`.",
+    "usage_example": "import torch\nfrom agent_fft1d import fft1d\n\n# Create a sample tensor\narr = torch.randn(64, 128, 256)\n\n# Perform 1D FFT along the second dimension (index 1)\nresult = fft1d(arr, 1)\n\nprint(result.shape)  # Output will have the same shape as input"
+}

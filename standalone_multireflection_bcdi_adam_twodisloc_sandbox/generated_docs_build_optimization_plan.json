@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Builds an optimization plan based on a given dictionary specification and number of scans.",
+    "function_docstring": "Builds an optimization plan from a dictionary specification.\n\nArgs:\n    plan_dict (dict): A dictionary containing the optimization plan specifications with keys:\n        - 'minibatch_size': A list of integers specifying the size of each minibatch.\n        - 'iterations_per_minibatch': A list of integers specifying the number of iterations for each minibatch.\n        - 'minibatches': A list of integers specifying the number of minibatches for each epoch.\n    num_scans (int): The total number of scans available for sampling.\n\nReturns:\n    list: A nested list representing the optimization plan, where each epoch contains minibatches, and each minibatch is a list with a random sample of scan indices and the number of iterations.",
+    "usage_example": "plan_dict = {\n    'minibatch_size': [10, 20],\n    'iterations_per_minibatch': [5, 10],\n    'minibatches': [2, 3]\n}\nnum_scans = 100\noptimization_plan = build_optimization_plan(plan_dict, num_scans)\nprint(optimization_plan)"
+}

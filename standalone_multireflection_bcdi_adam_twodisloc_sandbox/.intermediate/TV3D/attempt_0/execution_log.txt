@@ -1,0 +1,5 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_multireflection_bcdi_adam_twodisloc_sandbox/run_code/std_data/data_TV3D.pkl
+  func_name: TV3D
+Executed TV3D successfully.
+TEST PASSED
+TEST PASSED
