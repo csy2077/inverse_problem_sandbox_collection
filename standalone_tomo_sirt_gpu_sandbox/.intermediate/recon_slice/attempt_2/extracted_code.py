@@ -1,0 +1,472 @@
+import sys
+import os
+import dill
+import numpy as np
+import traceback
+import pickle
+import struct
+
+# Ensure the current directory is in path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from agent_recon_slice import recon_slice
+from verification_utils import recursive_check
+
+
+def try_load_pickle(filepath):
+    """Try multiple methods to load a pickle file, handling Python 2 pickles."""
+    errors = []
+    file_size = os.path.getsize(filepath)
+
+    # First, inspect the file header to understand what we're dealing with
+    try:
+        with open(filepath, 'rb') as f:
+            header = f.read(min(20, file_size))
+        print(f"  File header bytes: {header[:20]}")
+        print(f"  File header hex: {header[:20].hex()}")
+    except Exception as e:
+        print(f"  Could not read header: {e}")
+
+    # Method 1: dill with encoding for Python 2 compatibility
+    try:
+        with open(filepath, 'rb') as f:
+            data = dill.load(f, encoding='latin1')
+        return data
+    except Exception as e:
+        errors.append(f"dill.load(encoding=latin1): {e}")
+
+    # Method 2: dill default
+    try:
+        with open(filepath, 'rb') as f:
+            data = dill.load(f)
+        return data
+    except Exception as e:
+        errors.append(f"dill.load: {e}")
+
+    # Method 3: pickle with latin1 encoding (for Python 2 pickles)
+    try:
+        with open(filepath, 'rb') as f:
+            data = pickle.load(f, encoding='latin1')
+        return data
+    except Exception as e:
+        errors.append(f"pickle.load(latin1): {e}")
+
+    # Method 4: pickle with bytes encoding
+    try:
+        with open(filepath, 'rb') as f:
+            data = pickle.load(f, encoding='bytes')
+        return data
+    except Exception as e:
+        errors.append(f"pickle.load(bytes): {e}")
+
+    # Method 5: pickle default
+    try:
+        with open(filepath, 'rb') as f:
+            data = pickle.load(f)
+        return data
+    except Exception as e:
+        errors.append(f"pickle.load: {e}")
+
+    # Method 6: Try numpy load (maybe it's an npy/npz file mislabeled)
+    try:
+        data = np.load(filepath, allow_pickle=True)
+        if isinstance(data, np.ndarray) and data.dtype == object:
+            data = data.item()
+        return data
+    except Exception as e:
+        errors.append(f"np.load: {e}")
+
+    # Method 7: Try reading as multiple pickled objects concatenated
+    try:
+        objects = []
+        with open(filepath, 'rb') as f:
+            while f.tell() < file_size:
+                try:
+                    obj = pickle.load(f, encoding='latin1')
+                    objects.append(obj)
+                except EOFError:
+                    break
+                except Exception:
+                    break
+        if len(objects) == 1:
+            return objects[0]
+        elif len(objects) > 1:
+            print(f"  Found {len(objects)} objects in file")
+            # Try to reconstruct as dict
+            if len(objects) == 4:
+                # Could be func_name, args, kwargs, output
+                return {
+                    'func_name': objects[0] if isinstance(objects[0], str) else 'unknown',
+                    'args': objects[1] if isinstance(objects[1], (list, tuple)) else (),
+                    'kwargs': objects[2] if isinstance(objects[2], dict) else {},
+                    'output': objects[3]
+                }
+            return objects
+    except Exception as e:
+        errors.append(f"multi-pickle: {e}")
+
+    # Method 8: Try with dill._dill.Unpickler with fix_imports
+    try:
+        import io
+        with open(filepath, 'rb') as f:
+            raw = f.read()
+        # Replace __builtin__ with builtins
+        raw_fixed = raw.replace(b'__builtin__', b'builtins\x00\x00\x00')
+        buf = io.BytesIO(raw_fixed)
+        data = pickle.load(buf, encoding='latin1')
+        return data
+    except Exception as e:
+        errors.append(f"raw bytes fix: {e}")
+
+    # Method 9: More careful __builtin__ replacement preserving pickle structure
+    try:
+        import io
+        with open(filepath, 'rb') as f:
+            raw = f.read()
+
+        # Python 2 pickle uses c__builtin__\n or similar opcodes
+        # Replace all occurrences carefully
+        raw_fixed = raw.replace(b'c__builtin__\n', b'cbuiltins\n')
+        raw_fixed = raw_fixed.replace(b'__builtin__', b'builtins')
+        buf = io.BytesIO(raw_fixed)
+        data = dill.load(buf, encoding='latin1')
+        return data
+    except Exception as e:
+        errors.append(f"raw bytes fix v2: {e}")
+
+    # Method 10: Use pickletools to analyze
+    try:
+        import pickletools
+        import io
+        with open(filepath, 'rb') as f:
+            raw = f.read(500)
+        buf = io.BytesIO(raw)
+        ops = []
+        try:
+            for opcode, arg, pos in pickletools.genops(buf):
+                ops.append((opcode.name, arg, pos))
+                if len(ops) > 20:
+                    break
+        except Exception:
+            pass
+        if ops:
+            print(f"  First pickle opcodes: {ops[:10]}")
+    except Exception:
+        pass
+
+    # Method 11: Check if the file might be compressed
+    try:
+        import gzip
+        with gzip.open(filepath, 'rb') as f:
+            data = dill.load(f, encoding='latin1')
+        return data
+    except Exception as e:
+        errors.append(f"gzip+dill: {e}")
+
+    try:
+        import bz2
+        with bz2.open(filepath, 'rb') as f:
+            data = dill.load(f, encoding='latin1')
+        return data
+    except Exception as e:
+        errors.append(f"bz2+dill: {e}")
+
+    # Method 12: Try with custom Unpickler that maps __builtin__ to builtins
+    try:
+        import io
+
+        class Py2Unpickler(pickle.Unpickler):
+            def find_class(self, module, name):
+                if module == '__builtin__':
+                    module = 'builtins'
+                return super().find_class(module, name)
+
+        with open(filepath, 'rb') as f:
+            unpickler = Py2Unpickler(f, encoding='latin1')
+            data = unpickler.load()
+        return data
+    except Exception as e:
+        errors.append(f"Py2Unpickler: {e}")
+
+    # Method 13: Same with dill Unpickler
+    try:
+        import io
+
+        class Py2DillUnpickler(dill.Unpickler):
+            def find_class(self, module, name):
+                if module == '__builtin__':
+                    module = 'builtins'
+                return super().find_class(module, name)
+
+        with open(filepath, 'rb') as f:
+            unpickler = Py2DillUnpickler(f, encoding='latin1')
+            data = unpickler.load()
+        return data
+    except Exception as e:
+        errors.append(f"Py2DillUnpickler: {e}")
+
+    # Method 14: Read raw and check if "Ran out of input" means truncated file
+    # Let's try reading just as much as we can
+    try:
+        with open(filepath, 'rb') as f:
+            raw = f.read()
+        print(f"  Total file bytes: {len(raw)}")
+        # Check for pickle protocol marker
+        if raw[0:1] == b'\x80':
+            proto = raw[1]
+            print(f"  Pickle protocol: {proto}")
+        # Check last bytes
+        print(f"  Last 10 bytes: {raw[-10:].hex()}")
+        # Check if the stop opcode '.' is present
+        stop_positions = [i for i, b in enumerate(raw) if b == ord('.')]
+        if stop_positions:
+            print(f"  STOP opcode positions (last 5): {stop_positions[-5:]}")
+            # Try loading up to the first STOP opcode
+            first_stop = stop_positions[0]
+            import io
+            buf = io.BytesIO(raw[:first_stop + 1])
+            try:
+                data = pickle.load(buf, encoding='latin1')
+                return data
+            except Exception as e2:
+                errors.append(f"truncated to first STOP: {e2}")
+
+            # Try with custom unpickler up to first stop
+            class Py2Unpickler2(pickle.Unpickler):
+                def find_class(self, module, name):
+                    if module == '__builtin__':
+                        module = 'builtins'
+                    return super().find_class(module, name)
+
+            buf = io.BytesIO(raw[:first_stop + 1])
+            try:
+                data = Py2Unpickler2(buf, encoding='latin1').load()
+                return data
+            except Exception as e2:
+                errors.append(f"Py2Unpickler truncated: {e2}")
+        else:
+            print(f"  No STOP opcode found - file may be truncated")
+    except Exception as e:
+        errors.append(f"raw analysis: {e}")
+
+    raise RuntimeError(
+        f"Could not load {filepath} (size={file_size} bytes). Errors:\n" +
+        "\n".join(f"  - {err}" for err in errors)
+    )
+
+
+def find_pkl_files(base_dir, func_name):
+    """Search for pickle files related to the function in the directory."""
+    results = []
+    if not os.path.isdir(base_dir):
+        return results
+    for fname in sorted(os.listdir(base_dir)):
+        if fname.endswith('.pkl') and func_name in fname:
+            results.append(os.path.join(base_dir, fname))
+    return results
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl'
+    ]
+
+    std_data_dir = '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data'
+    if os.path.isdir(std_data_dir):
+        all_pkl_files = find_pkl_files(std_data_dir, 'recon_slice')
+        for p in all_pkl_files:
+            if p not in data_paths:
+                data_paths.append(p)
+
+        # Also list ALL pkl files in the directory for context
+        all_files = sorted(os.listdir(std_data_dir))
+        pkl_files = [f for f in all_files if f.endswith('.pkl')]
+        print(f"All pkl files in std_data directory: {pkl_files}")
+
+    print(f"Discovered pkl files for recon_slice: {[os.path.basename(p) for p in data_paths]}")
+
+    for p in data_paths:
+        if os.path.exists(p):
+            size = os.path.getsize(p)
+            print(f"  {os.path.basename(p)}: {size} bytes")
+        else:
+            print(f"  {os.path.basename(p)}: FILE NOT FOUND")
+
+    # Classify paths
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        if not os.path.exists(p):
+            continue
+        if os.path.getsize(p) == 0:
+            continue
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        elif basename == 'data_recon_slice.pkl' or basename == 'standard_data_recon_slice.pkl':
+            outer_path = p
+
+    if outer_path is None:
+        # Try standard_data variant
+        for variant in ['standard_data_recon_slice.pkl', 'data_recon_slice.pkl']:
+            alt_path = os.path.join(std_data_dir, variant)
+            if os.path.exists(alt_path) and os.path.getsize(alt_path) > 0:
+                outer_path = alt_path
+                break
+
+    if outer_path is None:
+        print("FAIL: No valid outer data file found.")
+        sys.exit(1)
+
+    # --- Load outer data ---
+    try:
+        print(f"\nLoading outer data from: {outer_path}")
+        outer_data = try_load_pickle(outer_path)
+    except Exception as e:
+        print(f"FAIL: Could not load outer data file: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Parse outer data
+    if isinstance(outer_data, dict):
+        outer_args = outer_data.get('args', ())
+        outer_kwargs = outer_data.get('kwargs', {})
+        outer_output = outer_data.get('output', None)
+        print(f"Outer data func_name: {outer_data.get('func_name', 'N/A')}")
+    elif isinstance(outer_data, (list, tuple)):
+        if len(outer_data) >= 3:
+            outer_args = outer_data[0] if isinstance(outer_data[0], (list, tuple)) else (outer_data[0],)
+            outer_kwargs = outer_data[1] if isinstance(outer_data[1], dict) else {}
+            outer_output = outer_data[2]
+        else:
+            print(f"FAIL: Unexpected data format (list/tuple of length {len(outer_data)})")
+            sys.exit(1)
+    else:
+        print(f"FAIL: Unexpected data format: {type(outer_data)}")
+        print(f"Data preview: {str(outer_data)[:500]}")
+        sys.exit(1)
+
+    # Handle bytes keys from Python 2 pickle
+    if isinstance(outer_kwargs, dict):
+        new_kwargs = {}
+        for k, v in outer_kwargs.items():
+            if isinstance(k, bytes):
+                new_kwargs[k.decode('utf-8')] = v
+            else:
+                new_kwargs[k] = v
+        outer_kwargs = new_kwargs
+
+    print(f"Outer args count: {len(outer_args)}, kwargs keys: {list(outer_kwargs.keys())}")
+
+    for i, arg in enumerate(outer_args):
+        if hasattr(arg, 'shape'):
+            print(f"  arg[{i}]: {type(arg).__name__}, shape={arg.shape}, dtype={getattr(arg, 'dtype', 'N/A')}")
+        elif hasattr(arg, '__len__') and not isinstance(arg, str):
+            print(f"  arg[{i}]: {type(arg).__name__}, len={len(arg)}")
+        else:
+            print(f"  arg[{i}]: {type(arg).__name__}, value={str(arg)[:200]}")
+
+    # --- Determine scenario and execute ---
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("\nScenario B: Factory/Closure pattern with inner data files.")
+
+        try:
+            print("Executing recon_slice with outer args to get operator...")
+            agent_operator = recon_slice(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: recon_slice raised: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable, got {type(agent_operator)}")
+            sys.exit(1)
+
+        all_passed = True
+        for inner_path in inner_paths:
+            try:
+                print(f"\nLoading inner data from: {inner_path}")
+                inner_data = try_load_pickle(inner_path)
+            except Exception as e:
+                print(f"FAIL: Could not load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            # Fix bytes keys
+            if isinstance(inner_kwargs, dict):
+                new_kw = {}
+                for k, v in inner_kwargs.items():
+                    if isinstance(k, bytes):
+                        new_kw[k.decode('utf-8')] = v
+                    else:
+                        new_kw[k] = v
+                inner_kwargs = new_kw
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: agent_operator raised: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: {os.path.basename(inner_path)}: {msg}")
+                all_passed = False
+            else:
+                print(f"PASS: {os.path.basename(inner_path)}")
+
+        if not all_passed:
+            sys.exit(1)
+        print("\nTEST PASSED")
+        sys.exit(0)
+
+    else:
+        # Scenario A: Simple function call
+        print("\nScenario A: Simple function call.")
+
+        try:
+            print("Executing recon_slice...")
+            result = recon_slice(*outer_args, **outer_kwargs)
+        except Exception as e:
+            print(f"FAIL: recon_slice raised: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        print(f"Result type: {type(result)}")
+        if hasattr(result, 'shape'):
+            print(f"Result shape: {result.shape}, dtype: {result.dtype}")
+        if hasattr(expected, 'shape'):
+            print(f"Expected shape: {expected.shape}, dtype: {expected.dtype}")
+
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: {msg}")
+            sys.exit(1)
+
+        print("\nTEST PASSED")
+        sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

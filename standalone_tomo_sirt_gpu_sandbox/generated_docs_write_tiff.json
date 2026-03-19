@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Writes a given image array to a TIFF file, optionally overwriting existing files.",
+    "function_docstring": "```python\ndef write_tiff(fname, img, overwrite=True):\n    \"\"\"\n    Writes an image array to a TIFF file.\n\n    Args:\n        fname (str): The name of the file to write to. If the file extension is not '.tif' or '.tiff', '.tiff' will be appended.\n        img (numpy.ndarray): The image data to be saved, typically a multi-dimensional array representing image channels, height, and width.\n        overwrite (bool, optional): If True, allows overwriting of existing files. Defaults to True.\n\n    Returns:\n        None\n    \"\"\"\n```",
+    "usage_example": "```python\nimport numpy as np\nfrom agent_write_tiff import write_tiff\n\n# Create a sample image array\nimage_data = np.random.rand(256, 256, 3)  # Example shape (H, W, C)\n\n# Write the image to a TIFF file\nwrite_tiff('sample_image', image_data)\n```"
+}

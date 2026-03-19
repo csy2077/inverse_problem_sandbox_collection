@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Reads a 2D TIFF image file and returns its data as an array.",
+    "function_docstring": "Read a 2D TIFF image file and return its pixel data as an array.\n\nArgs:\n    fname (str): The file path to a 2D TIFF image. The path can be relative or absolute, and it is converted\n                 to an absolute path before reading the image.\n\nReturns:\n    numpy.ndarray: A 2D array containing the pixel data of the TIFF image.",
+    "usage_example": "# Usage example of the `read_tiff` function\nimage_data = read_tiff(\"path/to/image.tiff\")\nprint(image_data.shape)"
+}

@@ -1,0 +1,21 @@
+All pkl files in std_data directory: ['data_CNR.pkl', 'data_NRMSE.pkl', 'data_SSIM.pkl', 'data_get_astra_proj_matrix.pkl', 'data_get_circular_mask.pkl', 'data_get_rect_coordinates_from_roi.pkl', 'data_main.pkl', 'data_read_tiff.pkl', 'data_recon_slice.pkl', 'data_reconstruct.pkl', 'data_save_reconstruction_plot.pkl', 'data_save_sinogram_plot.pkl', 'data_write_tiff.pkl']
+Discovered pkl files: ['data_recon_slice.pkl']
+
+Outer path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+Inner paths: []
+
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+  File size: 4165925 bytes
+  dill default failed: Ran out of input
+  dill.loads failed: Ran out of input
+  dill.Unpickler failed: Ran out of input
+  Pickle stream ends at byte 4165925 of 4165925
+  Truncated dill failed: Ran out of input
+  dill recurse failed: Ran out of input
+FAIL: Could not load outer data file: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl after all attempts
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 246, in main
+    outer_data = load_pickle_file(outer_path)
+  File "test_recon_slice.py", line 198, in load_pickle_file
+    raise RuntimeError(f"Could not load {filepath} after all attempts")
+RuntimeError: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl after all attempts

@@ -1,0 +1,23 @@
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_main.pkl
+Outer function name: main
+Outer args count: 0, kwargs keys: []
+Executing main(*args, **kwargs)...
+--- SIRT GPU Reconstruction (Headless) ---
+Using CUDA device: 1
+Sinogram shape: (1125, 924)
+Sinogram plot saved: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/output_sirt_gpu/sinogram.png
+> Starting Reconstruction (SIRT_CUDA with 100 iterations)...
+Reconstruction plot saved: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/output_sirt_gpu/reconstruction.png
+Saving result to: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/output_sirt_gpu/recon_result.tiff
+File saved: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/output_sirt_gpu/recon_result.tiff
+Done.
+
+--- Evaluation ---
+Generating Reference (Ground Truth) for evaluation...
+SSIM : 0.9719
+NRMSE: 0.1036
+CNR  : 31.2152
+main() execution completed.
+
+Scenario A detected: Simple function, comparing output directly.
+TEST PASSED

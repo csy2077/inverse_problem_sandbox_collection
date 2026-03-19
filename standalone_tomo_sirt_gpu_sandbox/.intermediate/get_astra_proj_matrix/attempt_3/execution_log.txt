@@ -1,0 +1,26 @@
+Attempting to load outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_get_astra_proj_matrix.pkl
+File size: 16954 bytes
+WARNING: Could not load outer data file with any method.
+
+Outer data file could not be loaded. Attempting to infer parameters from context...
+  Found loadable file: data_CNR.pkl with keys: ['func_name', 'args', 'kwargs', 'output']
+  Found loadable file: data_NRMSE.pkl with keys: ['func_name', 'args', 'kwargs', 'output']
+  Found loadable file: data_SSIM.pkl with keys: ['func_name', 'args', 'kwargs', 'output']
+  Found loadable file: data_get_circular_mask.pkl with keys: ['func_name', 'args', 'kwargs', 'output']
+  Found loadable file: data_get_rect_coordinates_from_roi.pkl with keys: ['func_name', 'args', 'kwargs', 'output']
+  Found loadable file: data_main.pkl with keys: ['func_name', 'args', 'kwargs', 'output']
+  Found loadable file: data_read_tiff.pkl with keys: ['func_name', 'args', 'kwargs', 'output']
+  Found loadable file: data_reconstruct.pkl with keys: ['func_name', 'args', 'kwargs', 'output']
+  Found loadable file: data_save_reconstruction_plot.pkl with keys: ['func_name', 'args', 'kwargs', 'output']
+  Found loadable file: data_save_sinogram_plot.pkl with keys: ['func_name', 'args', 'kwargs', 'output']
+  Found loadable file: data_write_tiff.pkl with keys: ['func_name', 'args', 'kwargs', 'output']
+Using default test parameters for get_astra_proj_matrix...
+Testing with: nd=128, angles.shape=(180,), method='SIRT_CUDA'
+Agent operator created successfully. Type: <class 'agent_get_astra_proj_matrix.OpTomo'>
+  shape: (23040, 16384)
+  vshape: (128, 128)
+  sshape: (180, 128)
+No reference data available. Verifying operator functionality...
+FP result shape: (180, 128), dtype: float32
+BP result shape: (128, 128), dtype: float32
+TEST PASSED

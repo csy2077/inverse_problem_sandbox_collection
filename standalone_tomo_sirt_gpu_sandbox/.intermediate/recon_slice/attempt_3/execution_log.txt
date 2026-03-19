@@ -1,0 +1,47 @@
+All pkl files in std_data directory: ['data_CNR.pkl', 'data_NRMSE.pkl', 'data_SSIM.pkl', 'data_get_astra_proj_matrix.pkl', 'data_get_circular_mask.pkl', 'data_get_rect_coordinates_from_roi.pkl', 'data_main.pkl', 'data_read_tiff.pkl', 'data_recon_slice.pkl', 'data_reconstruct.pkl', 'data_save_reconstruction_plot.pkl', 'data_save_sinogram_plot.pkl', 'data_write_tiff.pkl']
+Discovered pkl files: ['data_recon_slice.pkl']
+
+Outer path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+Inner paths: []
+
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+  File size: 4165925 bytes
+  Header hex: 80037d710028580900000066756e635f6e616d65
+  CustomUnpickler latin1 failed: function() argument 2 must be dict, not module
+  CustomUnpickler default failed: function() argument 2 must be dict, not module
+  CustomUnpickler with injection latin1 failed: function() argument 2 must be dict, not module
+  CustomUnpickler with injection default failed: function() argument 2 must be dict, not module
+  dill latin1 after injection failed: Ran out of input
+  dill default after injection failed: Ran out of input
+  CustomDillUnpickler latin1 failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+  CustomDillUnpickler default failed: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+  Found 12671 potential STOP positions
+  Last STOP at: 4162743, file size: 4165925
+  First pickle opcodes:
+    ('PROTO', 3, 0)
+    ('EMPTY_DICT', None, 2)
+    ('BINPUT', 0, 3)
+    ('MARK', None, 5)
+    ('BINUNICODE', 'func_name', 6)
+    ('BINPUT', 1, 20)
+    ('BINUNICODE', 'recon_slice', 22)
+    ('BINPUT', 2, 38)
+    ('BINUNICODE', 'args', 40)
+    ('BINPUT', 3, 49)
+    ('GLOBAL', 'dill._dill _get_attr', 51)
+    ('BINPUT', 4, 73)
+    ('GLOBAL', 'dill._dill _import_module', 75)
+    ('BINPUT', 5, 102)
+    ('BINUNICODE', 'numpy.core._multiarray_umath', 104)
+    ('BINPUT', 6, 137)
+    ('TUPLE1', None, 139)
+    ('BINPUT', 7, 140)
+    ('REDUCE', None, 142)
+    ('BINPUT', 8, 143)
+FAIL: Could not load outer data file: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl after all attempts
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 391, in main
+    outer_data = load_pickle_file(outer_path)
+  File "test_recon_slice.py", line 247, in load_pickle_file
+    raise RuntimeError(f"Could not load {filepath} after all attempts")
+RuntimeError: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl after all attempts

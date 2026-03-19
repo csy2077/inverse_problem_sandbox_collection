@@ -1,0 +1,19 @@
+All discovered pkl files for recon_slice: ['data_recon_slice.pkl']
+  data_recon_slice.pkl: 4165925 bytes
+
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+FAIL: Could not load outer data file: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl (size=4165925 bytes). Errors:
+  - dill.load: Ran out of input
+  - pickle.load: No module named '__builtin__'
+  - pickle latin1: No module named '__builtin__'
+  - dill.Unpickler: Ran out of input
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 152, in main
+    outer_data = try_load_pickle(outer_path)
+  File "test_recon_slice.py", line 83, in try_load_pickle
+    "\n".join(f"  - {err}" for err in errors)
+RuntimeError: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl (size=4165925 bytes). Errors:
+  - dill.load: Ran out of input
+  - pickle.load: No module named '__builtin__'
+  - pickle latin1: No module named '__builtin__'
+  - dill.Unpickler: Ran out of input

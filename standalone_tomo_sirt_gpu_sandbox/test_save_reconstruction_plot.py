@@ -1,0 +1,181 @@
+import sys
+import os
+import dill
+import traceback
+import numpy as np
+
+# Attempt torch import but don't fail if not available
+try:
+    import torch
+except ImportError:
+    torch = None
+
+from agent_save_reconstruction_plot import save_reconstruction_plot
+from verification_utils import recursive_check
+
+
+def main():
+    data_paths = [
+        '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_save_reconstruction_plot.pkl'
+    ]
+
+    # -------------------------------------------------------------------------
+    # Step 1: Classify data files into outer (standard) and inner (parent) paths
+    # -------------------------------------------------------------------------
+    outer_path = None
+    inner_paths = []
+
+    for p in data_paths:
+        basename = os.path.basename(p)
+        if 'parent_function' in basename or 'parent_' in basename:
+            inner_paths.append(p)
+        else:
+            outer_path = p
+
+    if outer_path is None:
+        print("FAIL: Could not find outer (standard) data file.")
+        sys.exit(1)
+
+    # -------------------------------------------------------------------------
+    # Step 2: Load outer data
+    # -------------------------------------------------------------------------
+    try:
+        with open(outer_path, 'rb') as f:
+            outer_data = dill.load(f)
+        print(f"Loaded outer data from: {outer_path}")
+        print(f"  Keys: {list(outer_data.keys())}")
+    except Exception as e:
+        print(f"FAIL: Could not load outer data: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    outer_args = outer_data.get('args', ())
+    outer_kwargs = outer_data.get('kwargs', {})
+    outer_output = outer_data.get('output', None)
+
+    # -------------------------------------------------------------------------
+    # Step 3: Determine Scenario A vs B
+    # -------------------------------------------------------------------------
+    if len(inner_paths) > 0:
+        # Scenario B: Factory/Closure pattern
+        print("Detected Scenario B (Factory/Closure pattern)")
+
+        # Phase 1: Reconstruct Operator
+        try:
+            agent_operator = save_reconstruction_plot(*outer_args, **outer_kwargs)
+            print(f"Phase 1: save_reconstruction_plot returned: {type(agent_operator)}")
+        except Exception as e:
+            print(f"FAIL: Phase 1 execution failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not callable(agent_operator):
+            print(f"FAIL: Expected callable operator, got {type(agent_operator)}")
+            sys.exit(1)
+
+        # Phase 2: Execute with inner data
+        for inner_path in inner_paths:
+            try:
+                with open(inner_path, 'rb') as f:
+                    inner_data = dill.load(f)
+                print(f"Loaded inner data from: {inner_path}")
+            except Exception as e:
+                print(f"FAIL: Could not load inner data: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            inner_args = inner_data.get('args', ())
+            inner_kwargs = inner_data.get('kwargs', {})
+            expected = inner_data.get('output', None)
+
+            try:
+                result = agent_operator(*inner_args, **inner_kwargs)
+            except Exception as e:
+                print(f"FAIL: Inner execution failed: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            # Comparison
+            try:
+                passed, msg = recursive_check(expected, result)
+            except Exception as e:
+                print(f"FAIL: recursive_check raised exception: {e}")
+                traceback.print_exc()
+                sys.exit(1)
+
+            if not passed:
+                print(f"FAIL: Verification failed for inner data {os.path.basename(inner_path)}")
+                print(f"  Message: {msg}")
+                sys.exit(1)
+            else:
+                print(f"PASS: Inner data {os.path.basename(inner_path)} verified successfully.")
+
+    else:
+        # Scenario A: Simple function call
+        print("Detected Scenario A (Simple function)")
+
+        # The function save_reconstruction_plot saves a plot and returns None.
+        # We need to handle the output_path argument carefully -- the function
+        # writes to disk. We use a temporary path if the original might conflict.
+        # However, we replicate the exact call to match expected output.
+
+        # Phase 1: Execute the function
+        try:
+            # Modify output_path to a temp location to avoid overwriting original files
+            # but keep the call signature intact
+            modified_args = list(outer_args)
+            modified_kwargs = dict(outer_kwargs)
+
+            # Check if output_path is in args or kwargs and redirect to temp
+            temp_output_path = None
+            if len(modified_args) >= 2:
+                original_path = modified_args[1]
+                temp_output_path = '/tmp/test_reconstruction_plot_output.png'
+                modified_args[1] = temp_output_path
+            elif 'output_path' in modified_kwargs:
+                original_path = modified_kwargs['output_path']
+                temp_output_path = '/tmp/test_reconstruction_plot_output.png'
+                modified_kwargs['output_path'] = temp_output_path
+
+            result = save_reconstruction_plot(*modified_args, **modified_kwargs)
+            print(f"Phase 1: save_reconstruction_plot returned: {result} (type: {type(result)})")
+        except Exception as e:
+            print(f"FAIL: Execution failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        expected = outer_output
+
+        # Comparison
+        try:
+            passed, msg = recursive_check(expected, result)
+        except Exception as e:
+            print(f"FAIL: recursive_check raised exception: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+
+        if not passed:
+            print(f"FAIL: Verification failed.")
+            print(f"  Expected: {expected}")
+            print(f"  Got:      {result}")
+            print(f"  Message:  {msg}")
+            sys.exit(1)
+
+        # Additional check: if the function was supposed to write a file, verify it exists
+        if temp_output_path and os.path.exists(temp_output_path):
+            file_size = os.path.getsize(temp_output_path)
+            print(f"  Output file created: {temp_output_path} ({file_size} bytes)")
+            # Clean up temp file
+            try:
+                os.remove(temp_output_path)
+            except:
+                pass
+        elif temp_output_path:
+            print(f"WARNING: Expected output file was not created at {temp_output_path}")
+
+    print("TEST PASSED")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

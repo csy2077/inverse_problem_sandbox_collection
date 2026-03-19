@@ -1,0 +1,8 @@
+Loaded outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_get_rect_coordinates_from_roi.pkl
+Outer data keys: ['func_name', 'args', 'kwargs', 'output']
+Outer args: ('/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/data/background.roi',)
+Outer kwargs: {}
+Detected Scenario A: Simple function
+Function executed. Result type: <class 'tuple'>
+Result: (403, 504, 830, 858)
+TEST PASSED

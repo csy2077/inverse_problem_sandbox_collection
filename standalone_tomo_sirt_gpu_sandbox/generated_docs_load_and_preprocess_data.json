@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Loads and preprocesses a sinogram from a TIFF file for tomographic reconstruction.",
+    "function_docstring": "Load and preprocess sinogram data from a TIFF file for tomographic reconstruction.\n\nArgs:\n    data_file (str): Path to the sinogram TIFF file.\n    pixel_size (float, optional): Pixel size for normalization. Default is 0.0029.\n\nReturns:\n    dict: A dictionary with the following key-value pairs:\n        - 'sinogram': ndarray of shape (A, D), where A is the number of angles and D is the detector size.\n        - 'sinogram_normalized': ndarray of the same shape as 'sinogram', normalized by the pixel size.\n        - 'angles': ndarray of shape (A,), containing angles from 0 to 2\u03c0 for sinogram acquisition.\n        - 'pixel_size': float, the pixel size used for normalization.\n        - 'n_angles': int, the number of angles (A).\n        - 'nd': int, the detector size (D).",
+    "usage_example": "from agent_load_and_preprocess_data import load_and_preprocess_data\n\ndata_file = '/path/to/sinogram.tiff'\nresult = load_and_preprocess_data(data_file)\nprint(result['sinogram'].shape)\nprint(result['angles'])"
+}

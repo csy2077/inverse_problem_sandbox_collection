@@ -1,0 +1,48 @@
+All pkl files in std_data directory: ['data_CNR.pkl', 'data_NRMSE.pkl', 'data_SSIM.pkl', 'data_get_astra_proj_matrix.pkl', 'data_get_circular_mask.pkl', 'data_get_rect_coordinates_from_roi.pkl', 'data_main.pkl', 'data_read_tiff.pkl', 'data_recon_slice.pkl', 'data_reconstruct.pkl', 'data_save_reconstruction_plot.pkl', 'data_save_sinogram_plot.pkl', 'data_write_tiff.pkl']
+Discovered pkl files: ['data_recon_slice.pkl']
+
+Outer path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+Inner paths: []
+astra module available
+
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+  File size: 4165925 bytes
+  First 20 bytes (hex): 80037d710028580900000066756e635f6e616d65
+  Last 20 bytes (hex): 5f0a5f5f6d61696e5f5f0a68f36a0601000068f9
+  Pickle protocol: 3
+  dill.loads failed: EOFError: Ran out of input
+  pickle.loads failed: ModuleNotFoundError: No module named '__builtin__'
+  dill.Unpickler failed: EOFError: Ran out of input
+  pickle.Unpickler failed: ModuleNotFoundError: No module named '__builtin__'
+  Found 12671 potential STOP opcodes
+  Attempting raw byte analysis...
+  Warning: Could not find __builtin__.__main__, using dummy
+  ForgivingUnpickler latin1 failed: TypeError: function() argument 2 must be dict, not type
+  Warning: Could not find __builtin__.__main__, using dummy
+  ForgivingUnpickler default failed: TypeError: function() argument 2 must be dict, not type
+  dill after extra imports failed: EOFError: Ran out of input
+WARNING: Could not load outer data file directly: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl after all attempts
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 425, in main
+    outer_data = load_pickle_file(outer_path)
+  File "test_recon_slice.py", line 343, in load_pickle_file
+    raise RuntimeError(f"Could not load {filepath} after all attempts")
+RuntimeError: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl after all attempts
+
+Direct load failed. Trying alternative reconstruction strategies...
+  Detected module references: ['cdill._dill', 'data3dq.X', 'numpy.core._multiarray_umathq']
+  Still failed: Ran out of input
+
+Attempting to reconstruct test from related data files...
+  Successfully loaded reconstruct data
+  Could not load proj_matrix: Ran out of input
+  reconstruct data keys: ['func_name', 'args', 'kwargs', 'output']
+  reconstruct args: 3
+    arg[0]: ndarray shape=(1125, 924)
+    arg[1]: ndarray shape=(1125,)
+    arg[2]: str
+  reconstruct output shape: (924, 924)
+
+Trying advanced unpickling strategies...
+  Loaded by appending b'.'
+FAIL: Unexpected data format: <class 'function'>

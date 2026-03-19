@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Applies the forward projection operator (Radon transform) to a given 2D image using a specified projection matrix.",
+    "function_docstring": "Applies the forward projection operator (Radon transform) to a given 2D image using a specified projection matrix.\n\nArgs:\n    x (np.ndarray): A 2D numpy array representing the volume or image to be projected. The array should be of type float32.\n    pmat (OpTomo): An ASTRA projection matrix operator used to perform the forward projection. This object must have a method `FP` that takes a numpy array as input and returns a numpy array as output.\n\nReturns:\n    np.ndarray: A numpy array representing the predicted sinogram from the forward projection, with the same dtype as the input array.",
+    "usage_example": "import numpy as np\n\n# Example 2D image\nx = np.random.rand(128, 128).astype(np.float32)\n\n# Example projection matrix operator (pmat)\n# Assume pmat is an instance of OpTomo with a method FP\npmat ="
+}

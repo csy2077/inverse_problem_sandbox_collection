@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Generates and saves a visual representation of a sinogram as a PNG file.",
+    "function_docstring": "```python\ndef save_sinogram_plot(sinogram, output_path):\n    \"\"\"\n    Generates a plot of the given sinogram and saves it as a PNG file.\n\n    Args:\n        sinogram (ndarray): A 2D array representing the sinogram data, where the first dimension corresponds to the projection angle index and the second dimension corresponds to the detector pixel.\n        output_path (str): The file path where the PNG image of the sinogram plot will be saved.\n\n    Returns:\n        None\n    \"\"\"\n```",
+    "usage_example": "```python\nimport numpy as np\n\n# Example sinogram data\nsinogram_data = np.random.rand(180, 256)  # 180 angles, 256 detector pixels\n\n# Output file path\noutput_file = 'sinogram_plot.png'\n\n# Save the sinogram plot\nsave_sinogram_plot(sinogram_data, output_file)\n```"
+}

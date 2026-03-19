@@ -1,0 +1,47 @@
+All pkl files in std_data directory: ['data_CNR.pkl', 'data_NRMSE.pkl', 'data_SSIM.pkl', 'data_get_astra_proj_matrix.pkl', 'data_get_circular_mask.pkl', 'data_get_rect_coordinates_from_roi.pkl', 'data_main.pkl', 'data_read_tiff.pkl', 'data_recon_slice.pkl', 'data_reconstruct.pkl', 'data_save_reconstruction_plot.pkl', 'data_save_sinogram_plot.pkl', 'data_write_tiff.pkl']
+Discovered pkl files for recon_slice: ['data_recon_slice.pkl']
+  data_recon_slice.pkl: 4165925 bytes
+
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+  File header bytes: b'\x80\x03}q\x00(X\t\x00\x00\x00func_name'
+  File header hex: 80037d710028580900000066756e635f6e616d65
+  First pickle opcodes: [('PROTO', 3, 0), ('EMPTY_DICT', None, 2), ('BINPUT', 0, 3), ('MARK', None, 5), ('BINUNICODE', 'func_name', 6), ('BINPUT', 1, 20), ('BINUNICODE', 'recon_slice', 22), ('BINPUT', 2, 38), ('BINUNICODE', 'args', 40), ('BINPUT', 3, 49)]
+  Total file bytes: 4165925
+  Pickle protocol: 3
+  Last 10 bytes: 0a68f36a0601000068f9
+  STOP opcode positions (last 5): [4162612, 4162715, 4162724, 4162734, 4162743]
+FAIL: Could not load outer data file: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl (size=4165925 bytes). Errors:
+  - dill.load(encoding=latin1): Ran out of input
+  - dill.load: Ran out of input
+  - pickle.load(latin1): No module named '__builtin__'
+  - pickle.load(bytes): No module named '__builtin__'
+  - pickle.load: No module named '__builtin__'
+  - np.load: Failed to interpret file '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl' as a pickle
+  - raw bytes fix: No module named 'builtins\x00\x00\x00'
+  - raw bytes fix v2: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+  - gzip+dill: Not a gzipped file (b'\x80\x03')
+  - bz2+dill: Invalid data stream
+  - Py2Unpickler: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+  - Py2DillUnpickler: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+  - truncated to first STOP: pickle data was truncated
+  - Py2Unpickler truncated: pickle data was truncated
+Traceback (most recent call last):
+  File "test_recon_slice.py", line 325, in main
+    outer_data = try_load_pickle(outer_path)
+  File "test_recon_slice.py", line 254, in try_load_pickle
+    "\n".join(f"  - {err}" for err in errors)
+RuntimeError: Could not load /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl (size=4165925 bytes). Errors:
+  - dill.load(encoding=latin1): Ran out of input
+  - dill.load: Ran out of input
+  - pickle.load(latin1): No module named '__builtin__'
+  - pickle.load(bytes): No module named '__builtin__'
+  - pickle.load: No module named '__builtin__'
+  - np.load: Failed to interpret file '/fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl' as a pickle
+  - raw bytes fix: No module named 'builtins\x00\x00\x00'
+  - raw bytes fix v2: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+  - gzip+dill: Not a gzipped file (b'\x80\x03')
+  - bz2+dill: Invalid data stream
+  - Py2Unpickler: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+  - Py2DillUnpickler: Can't get attribute '__main__' on <module 'builtins' (built-in)>
+  - truncated to first STOP: pickle data was truncated
+  - Py2Unpickler truncated: pickle data was truncated

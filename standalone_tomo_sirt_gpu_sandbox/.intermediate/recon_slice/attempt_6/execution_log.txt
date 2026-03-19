@@ -1,0 +1,46 @@
+All pkl files in std_data directory: ['data_CNR.pkl', 'data_NRMSE.pkl', 'data_SSIM.pkl', 'data_get_astra_proj_matrix.pkl', 'data_get_circular_mask.pkl', 'data_get_rect_coordinates_from_roi.pkl', 'data_main.pkl', 'data_read_tiff.pkl', 'data_recon_slice.pkl', 'data_reconstruct.pkl', 'data_save_reconstruction_plot.pkl', 'data_save_sinogram_plot.pkl', 'data_write_tiff.pkl']
+Discovered pkl files: ['data_recon_slice.pkl']
+
+Outer path: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+Inner paths: []
+Successfully loaded data_reconstruct.pkl
+  Keys: ['func_name', 'args', 'kwargs', 'output']
+
+Loading outer data from: /fs-computility-new/UPDZ02_sunhe/shared/QA_yixuan/standalone_tomo_sirt_gpu_sandbox/run_code/std_data/data_recon_slice.pkl
+  Loaded outer data, type: <class 'function'>
+
+Outer data is not a standard dict (type=function)
+Using data_reconstruct.pkl to build test...
+  func_name: reconstruct
+  args count: 3
+    arg[0]: ndarray shape=(1125, 924) dtype=float32
+    arg[1]: ndarray shape=(1125,) dtype=float64
+    arg[2]: str = 'SIRT_CUDA'
+  kwargs: ['parameters', 'pixel_size']
+  output: shape=(924, 924) dtype=float32
+
+  Reconstructed test parameters:
+    method: SIRT_CUDA
+    sinogram shape (at reconstruct): (1125, 924)
+    iterations: 1
+    extra_opts: {}
+    parameters: {}
+
+  Running recon_slice with mock pmat...
+    sinogram shape: (1125, 924)
+    method: SIRT_CUDA
+    parameters: None
+    pixel_size: 1.0
+    offset: 0
+
+  Mock pmat.reconstruct was called:
+    method: SIRT_CUDA
+    sinogram shape: (1125, 924)
+    iterations: 1
+    extraOptions: {}
+
+  Result type: <class 'numpy.ndarray'>
+  Result shape: (924, 924), dtype: float32
+  Expected shape: (924, 924), dtype: float32
+
+TEST PASSED

@@ -1,0 +1,5 @@
+{
+    "function_explanation": "Saves a grayscale reconstruction image to a specified file path.",
+    "function_docstring": "```python\ndef save_reconstruction_plot(rec, output_path):\n    \"\"\"\n    Saves a grayscale reconstruction image to a specified file path.\n\n    Args:\n        rec (array-like): A 2D array representing the reconstruction image data. The array should be compatible with matplotlib's imshow function.\n        output_path (str): The file path where the PNG image will be saved.\n\n    Returns:\n        None\n    \"\"\"\n```",
+    "usage_example": "```python\nimport numpy as np\n\n# Example reconstruction data\nreconstruction_data = np.random.rand(256, 256)\n\n# Output path for the saved image\noutput_file_path = 'reconstruction.png'\n\n# Save the reconstruction plot\nsave_reconstruction_plot(reconstruction_data, output_file_path)\n```"
+}
